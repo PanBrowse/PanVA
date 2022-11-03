@@ -1,0 +1,4 @@
+export const API_URL = `${import.meta.env.VITE_API_URL}`
+export const DEFAULT_HOMOLOGY_ID = parseInt(
+  `${import.meta.env.VITE_DEFAULT_HOMOLOGY_ID}`
+)
