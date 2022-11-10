@@ -1,40 +1,75 @@
-<script setup lang="ts">
-defineProps<{
-  msg?: string
-}>()
+<script lang="ts">
+import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons-vue'
+import { TITLE } from '@/config'
+
+export default {
+  name: 'Layout',
+  slots: ['sider'],
+  components: {
+    MenuUnfoldOutlined,
+    MenuFoldOutlined,
+  },
+  data() {
+    return {
+      collapsed: false,
+      title: TITLE,
+    }
+  },
+}
 </script>
 
 <template>
-  <div class="greetings">
-    <h1 class="green">{{ msg || 'No message' }}</h1>
-    <h3>
-      You’ve successfully created a project with
-      <a href="https://vitejs.dev/" target="_blank" rel="noopener">Vite</a> +
-      <a href="https://vuejs.org/" target="_blank" rel="noopener">Vue 3</a>.
-    </h3>
-  </div>
+  <a-layout>
+    <a-layout-content>
+      <a-button
+        type="text"
+        class="trigger"
+        shape="circle"
+        @click="() => (collapsed = !collapsed)"
+      >
+        <template #icon>
+          <MenuFoldOutlined v-if="collapsed" />
+          <MenuUnfoldOutlined v-else />
+        </template>
+      </a-button>
+
+      <slot></slot>
+    </a-layout-content>
+
+    <a-layout-sider
+      v-model:collapsed="collapsed"
+      :trigger="null"
+      collapsible
+      :collapsedWidth="0"
+      :width="360"
+    >
+      <a-card :title="title" :bordered="false" style="min-height: 100%">
+        <slot name="sider"></slot>
+      </a-card>
+    </a-layout-sider>
+  </a-layout>
 </template>
 
 <style scoped>
-h1 {
-  font-weight: 500;
-  font-size: 2.6rem;
-  top: -10px;
+.ant-layout {
+  height: 100vh;
 }
 
-h3 {
-  font-size: 1.2rem;
+.ant-layout-content {
+  background: none;
+  position: relative;
+  padding: 16px;
+  padding-top: 58px;
 }
 
-.greetings h1,
-.greetings h3 {
-  text-align: center;
+.ant-layout-sider {
+  background: none;
+  overflow-y: auto;
 }
 
-@media (min-width: 1024px) {
-  .greetings h1,
-  .greetings h3 {
-    text-align: left;
-  }
+.trigger {
+  position: absolute;
+  top: 14px;
+  right: 14px;
 }
 </style>

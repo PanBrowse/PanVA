@@ -1,9 +1,11 @@
-type mRNAid = string
-type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
-type Virulence = 'virulent' | 'avirulent' | '?'
+export type mRNAid = string
+export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
+export type Virulence = 'virulent' | 'avirulent' | '?'
+export type Range = [number, number]
 
-type Homology = {
+export type Homology = {
   homology_id: number
+  name: string
   members: number
   class: string
   variable_sites_nuc: boolean
@@ -14,7 +16,7 @@ type Homology = {
   pheno_specific_changes_prot: boolean
 }
 
-type AlignedPosition = {
+export type AlignedPosition = {
   index: number
   mRNA_id: mRNAid
   genome_nr: number
@@ -30,18 +32,19 @@ type AlignedPosition = {
   // virulence: Virulence | null
 }
 
-type VarPosCount = {
+export type VarPosCount = {
   position: number
   informative: boolean | null
   A: number
   C: number
-  T: number
   G: number
+  T: number
   gap: number
   other: number
+  conservation: number
 }
 
-type Pheno = {
+export type Pheno = {
   mRNA_id: mRNAid
   species: string
   strain_name: string
@@ -52,7 +55,7 @@ type Pheno = {
   // pheno_node_id: number
 }
 
-type Dendro = {
+export type Dendro = {
   name: string
   children?: Dendro[]
 }

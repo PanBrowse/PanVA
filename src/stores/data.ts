@@ -6,6 +6,15 @@ import { mapValues } from 'lodash'
 
 import { API_URL, DEFAULT_HOMOLOGY_ID } from '@/config'
 import { parseBool, parseOptionalBool } from '@/helpers/d3'
+import type {
+  AlignedPosition,
+  Dendro,
+  Homology,
+  mRNAid,
+  Pheno,
+  VarPosCount,
+  Range,
+} from '@/types'
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -29,6 +38,7 @@ export const useDataStore = defineStore('data', {
     // Application state.
     homologyId: DEFAULT_HOMOLOGY_ID,
     selectedIds: [] as mRNAid[],
+    selectedRegion: [1, 40] as Range,
   }),
   getters: {
     homology: (state) => {
@@ -36,6 +46,9 @@ export const useDataStore = defineStore('data', {
       return state.homologies.find(
         ({ homology_id }) => homology_id === state.homologyId
       )
+    },
+    sequenceCount(): number {
+      return this.homology?.members || 0
     },
     geneLength(): number {
       if (this.homology) {
@@ -138,11 +151,13 @@ export const useDataStore = defineStore('data', {
     },
     async fetchHomology() {
       // Reset to initial state.
-      this.alignedPositions = []
-      this.varPosCount = []
-      this.phenos = []
-      this.dendroDefault = null
-      this.dendroCustom = null
+      this.$patch({
+        alignedPositions: [],
+        dendroCustom: null,
+        dendroDefault: null,
+        phenos: [],
+        varPosCount: [],
+      })
 
       // Fetch new data for now selected homology id.
       // The requests are performed concurrently to speed up loading.

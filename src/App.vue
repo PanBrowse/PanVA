@@ -1,11 +1,18 @@
 <script lang="ts">
-import Layout from '@/components/Layout.vue'
 import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
+
+import GeneOverview from '@/components/GeneOverview.vue'
+import HomologyInfo from '@/components/HomologyInfo.vue'
+import HomologySelect from '@/components/HomologySelect.vue'
+import Layout from '@/components/Layout.vue'
 
 export default {
   name: 'App',
   components: {
+    GeneOverview,
+    HomologySelect,
+    HomologyInfo,
     Layout,
   },
   methods: {
@@ -24,7 +31,6 @@ export default {
       this.fetchCoreSNP(),
       this.fetchHomology(),
     ])
-    console.log('done loading')
   },
   watch: {
     homologyId() {
@@ -35,25 +41,18 @@ export default {
 </script>
 
 <template>
-  <Layout />
+  <Layout>
+    <template #sider>
+      <HomologySelect />
+      <HomologyInfo />
+    </template>
+
+    <GeneOverview />
+
+    <a-card title="Locus view" :bordered="false" size="small">
+      <p>Card content</p>
+      <p>Card content</p>
+      <p>Card content</p>
+    </a-card>
+  </Layout>
 </template>
-
-<style>
-body {
-  overflow: hidden;
-}
-
-#app {
-  height: 100%;
-  color: #253545;
-}
-
-/**
-  Bugfix for antd: plus and min icons are not shown on small buttons in Firefox.
-  https://github.com/ant-design/ant-design/commit/15524df9414d3d44235674b3328fad3ef50714d1
- */
-.ant-btn .anticon.anticon-plus > svg,
-.ant-btn .anticon.anticon-minus > svg {
-  shape-rendering: auto !important;
-}
-</style>

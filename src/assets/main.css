@@ -1,35 +1,20 @@
-@import './base.css';
+@import 'ant-design-vue/dist/antd.css';
+
+/**
+ * Bugfixes for antd: plus and min icons are not shown on small buttons in Firefox.
+ * https://github.com/ant-design/ant-design/commit/15524df9414d3d44235674b3328fad3ef50714d1
+ */
+.anticon svg {
+  shape-rendering: auto !important;
+}
+
+/** Custom CSS */
+
+body {
+  overflow: hidden;
+  background: #ececec;
+}
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-
-  font-weight: normal;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+  height: 100%;
 }
