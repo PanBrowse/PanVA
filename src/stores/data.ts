@@ -16,7 +16,6 @@ export const useDataStore = defineStore('data', {
     // Data that is fetched from the API using `homologyId`.
     // We don't keep data for previous homology ids because of memory consumption.
     alignedPositions: [] as AlignedPosition[],
-    sequences: [] as Sequence[],
     varPosCount: [] as VarPosCount[],
     phenos: [] as Pheno[],
     dendroDefault: null as Dendro | null,
@@ -25,76 +24,134 @@ export const useDataStore = defineStore('data', {
     // Visualization preferences.
 
     // API fetching state.
-    hasData: false,
-    isLoading: true,
     hasError: false,
 
     // Application state.
     homologyId: DEFAULT_HOMOLOGY_ID,
     selectedIds: [] as mRNAid[],
   }),
-  getters: {},
+  getters: {
+    homology: (state) => {
+      // This will return undefined if the homologies have not yet loaded.
+      return state.homologies.find(
+        ({ homology_id }) => homology_id === state.homologyId
+      )
+    },
+    geneLength(): number {
+      if (this.homology) {
+        return this.alignedPositions.length / this.homology.members
+      }
+      return 0
+    },
+  },
   actions: {
     async fetchHomologyIds() {
-      const response = await axios.get<Homology[]>(`${API_URL}/homology_ids`)
-      this.homologies = response.data
+      try {
+        const response = await axios.get<Homology[]>(`${API_URL}/homology_ids`)
+        this.homologies = response.data
+      } catch (err) {
+        this.hasError = true
+        throw err
+      }
     },
     async fetchCoreSNP() {
-      const response = await axios.get<string>(`${API_URL}/core_snp`)
-      this.coreSNP = parse_newick(response.data)
+      try {
+        const response = await axios.get<string>(`${API_URL}/core_snp`)
+        this.coreSNP = parse_newick(response.data)
+      } catch (err) {
+        this.hasError = true
+        throw err
+      }
     },
     async fetchAlignedPositions() {
-      this.alignedPositions = await csv<AlignedPosition>(
-        `${API_URL}/${this.homologyId}/al_pos`,
-        ({ informative, pheno_specific, variable, ...rest }) =>
-          ({
-            ...rest,
-            informative: parseOptionalBool(informative),
-            pheno_specific: parseOptionalBool(pheno_specific),
-            variable: parseBool(variable),
-          } as AlignedPosition)
-      )
-    },
-    async fetchSequences() {
-      this.sequences = await csv<Sequence>(
-        `${API_URL}/${this.homologyId}/sequences`,
-        ({ mRNA_id, nuc_trimmed_seq }) =>
-          ({ mRNA_id, nuc_trimmed_seq } as Sequence)
-      )
-    },
-    async fetchVarPosCount() {
-      this.varPosCount = await csv<VarPosCount>(
-        `${API_URL}/${this.homologyId}/var_pos_count`,
-        ({ informative, ...rest }) =>
-          ({
-            // Convert all values to a number.
-            ...mapValues(rest, parseInt),
-            informative: parseOptionalBool(informative),
-          } as VarPosCount)
-      )
-    },
-    async fetchPhenos() {
-      this.phenos = await csv<Pheno>(
-        `${API_URL}/${this.homologyId}/phenos`,
-        ({ genome_nr, pheno_node_id, ...rest }) => rest as Pheno
-      )
+      try {
+        this.alignedPositions = await csv<AlignedPosition>(
+          `${API_URL}/${this.homologyId}/al_pos`,
+          ({ informative, pheno_specific, variable, virulence, ...rest }) =>
+            ({
+              ...rest,
+              informative: parseOptionalBool(informative),
+              pheno_specific: parseOptionalBool(pheno_specific),
+              variable: parseBool(variable),
+            } as AlignedPosition)
+        )
+      } catch (err) {
+        this.hasError = true
+        throw err
+      }
     },
     async fetchDendrogramDefault() {
-      const data = await json<Dendro>(`${API_URL}/${this.homologyId}/d3dendro`)
-      if (data) {
-        this.dendroDefault = data
-      } else {
+      try {
+        const data = await json<Dendro>(
+          `${API_URL}/${this.homologyId}/d3dendro`
+        )
+        if (data) {
+          this.dendroDefault = data
+        } else {
+          this.hasError = true
+        }
+      } catch (err) {
         this.hasError = true
+        throw err
       }
     },
     async fetchDendrogramCustom(positions: number[]) {
-      const response = await axios.post<Dendro>(
-        `${API_URL}/${this.homologyId}/d3dendro`,
-        {
-          positions,
-        }
-      )
-      this.dendroCustom = response.data
+      try {
+        const response = await axios.post<Dendro>(
+          `${API_URL}/${this.homologyId}/d3dendro`,
+          {
+            positions,
+          }
+        )
+        this.dendroCustom = response.data
+      } catch (err) {
+        this.hasError = true
+        throw err
+      }
+    },
+    async fetchPhenos() {
+      try {
+        this.phenos = await csv<Pheno>(
+          `${API_URL}/${this.homologyId}/phenos`,
+          ({ genome_nr, pheno_node_id, ...rest }) => rest as Pheno
+        )
+      } catch (err) {
+        this.hasError = true
+        throw err
+      }
+    },
+    async fetchVarPosCount() {
+      try {
+        this.varPosCount = await csv<VarPosCount>(
+          `${API_URL}/${this.homologyId}/var_pos_count`,
+          ({ informative, ...rest }) =>
+            ({
+              // Convert all values to a number.
+              ...mapValues(rest, parseInt),
+              informative: parseOptionalBool(informative),
+            } as VarPosCount)
+        )
+      } catch (err) {
+        this.hasError = true
+        throw err
+      }
+    },
+    async fetchHomology() {
+      // Reset to initial state.
+      this.alignedPositions = []
+      this.varPosCount = []
+      this.phenos = []
+      this.dendroDefault = null
+      this.dendroCustom = null
+
+      // Fetch new data for now selected homology id.
+      // The requests are performed concurrently to speed up loading.
+      await Promise.all([
+        this.fetchAlignedPositions(),
+        this.fetchDendrogramDefault(),
+        this.fetchPhenos(),
+        this.fetchVarPosCount(),
+      ])
     },
   },
 })

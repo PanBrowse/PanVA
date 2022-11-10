@@ -1,53 +1,59 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+<script lang="ts">
+import Layout from '@/components/Layout.vue'
+import { mapActions, mapState } from 'pinia'
+import { useDataStore } from '@/stores/data'
+
+export default {
+  name: 'App',
+  components: {
+    Layout,
+  },
+  methods: {
+    ...mapActions(useDataStore, [
+      'fetchHomologyIds',
+      'fetchCoreSNP',
+      'fetchHomology',
+    ]),
+  },
+  computed: {
+    ...mapState(useDataStore, ['homologyId']),
+  },
+  created() {
+    Promise.all([
+      this.fetchHomologyIds(),
+      this.fetchCoreSNP(),
+      this.fetchHomology(),
+    ])
+    console.log('done loading')
+  },
+  watch: {
+    homologyId() {
+      this.fetchHomology()
+    },
+  },
+}
 </script>
 
 <template>
-  <header>
-    <img
-      alt="Vue logo"
-      class="logo"
-      src="./assets/logo.svg"
-      width="125"
-      height="125"
-    />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <Layout />
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
+<style>
+body {
+  overflow: hidden;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+#app {
+  height: 100%;
+  color: #253545;
 }
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+/**
+  Bugfix for antd: plus and min icons are not shown on small buttons in Firefox.
+  https://github.com/ant-design/ant-design/commit/15524df9414d3d44235674b3328fad3ef50714d1
+ */
+.ant-btn .anticon.anticon-plus > svg,
+.ant-btn .anticon.anticon-minus > svg {
+  shape-rendering: auto !important;
 }
 </style>

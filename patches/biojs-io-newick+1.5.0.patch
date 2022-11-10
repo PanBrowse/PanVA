@@ -1,0 +1,26 @@
+diff --git a/node_modules/biojs-io-newick/build/biojs-io-newick.min.js b/node_modules/biojs-io-newick/build/biojs-io-newick.min.js
+index 0a90c18..e5982a8 100644
+--- a/node_modules/biojs-io-newick/build/biojs-io-newick.min.js
++++ b/node_modules/biojs-io-newick/build/biojs-io-newick.min.js
+@@ -59,7 +59,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
+  * }
+  */
+ 
+-module.exports = parse_nhx = function(s) {
++module.exports = function(s) {
+ 	var ancestors = [];
+ 	var tree = {};
+ 	// var tokens = s.split(/\s*(;|\(|\)|,|:)\s*/);
+diff --git a/node_modules/biojs-io-newick/src/extended_newick.js b/node_modules/biojs-io-newick/src/extended_newick.js
+index e763bd3..c138206 100644
+--- a/node_modules/biojs-io-newick/src/extended_newick.js
++++ b/node_modules/biojs-io-newick/src/extended_newick.js
+@@ -58,7 +58,7 @@
+  * }
+  */
+ 
+-module.exports = parse_nhx = function(s) {
++module.exports = function(s) {
+ 	var ancestors = [];
+ 	var tree = {};
+ 	// var tokens = s.split(/\s*(;|\(|\)|,|:)\s*/);

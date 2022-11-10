@@ -1,6 +1,6 @@
 type mRNAid = string
-type Nucleotide = 'A' | 'C' | 'G' | 'T'
-type Virulence = 'virulent' | 'avirulent' | '?' | ''
+type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
+type Virulence = 'virulent' | 'avirulent' | '?'
 
 type Homology = {
   homology_id: number
@@ -21,19 +21,13 @@ type AlignedPosition = {
   position: number
   nucleotide: Nucleotide
   variable: boolean
-  virulence: Virulence
+
+  // Are only defined if `variable` is true.
   pheno_specific: boolean | null
   informative: boolean | null
-}
-
-type Sequence = {
-  mRNA_id: mRNAid
-  nuc_trimmed_seq: string
 
   // Sent by API but unused by application.
-  // nuc_seq: string
-  // prot_trimmed_seq: string
-  // prot_seq: string
+  // virulence: Virulence | null
 }
 
 type VarPosCount = {
