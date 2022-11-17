@@ -60,6 +60,8 @@ export default {
   position: relative;
   padding: 16px;
   padding-top: 58px;
+  display: flex;
+  flex-direction: column;
 }
 
 .ant-layout-sider {
