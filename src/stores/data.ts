@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { parse_newick, type TreeNode } from 'biojs-io-newick'
 import { csv, json } from 'd3'
 
-import { API_URL, DEFAULT_HOMOLOGY_ID } from '@/config'
+import { API_URL, DEFAULT_HOMOLOGY_ID, DEFAULT_SELECTED_REGION } from '@/config'
 import {
   parseBool,
   parseNumber,
@@ -24,6 +24,7 @@ import type {
   AlignedPositionsCSVColumns,
   VarPosCountCSVColumns,
 } from '@/types'
+import { clamp } from 'lodash'
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -47,7 +48,7 @@ export const useDataStore = defineStore('data', {
     // Application state.
     homologyId: DEFAULT_HOMOLOGY_ID,
     selectedIds: [] as mRNAid[],
-    selectedRegion: [1, 40] as Range,
+    selectedRegion: DEFAULT_SELECTED_REGION as Range,
   }),
   getters: {
     homology: (state) => {
@@ -185,7 +186,7 @@ export const useDataStore = defineStore('data', {
       }
     },
     async fetchHomology() {
-      // Reset to initial state.
+      // Reset to initial data state.
       this.$patch({
         alignedPositions: [],
         dendroCustom: null,
@@ -202,6 +203,15 @@ export const useDataStore = defineStore('data', {
         this.fetchPhenos(),
         this.fetchVarPosCount(),
       ])
+
+      // Reset application state.
+      this.$patch({
+        selectedIds: [],
+        // Reset to default selection, clamped to gene length.
+        selectedRegion: DEFAULT_SELECTED_REGION.map((val) =>
+          clamp(val, this.geneLength)
+        ) as Range,
+      })
     },
   },
 })
