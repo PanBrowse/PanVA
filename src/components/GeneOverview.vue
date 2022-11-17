@@ -1,19 +1,30 @@
 <script lang="ts">
 import * as d3 from 'd3'
-import { mapValues, range, zip, keyBy } from 'lodash'
+import { mapValues, range, keyBy } from 'lodash'
 import { useDataStore } from '@/stores/data'
-import { mapState } from 'pinia'
+import { mapState, mapWritableState } from 'pinia'
 import type { D3BrushEvent } from 'd3'
+import { zipEqual } from '@/helpers/lodash'
+
+import LoadingBox from '@/components/LoadingBox.vue'
+
+type Score = {
+  x: number
+  y: number
+}
 
 export default {
   name: 'GeneOverview',
   props: {
     title: String,
   },
+  components: {
+    LoadingBox,
+  },
   data() {
     return {
       // Initial value, is resized dynamically.
-      svgWidth: 1200,
+      svgWidth: 100,
       // Fixed value.
       svgHeight: 80,
 
@@ -21,7 +32,6 @@ export default {
       brushExtendTop: 5,
 
       // State.
-      geneOverviewGroup: d3.select<SVGElement, any>('#geneOverview'),
       resizeObserver: null as ResizeObserver | null,
 
       // Spacing around the graph for ticks and labels.
@@ -29,7 +39,7 @@ export default {
         top: 20,
         right: 20,
         bottom: 24,
-        left: 200,
+        left: 30,
       },
     }
   },
@@ -37,24 +47,30 @@ export default {
     ...mapState(useDataStore, [
       'geneLength',
       'homology',
-      'selectedRegion',
       'sequenceCount',
       'varPosCount',
     ]),
-    allScores() {
+    ...mapWritableState(useDataStore, ['selectedRegion']),
+    hasAllData() {
+      return (
+        this.varPosCount.length !== 0 &&
+        this.sequenceCount !== 0 &&
+        this.geneLength !== 0
+      )
+    },
+    allScores(): Score[] {
       // Variable position count is sparse, so we fill up the missing values.
-
       const lookup = mapValues(
         keyBy(this.varPosCount, 'position'),
-        'convervation'
+        'conservation'
       )
 
       const xValues = range(1, this.geneLength + 1)
-      const yValues = xValues.map((x) =>
+      const yValues = xValues.map<number>((x) =>
         x in lookup ? lookup[x] : this.sequenceCount
       )
 
-      return zip(xValues, yValues).map(([x, y]) => ({
+      return zipEqual(xValues, yValues).map(([x, y]) => ({
         x,
         y: (y / this.sequenceCount) * 100,
       }))
@@ -90,132 +106,139 @@ export default {
   },
   methods: {
     onResize() {
-      this.svgWidth = this.$el.offsetWidth
+      // Card width minus the padding.
+      this.svgWidth = this.$el.offsetWidth - 24
       this.drawSvg()
+    },
+    svg() {
+      return d3.select('#geneOverview')
     },
     onBrush({ selection }: D3BrushEvent<any>) {
       const [x0, x1] = (selection as [number, number])
         .map(this.xScale.invert)
         .map(Math.round)
-
-      this.updateBrushLabel('left', x0, x1)
-      this.updateBrushLabel('right', x0, x1)
+      this.updateBrushLabels(x0, x1)
     },
-    onBrushEnd({ selection }: D3BrushEvent<any>) {
-      // Selection of single point yields null, so we ignore it.
-      // TODO: Allow single point selection?
+    onBrushEnd(event: D3BrushEvent<any>) {
+      const { selection } = event
+
+      // Selection of single point yields null.
       if (!selection) {
+        // We determine the clicked x position ourselves.
+        const [xPos] = d3.pointer(event, this.svg().node())
+        const x0 = Math.round(this.xScale.invert(xPos))
+        this.selectedRegion = [x0, x0]
         return
       }
 
-      const [x0, x1] = (selection as [number, number]).map(this.xScale.invert)
-      this.selectedRegion = [Math.round(x0), Math.round(x1)]
+      const [x0, x1] = (selection as [number, number])
+        .map(this.xScale.invert)
+        .map(Math.round)
+      this.selectedRegion = [x0, x1]
     },
-    updateBrushLabel(side: 'left' | 'right', start: number, end: number) {
-      let brushClass = '.brushLabelL'
-      let style = 'end'
-      let data = [start]
-      let xPos = this.xScale(start)
-
-      if (side === 'right') {
-        brushClass = '.brushLabelR'
-        style = 'start'
-        data = [end]
-        xPos = this.xScale(end)
+    updateBrushLabels(x0: number, x1: number) {
+      if (x0 === x1) {
+        this.updateBrushLabel('left', null)
+        this.updateBrushLabel('center', x0)
+        this.updateBrushLabel('right', null)
+      } else {
+        this.updateBrushLabel('left', x0)
+        this.updateBrushLabel('center', null)
+        this.updateBrushLabel('right', x1)
       }
+    },
+    updateBrushLabel(side: 'left' | 'right' | 'center', value: number | null) {
+      const elem = this.svg().selectAll(`.brush-labels-${side}`)
 
-      this.geneOverviewGroup
-        .selectAll(brushClass)
-        .data(data)
-        .style('text-anchor', style)
-        .attr('x', xPos)
-        .attr('y', -2)
-        .text((d) => d)
+      if (value) {
+        elem
+          .datum(value)
+          .attr('x', this.xScale(value))
+          .text((d) => d)
+      } else {
+        elem.text('')
+      }
     },
     drawBrush() {
       // Initalize brush.
-      const brush = d3.brushX().extent([
-        [this.margin.left, this.margin.top - this.brushExtendTop],
-        [
-          this.svgWidth - this.margin.right,
-          this.svgHeight - this.margin.bottom,
-        ],
-      ])
+      const brush = d3
+        .brushX()
+        .extent([
+          [this.margin.left, this.margin.top - this.brushExtendTop],
+          [
+            this.svgWidth - this.margin.right,
+            this.svgHeight - this.margin.bottom,
+          ],
+        ])
+        // Disable keyboard modifiers such as alt, meta, etc.
+        // See https://github.com/d3/d3-brush#readme
+        .keyModifiers(false)
 
       // Append brush.
-      const brushGroup = this.geneOverviewGroup
-        .append('g')
-        .attr('class', 'brush')
+      const brushGroup = this.svg().append('g').attr('class', 'brush')
 
       // Append brush labels.
-      const svgContextLabels = this.geneOverviewGroup
+      const svgContextLabels = this.svg()
         .append('g')
-        .attr('class', 'brushLabels')
+        .attr('class', 'brush-labels')
         .attr(
           'transform',
           'translate(0, ' + (this.margin.top - this.brushExtendTop) + ')'
         )
 
-      svgContextLabels.append('g').attr('class', 'brushLabelL')
-      svgContextLabels.append('g').attr('class', 'brushLabelR')
+      svgContextLabels
+        .append('text')
+        .attr('class', 'brush-labels-left')
+        .attr('y', -2)
+        .style('text-anchor', 'end')
+
+      svgContextLabels
+        .append('text')
+        .attr('class', 'brush-labels-center')
+        .attr('y', -2)
+        .style('text-anchor', 'middle')
+
+      svgContextLabels
+        .append('text')
+        .attr('class', 'brush-labels-right')
+        .attr('y', -2)
+        .style('text-anchor', 'start')
 
       brushGroup
         .call(brush)
         .call(brush.move, this.selectedRegion.map(this.xScale))
 
-      this.updateBrushLabel(
-        'left',
-        this.selectedRegion[0],
-        this.selectedRegion[1]
-      )
-      this.updateBrushLabel(
-        'right',
-        this.selectedRegion[0],
-        this.selectedRegion[1]
-      )
+      this.updateBrushLabels(this.selectedRegion[0], this.selectedRegion[1])
 
       brush.on('end', this.onBrushEnd)
+      brush.on('start brush', this.onBrush)
     },
     drawExons() {
-      this.geneOverviewGroup
-        .selectAll('.line-select')
-        .data([this.allScores], (d) => d)
-        .join(
-          (enter) =>
-            enter
-              .append('path')
-              .attr('class', 'line-select')
-              .attr('fill', 'rgba(128,128,128, 0.4)')
-              .attr('stroke', 'rgba(128,128,128, 1)')
-              .attr(
-                'd',
-                d3
-                  .area()
-                  .x((d) => this.xScale(d.x))
-                  .y0(this.yScale(0))
-                  .y1((d) => this.yScale(d.y))
-                  .curve(d3.curveMonotoneX)
-              ),
-          (update) => update,
-          (exit) => exit.remove()
+      this.svg()
+        .append('path')
+        .datum(this.allScores)
+        .attr('class', 'exons')
+        .attr(
+          'd',
+          d3
+            .area<Score>()
+            .x((d) => this.xScale(d.x))
+            .y0(this.yScale(0))
+            .y1((d) => this.yScale(d.y))
+            .curve(d3.curveMonotoneX)
         )
     },
     drawAxes() {
       // Append axes.
-      const yAxis = this.geneOverviewGroup
+      this.svg()
         .append('g')
-        .attr('class', 'gene--y-axis')
+        .attr('class', 'y-axis')
+        .attr('transform', 'translate(' + this.margin.left + ',0)')
         .call(d3.axisLeft(this.yScale).ticks(2).tickSizeOuter(0))
 
-      // Auto-fit left margin to yAxis width.
-      // Include some additional margin so text doesn't touch edge of svg.
-      this.margin.left = yAxis.node().getBBox().width + 5
-
-      yAxis.attr('transform', 'translate(' + this.margin.left + ',0)')
-
-      this.geneOverviewGroup
+      this.svg()
         .append('g')
-        .attr('class', 'gene--x-axis')
+        .attr('class', 'x-axis')
         .attr(
           'transform',
           'translate(0,' + (this.svgHeight - this.margin.bottom) + ')'
@@ -223,12 +246,14 @@ export default {
         .call(d3.axisBottom(this.xScale).tickValues(this.ticksXdomain))
     },
     drawSvg() {
-      // Remove all old child elements.
-      this.geneOverviewGroup?.html('')
+      if (!this.hasAllData) return
 
-      this.drawAxes()
+      // Remove all old child elements from SVG.
+      this.svg().html('')
+
       this.drawExons()
       this.drawBrush()
+      this.drawAxes()
     },
   },
   mounted() {
@@ -238,8 +263,13 @@ export default {
   unmounted() {
     this.resizeObserver?.disconnect()
   },
-  updated() {
-    this.drawSvg()
+  watch: {
+    hasAllData() {
+      this.drawSvg()
+    },
+    selectedRegion() {
+      this.drawSvg()
+    },
   },
 }
 </script>
@@ -251,34 +281,38 @@ export default {
     size="small"
     style="margin-bottom: 16px"
   >
-    <svg :width="svgWidth" :height="svgHeight" id="geneOverview"></svg>
+    <svg
+      v-show="hasAllData"
+      :width="svgWidth"
+      :height="svgHeight"
+      id="geneOverview"
+    ></svg>
+    <LoadingBox v-show="!hasAllData" :height="svgHeight" />
   </a-card>
 </template>
 
-<style scoped>
-#gene-container {
-  margin-bottom: 4px;
-}
+<style lang="scss">
+#geneOverview {
+  .brush .selection {
+    stroke-width: 0;
+    fill: #1890ff;
+    fill-opacity: 0.3;
+  }
 
-.brush .selection {
-  stroke: white;
-  fill: #1890ff;
-  fill-opacity: 0.3;
-}
+  .exons {
+    fill: #ddd;
+    stroke: #888;
+  }
 
-.gene--annotation {
-  fill: #e7298a;
-  fill-opacity: 0.06;
-}
+  .brush-labels {
+    font-size: 10px;
+    font-family: Helvetica, Arial, 'Open Sans', sans-serif;
+    fill: cornflowerblue;
+    font-weight: 600;
+  }
 
-.brushLabels {
-  font-size: 10px;
-  font-family: Helvetica, Arial, 'Open Sans', sans-serif;
-  fill: cornflowerblue;
-  font-weight: 600;
-}
-
-.tick {
-  font-size: 8px !important;
+  .tick {
+    font-size: 8px !important;
+  }
 }
 </style>

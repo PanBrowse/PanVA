@@ -6,6 +6,7 @@ import GeneOverview from '@/components/GeneOverview.vue'
 import HomologyInfo from '@/components/HomologyInfo.vue'
 import HomologySelect from '@/components/HomologySelect.vue'
 import Layout from '@/components/Layout.vue'
+import LocusView from '@/components/LocusView.vue'
 
 export default {
   name: 'App',
@@ -14,6 +15,7 @@ export default {
     HomologySelect,
     HomologyInfo,
     Layout,
+    LocusView,
   },
   methods: {
     ...mapActions(useDataStore, [
@@ -48,11 +50,6 @@ export default {
     </template>
 
     <GeneOverview />
-
-    <a-card title="Locus view" :bordered="false" size="small">
-      <p>Card content</p>
-      <p>Card content</p>
-      <p>Card content</p>
-    </a-card>
+    <LocusView />
   </Layout>
 </template>

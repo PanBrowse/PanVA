@@ -4,8 +4,13 @@ import { useDataStore } from '@/stores/data'
 import { sortBy } from 'lodash'
 import type { Homology } from '@/types'
 
+import LoadingBox from '@/components/LoadingBox.vue'
+
 export default {
   name: 'HomologySelect',
+  components: {
+    LoadingBox,
+  },
   computed: {
     ...mapState(useDataStore, ['homologies']),
     ...mapWritableState(useDataStore, ['homologyId']),
@@ -30,4 +35,5 @@ export default {
       </a-select-option>
     </a-select>
   </div>
+  <LoadingBox :height="66" v-else />
 </template>

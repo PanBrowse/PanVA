@@ -27,9 +27,6 @@ export type AlignedPosition = {
   // Are only defined if `variable` is true.
   pheno_specific: boolean | null
   informative: boolean | null
-
-  // Sent by API but unused by application.
-  // virulence: Virulence | null
 }
 
 export type VarPosCount = {
@@ -49,13 +46,40 @@ export type Pheno = {
   species: string
   strain_name: string
   virulence: Virulence
-
-  // Sent by API but unused by application.
-  // genome_nr: number
-  // pheno_node_id: number
 }
 
 export type Dendro = {
   name: string
   children?: Dendro[]
 }
+
+// Types for CSV data that is sent by the API.
+export type AlignedPositionsCSVColumns =
+  | 'index'
+  | 'mRNA_id'
+  | 'genome_nr'
+  | 'position'
+  | 'nucleotide'
+  | 'variable'
+  | 'pheno_specific'
+  | 'informative'
+  | 'virulence'
+
+export type PhenoCSVColumns =
+  | 'mRNA_id'
+  | 'species'
+  | 'strain_name'
+  | 'virulence'
+  | 'genome_nr'
+  | 'pheno_node_id'
+
+export type VarPosCountCSVColumns =
+  | 'position'
+  | 'informative'
+  | 'A'
+  | 'C'
+  | 'G'
+  | 'T'
+  | 'gap'
+  | 'other'
+  | 'conservation'

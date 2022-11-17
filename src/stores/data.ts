@@ -2,10 +2,14 @@ import axios from 'axios'
 import { defineStore } from 'pinia'
 import { parse_newick, type TreeNode } from 'biojs-io-newick'
 import { csv, json } from 'd3'
-import { mapValues } from 'lodash'
 
 import { API_URL, DEFAULT_HOMOLOGY_ID } from '@/config'
-import { parseBool, parseOptionalBool } from '@/helpers/d3'
+import {
+  parseBool,
+  parseNumber,
+  parseOptionalBool,
+  parseString,
+} from '@/helpers/d3'
 import type {
   AlignedPosition,
   Dendro,
@@ -14,6 +18,11 @@ import type {
   Pheno,
   VarPosCount,
   Range,
+  Nucleotide,
+  Virulence,
+  PhenoCSVColumns,
+  AlignedPositionsCSVColumns,
+  VarPosCountCSVColumns,
 } from '@/types'
 
 export const useDataStore = defineStore('data', {
@@ -78,15 +87,30 @@ export const useDataStore = defineStore('data', {
     },
     async fetchAlignedPositions() {
       try {
-        this.alignedPositions = await csv<AlignedPosition>(
+        this.alignedPositions = await csv<
+          AlignedPosition,
+          AlignedPositionsCSVColumns
+        >(
           `${API_URL}/${this.homologyId}/al_pos`,
-          ({ informative, pheno_specific, variable, virulence, ...rest }) =>
-            ({
-              ...rest,
-              informative: parseOptionalBool(informative),
-              pheno_specific: parseOptionalBool(pheno_specific),
-              variable: parseBool(variable),
-            } as AlignedPosition)
+          ({
+            genome_nr,
+            index,
+            informative,
+            mRNA_id,
+            nucleotide,
+            pheno_specific,
+            position,
+            variable,
+          }) => ({
+            genome_nr: parseNumber(genome_nr),
+            index: parseNumber(index),
+            informative: parseOptionalBool(informative),
+            mRNA_id: parseString(mRNA_id),
+            nucleotide: parseString(nucleotide) as Nucleotide,
+            pheno_specific: parseOptionalBool(pheno_specific),
+            position: parseNumber(position),
+            variable: parseBool(variable),
+          })
         )
       } catch (err) {
         this.hasError = true
@@ -124,9 +148,14 @@ export const useDataStore = defineStore('data', {
     },
     async fetchPhenos() {
       try {
-        this.phenos = await csv<Pheno>(
+        this.phenos = await csv<Pheno, PhenoCSVColumns>(
           `${API_URL}/${this.homologyId}/phenos`,
-          ({ genome_nr, pheno_node_id, ...rest }) => rest as Pheno
+          ({ mRNA_id, species, strain_name, virulence }) => ({
+            mRNA_id: parseString(mRNA_id),
+            species: parseString(species),
+            strain_name: parseString(strain_name),
+            virulence: parseString(virulence) as Virulence,
+          })
         )
       } catch (err) {
         this.hasError = true
@@ -135,13 +164,19 @@ export const useDataStore = defineStore('data', {
     },
     async fetchVarPosCount() {
       try {
-        this.varPosCount = await csv<VarPosCount>(
+        this.varPosCount = await csv<VarPosCount, VarPosCountCSVColumns>(
           `${API_URL}/${this.homologyId}/var_pos_count`,
-          ({ informative, ...rest }) =>
+          ({ A, C, conservation, G, gap, informative, other, position, T }) =>
             ({
-              // Convert all values to a number.
-              ...mapValues(rest, parseInt),
+              position: parseNumber(position),
               informative: parseOptionalBool(informative),
+              A: parseNumber(A),
+              C: parseNumber(C),
+              G: parseNumber(G),
+              T: parseNumber(T),
+              gap: parseNumber(gap),
+              other: parseNumber(other),
+              conservation: parseNumber(conservation),
             } as VarPosCount)
         )
       } catch (err) {

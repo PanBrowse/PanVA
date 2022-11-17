@@ -19,7 +19,7 @@ export default {
 </script>
 
 <template>
-  <a-layout>
+  <a-layout hasSider>
     <a-layout-content>
       <a-button
         type="text"
