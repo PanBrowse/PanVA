@@ -23,7 +23,7 @@ export default {
     <a-layout-content>
       <a-button
         type="text"
-        class="trigger"
+        class="collapse-trigger"
         shape="circle"
         @click="() => (collapsed = !collapsed)"
       >
@@ -62,6 +62,7 @@ export default {
   padding-top: 58px;
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
 
 .ant-layout-sider {
@@ -69,7 +70,7 @@ export default {
   overflow-y: auto;
 }
 
-.trigger {
+.collapse-trigger {
   position: absolute;
   top: 14px;
   right: 14px;

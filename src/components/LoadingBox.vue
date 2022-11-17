@@ -18,14 +18,15 @@ export default {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss">
 .loading-box {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.anticon-loading-3-quarters {
-  font-size: 40px;
-  color: #40a9ff;
+
+  .anticon-loading-3-quarters {
+    font-size: 40px;
+    color: #40a9ff;
+  }
 }
 </style>

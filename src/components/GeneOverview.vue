@@ -279,7 +279,7 @@ export default {
     title="Gene overview"
     :bordered="false"
     size="small"
-    style="margin-bottom: 16px"
+    class="gene-overview"
   >
     <svg
       v-show="hasAllData"
@@ -292,7 +292,7 @@ export default {
 </template>
 
 <style lang="scss">
-#geneOverview {
+.gene-overview {
   .brush .selection {
     stroke-width: 0;
     fill: #1890ff;
