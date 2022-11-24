@@ -51,7 +51,7 @@ export default {
       <div style="height: 60px; background: orange; flex: 0 0 100px">
         Bipartite
       </div>
-      <div style="height: 60px; background: yellow; overflow: auto">
+      <div style="height: 60px; background: yellow; overflow: auto hidden">
         <div
           :style="{
             width: examples.length * cellSize + 'px',
@@ -69,10 +69,10 @@ export default {
     </div>
 
     <div class="content-wrapper">
-      <div class="content" :style="{ height: contentHeight + 'px' }">
+      <div class="content">
         <div style="background: red; flex: 0 0 150px">Dendro</div>
         <div style="background: orange; flex: 0 0 100px">Bipartite</div>
-        <div style="background: yellow; overflow-y: hidden; overflow-x: auto">
+        <div style="background: yellow; overflow: auto hidden">
           <div v-for="seq in sequenceCount" v-bind:key="seq" class="row">
             <div
               :style="{
