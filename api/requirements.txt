@@ -1,0 +1,9 @@
+Flask-Cors==3.0.10
+Flask-json-schema==0.0.5
+Flask==2.1.2
+Levenshtein==0.18.1
+numpy==1.22.4
+pandas==1.4.2
+python-dotenv==0.20.0
+scipy==1.8.1
+tanglegram==0.2.0
