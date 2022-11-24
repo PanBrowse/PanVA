@@ -31,7 +31,7 @@ export default {
       <a-descriptions-item label="Members">
         {{ homology.members }}
       </a-descriptions-item>
-      <a-descriptions-item label="Nucleotide" :span="2">
+      <a-descriptions-item label="Nucleotide">
         <BooleanIndicator :value="homology.variable_sites_nuc">
           Variable sites
         </BooleanIndicator>
