@@ -7,7 +7,7 @@ export default {
   name: 'LocusView',
   computed: {
     ...mapWritableState(useDataStore, ['selectedRegion']),
-    examples() {
+    examples(): number[] {
       const [start, end] = this.selectedRegion
       return range(start, end + 1)
     },
@@ -54,7 +54,6 @@ export default {
   }
 
   .ant-card-body {
-    /* padding: 0 !important; */
     display: flex;
     flex-direction: column;
     overflow: hidden;

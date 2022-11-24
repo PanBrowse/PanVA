@@ -22,10 +22,15 @@ export default {
 </script>
 
 <template>
-  <div v-if="homologies.length !== 0">
+  <div>
     <h3>Homology</h3>
 
-    <a-select ref="select" v-model:value="homologyId" style="width: 100%">
+    <a-select
+      ref="select"
+      v-model:value="homologyId"
+      style="width: 100%"
+      v-if="homologies.length !== 0"
+    >
       <a-select-option
         v-for="item in sortedHomologies"
         :value="item.homology_id"
@@ -34,6 +39,6 @@ export default {
         {{ item.name }}
       </a-select-option>
     </a-select>
+    <LoadingBox :height="32" v-else />
   </div>
-  <LoadingBox :height="66" v-else />
 </template>
