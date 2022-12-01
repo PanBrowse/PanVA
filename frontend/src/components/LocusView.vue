@@ -54,6 +54,7 @@ export default {
       <div style="height: 60px; background: orange; flex: 0 0 100px">
         Bipartite
       </div>
+      <div style="background: gold; flex: 0 0 100px">Names</div>
       <scroll-sync
         horizontal
         style="height: 60px; background: yellow; overflow: auto hidden"
@@ -61,7 +62,6 @@ export default {
         <div
           :style="{
             width: examples.length * cellSize + 'px',
-            background: 'gold',
           }"
         >
           Heatmap
@@ -78,6 +78,7 @@ export default {
       <div class="content">
         <div style="background: red; flex: 0 0 150px">Dendro</div>
         <div style="background: orange; flex: 0 0 100px">Bipartite</div>
+        <div style="background: gold; flex: 0 0 100px">Names</div>
         <scroll-sync
           horizontal
           style="background: yellow; overflow: auto hidden"
@@ -89,7 +90,6 @@ export default {
                 height: cellSize + 'px',
                 fontSize: '10px',
                 lineHeight: '10px',
-                background: 'gold',
               }"
             >
               Row {{ seq }}
