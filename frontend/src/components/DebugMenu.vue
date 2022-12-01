@@ -7,14 +7,13 @@ import type { Homology } from '@/types'
 export default {
   name: 'DebugMenu',
   computed: {
-    ...mapState(useDataStore, ['sequenceCount']),
+    ...mapState(useDataStore, ['sequenceCount', 'selectedRegionLength']),
     ...mapWritableState(useDataStore, ['selectedRegion']),
     sortedHomologies(): Homology[] {
       return sortBy(this.homologies, 'name')
     },
     cellCount(): number {
-      const [start, end] = this.selectedRegion
-      return (end - start + 1) * this.sequenceCount
+      return this.selectedRegionLength * this.sequenceCount
     },
   },
 }

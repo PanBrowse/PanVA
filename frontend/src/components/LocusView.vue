@@ -11,10 +11,9 @@ export default {
     ScrollSync,
   },
   computed: {
-    ...mapState(useDataStore, ['selectedRegion']),
+    ...mapState(useDataStore, ['selectedRegionLength']),
     heatmapWidth(): number {
-      const [start, end] = this.selectedRegion
-      return (end - start + 1) * CELL_SIZE
+      return this.selectedRegionLength * CELL_SIZE
     },
   },
 }

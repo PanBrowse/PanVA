@@ -62,6 +62,10 @@ export const useDataStore = defineStore('data', {
         ({ homology_id }) => homology_id === state.homologyId
       )
     },
+    selectedRegionLength(): number {
+      const [start, end] = this.selectedRegion
+      return end - start + 1
+    },
     sequenceCount(): number {
       return this.homology?.members || 0
     },

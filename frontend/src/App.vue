@@ -8,6 +8,7 @@ import HomologyInfo from '@/components/HomologyInfo.vue'
 import HomologySelect from '@/components/HomologySelect.vue'
 import Layout from '@/components/Layout.vue'
 import LocusView from '@/components/LocusView.vue'
+import Tooltip from '@/components/Tooltip.vue'
 
 import { title } from '@dataset'
 
@@ -20,6 +21,7 @@ export default {
     HomologyInfo,
     Layout,
     LocusView,
+    Tooltip,
   },
   head: {
     title,
@@ -59,6 +61,7 @@ export default {
 
     <GeneOverview />
     <LocusView />
+    <Tooltip />
 
     <a-card title="Additional card" :bordered="false" size="small">
       <p>Content</p>
