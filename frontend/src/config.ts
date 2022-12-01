@@ -8,9 +8,14 @@ export const CELL_SIZE = 10
 
 // We are using the environment variable `VITE_DATASET` to determine
 // which dataset should be used at build time.
-export const DATASET: Dataset = require(`./datasets/${
-  import.meta.env.VITE_DATASET
-}`).default
+// export const DATASET: Dataset = require(`./datasets/${
+//   import.meta.env.VITE_DATASET
+// }`).default
+
+export const DATASET: Dataset = {
+  title: 'Whatever',
+  defaultHomologyId: 13803671,
+}
 
 // When there are more groups, the colors will be cycled.
 export const GROUP_COLORS = [

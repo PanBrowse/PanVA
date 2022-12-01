@@ -4,7 +4,7 @@ export type Virulence = 'virulent' | 'avirulent' | '?'
 export type Range = [number, number]
 
 export type Homology = {
-  homology_id: string
+  homology_id: number
   name: string
   members: number
   class: string
@@ -85,7 +85,7 @@ export type VarPosCountCSVColumns =
   | 'conservation'
 
 export type Dataset = {
-  defaultHomologyId: string
+  defaultHomologyId: number
   title: string
 }
 

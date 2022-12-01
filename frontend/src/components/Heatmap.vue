@@ -8,11 +8,6 @@ import { CELL_SIZE } from '@/config'
 import LoadingBox from '@/components/LoadingBox.vue'
 import type { AlignedPosition } from '@/types'
 
-type AlignedPositionWithXY = AlignedPosition & {
-  x: number
-  y: number
-}
-
 export default {
   name: 'Heatmap',
   components: {
@@ -24,6 +19,7 @@ export default {
       'selectedRegion',
       'alignedPositions',
       'geneLength',
+      'nucleotideColor',
     ]),
     hasAllData(): boolean {
       return this.sequenceCount !== 0
@@ -38,52 +34,44 @@ export default {
     svgHeight(): number {
       return this.sequenceCount * CELL_SIZE
     },
-    cells(): AlignedPositionWithXY[][] {
+    cells(): AlignedPosition[] {
       const [start, end] = this.selectedRegion
-      const regionWidth = end - start + 1
 
-      return range(0, this.sequenceCount).map<AlignedPositionWithXY[]>(
-        (row, rowIndex) => {
-          // Selected region is one-based, so we subtract one to get the index.
-          const regionIndex = row * this.geneLength + start - 1
-          return this.alignedPositions
-            .slice(regionIndex, regionIndex + regionWidth)
-            .map((alignedPosition, colIndex) => ({
-              ...alignedPosition,
-              x: colIndex * CELL_SIZE,
-              y: rowIndex * CELL_SIZE,
-            }))
-        }
-      )
+      const result = this.alignedPositions.filter((_value, index) => {
+        const rowPosition = (index % this.geneLength) + 1
+        return rowPosition >= start && rowPosition <= end
+      })
+
+      return result
     },
   },
   methods: {
     svg() {
       return d3.select('#heatmap')
     },
+    cellX({ position }: AlignedPosition) {
+      const [start] = this.selectedRegion
+      return (position - start) * CELL_SIZE
+    },
+    cellY({ index }: AlignedPosition) {
+      return Math.floor(index / this.geneLength) * CELL_SIZE
+    },
     drawCells() {
       this.svg()
         .selectAll('.cell')
-        // Rows
-        .data(this.cells)
-        .enter()
-        .append('g')
-        .selectAll('rect')
-        // Cells
-        .data((d) => d)
-        .enter()
-        .append('rect')
-        .attr('height', CELL_SIZE)
-        .attr('width', CELL_SIZE)
-        .attr('x', ({ x }) => x)
-        .attr('y', ({ y }) => y)
-        .style('fill', 'rgba(255,255,255, 0)')
+        .data<AlignedPosition>(this.cells, (d: any) => d.index)
+        .join((enter) =>
+          enter
+            .append('rect')
+            .attr('height', CELL_SIZE)
+            .attr('width', CELL_SIZE)
+            .attr('x', this.cellX)
+            .attr('y', this.cellY)
+            .attr('fill', (d) => this.nucleotideColor(d.nucleotide))
+        )
     },
     drawSvg() {
       if (!this.hasAllData) return
-
-      // Remove all old child elements from SVG.
-      this.svg().html('')
 
       this.drawCells()
     },
@@ -100,13 +88,15 @@ export default {
 </script>
 
 <template>
-  <svg
-    v-show="hasAllData"
-    :width="svgWidth"
-    :height="svgHeight"
-    id="heatmap"
-  ></svg>
-  <LoadingBox v-show="!hasAllData" :height="svgHeight" :width="svgWidth" />
+  <div :style="{ width: svgWidth + 'px', height: svgHeight + 'px' }">
+    <svg
+      v-show="hasAllData"
+      :width="svgWidth"
+      :height="svgHeight"
+      id="heatmap"
+    ></svg>
+    <LoadingBox v-show="!hasAllData" />
+  </div>
 </template>
 
 <style lang="scss"></style>

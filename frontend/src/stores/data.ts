@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 import { parse_newick, type TreeNode } from 'biojs-io-newick'
-import d3, { csv, json } from 'd3'
+import * as d3 from 'd3'
 
 import {
   API_URL,
@@ -104,7 +104,7 @@ export const useDataStore = defineStore('data', {
     },
     async fetchAlignedPositions() {
       try {
-        this.alignedPositions = await csv<
+        this.alignedPositions = await d3.csv<
           AlignedPosition,
           AlignedPositionsCSVColumns
         >(
@@ -136,7 +136,7 @@ export const useDataStore = defineStore('data', {
     },
     async fetchDendrogramDefault() {
       try {
-        const data = await json<Dendro>(
+        const data = await d3.json<Dendro>(
           `${API_URL}/${this.homologyId}/d3dendro`
         )
         if (data) {
@@ -165,7 +165,7 @@ export const useDataStore = defineStore('data', {
     },
     async fetchPhenos() {
       try {
-        this.phenos = await csv<Pheno, PhenoCSVColumns>(
+        this.phenos = await d3.csv<Pheno, PhenoCSVColumns>(
           `${API_URL}/${this.homologyId}/phenos`,
           ({ mRNA_id, species, strain_name, virulence }) => ({
             mRNA_id: parseString(mRNA_id),
@@ -181,7 +181,7 @@ export const useDataStore = defineStore('data', {
     },
     async fetchVarPosCount() {
       try {
-        this.varPosCount = await csv<VarPosCount, VarPosCountCSVColumns>(
+        this.varPosCount = await d3.csv<VarPosCount, VarPosCountCSVColumns>(
           `${API_URL}/${this.homologyId}/var_pos_count`,
           ({ A, C, conservation, G, gap, informative, other, position, T }) =>
             ({

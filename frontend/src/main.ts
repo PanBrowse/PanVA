@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { createHead, VueHeadMixin } from '@vueuse/head'
 import Antd from 'ant-design-vue'
-// import { createMetaManager, plugin as metaPlugin } from 'vue-meta'
 
 import App from './App.vue'
 
@@ -11,8 +11,9 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(Antd)
 
-// const metaManager = createMetaManager()
-// app.use(metaManager)
-// app.use(metaPlugin)
+const head = createHead()
+// Add options API support.
+app.mixin(VueHeadMixin)
+app.use(head)
 
 app.mount('#app')

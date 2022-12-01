@@ -6,7 +6,6 @@ import Heatmap from '@/components/Heatmap.vue'
 import { CELL_SIZE } from '@/config'
 
 export default {
-  name: 'LocusView',
   components: {
     Heatmap,
     ScrollSync,

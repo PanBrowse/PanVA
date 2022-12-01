@@ -2,26 +2,28 @@
 import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 
+import DebugMenu from '@/components/DebugMenu.vue'
 import GeneOverview from '@/components/GeneOverview.vue'
 import HomologyInfo from '@/components/HomologyInfo.vue'
 import HomologySelect from '@/components/HomologySelect.vue'
 import Layout from '@/components/Layout.vue'
 import LocusView from '@/components/LocusView.vue'
 
-// import { DATASET } from '@/config'
+import { DATASET } from '@/config'
 
 export default {
   name: 'App',
   components: {
+    DebugMenu,
     GeneOverview,
     HomologySelect,
     HomologyInfo,
     Layout,
     LocusView,
   },
-  // metaInfo: {
-  //   title: DATASET.title,
-  // },
+  head: {
+    title: DATASET.title,
+  },
   methods: {
     ...mapActions(useDataStore, [
       'fetchHomologyIds',
@@ -52,6 +54,7 @@ export default {
     <template #sider>
       <HomologySelect />
       <HomologyInfo />
+      <DebugMenu />
     </template>
 
     <GeneOverview />
