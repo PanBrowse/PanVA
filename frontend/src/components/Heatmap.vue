@@ -6,6 +6,7 @@ import { CELL_SIZE } from '@/config'
 import isEqual from 'fast-deep-equal'
 
 import LoadingBox from '@/components/LoadingBox.vue'
+import BooleanIndicator from '@/components/BooleanIndicator.vue'
 
 import type { AlignedPosition, Nucleotide } from '@/types'
 import { debounce, type DebouncedFunc } from 'lodash'
@@ -28,15 +29,18 @@ type Tooltip = {
 export default {
   name: 'Heatmap',
   components: {
+    BooleanIndicator,
     LoadingBox,
   },
   data() {
     return {
       customNode: document.createElement('custom:node'),
+      hoverPosition: null as Position | null,
       mutationObserver: null as MutationObserver | null,
       tooltip: null as Tooltip | null,
-      hover: null as Position | null,
-      updateHover: null as DebouncedFunc<(position: Position) => any> | null,
+      setTooltipDebounced: null as DebouncedFunc<
+        (tooltip: Tooltip) => any
+      > | null,
     }
   },
   computed: {
@@ -162,25 +166,25 @@ export default {
       }
     },
     onMouseMove(event: MouseEvent) {
-      const hover = this.cellToPosition(this.mouseEventToCell(event))
+      const cell = this.mouseEventToCell(event)
+      const position = this.cellToPosition(cell)
+
+      const index = cell.row * this.selectedRegionLength + cell.col
+      const alignedPosition = this.cells[index]
+
       // Only update data if values actually changed.
-      if (!isEqual(hover, this.hover)) {
-        this.updateHover?.(hover)
+      if (!isEqual(position, this.hoverPosition)) {
+        this.hoverPosition = position
+        this.setTooltipDebounced?.({
+          position,
+          alignedPosition,
+        })
       }
     },
-    // onClick(event: MouseEvent) {
-    //   const cell = this.mouseEventToCell(event)
-    //   const index = cell.row * this.selectedRegionLength + cell.col
-
-    //   const alignedPosition = this.cells[index]
-    //   this.tooltip = {
-    //     position: this.cellToPosition(cell),
-    //     alignedPosition,
-    //   }
-    // },
     onMouseLeave() {
-      this.updateHover?.cancel()
-      this.hover = null
+      this.setTooltipDebounced?.cancel()
+      this.tooltip = null
+      this.hoverPosition = null
     },
   },
   mounted() {
@@ -196,12 +200,12 @@ export default {
   },
   created() {
     const that = this
-    this.updateHover = debounce((position: Position) => {
-      that.hover = position
+    this.setTooltipDebounced = debounce((tooltip: Tooltip) => {
+      that.tooltip = tooltip
     }, 200)
   },
   unmounted() {
-    this.updateHover?.cancel()
+    this.setTooltipDebounced?.cancel()
     this.mutationObserver?.disconnect()
   },
   watch: {
@@ -216,7 +220,10 @@ export default {
 </script>
 
 <template>
-  <div class="wrapper" :style="{ width: width + 'px', height: height + 'px' }">
+  <div
+    class="heatmap-wrapper"
+    :style="{ width: width + 'px', height: height + 'px' }"
+  >
     <canvas
       v-show="hasAllData"
       :width="width"
@@ -228,42 +235,66 @@ export default {
     <LoadingBox v-show="!hasAllData" />
 
     <a-popover
-      class="popover"
-      title="test"
+      :title="tooltip.alignedPosition.mRNA_id"
       visible="hover"
-      v-bind:key="hover"
+      v-bind:key="tooltip"
       mouseLeaveDelay="0"
       mouseEnterDelay="0"
-      v-if="hover"
+      v-if="tooltip && hasAllData"
     >
       <template #content>
-        <p>Content</p>
-        <p>Content</p>
+        <div class="heatmap-popover-content">
+          <a-descriptions size="small" layout="horizontal" :column="1" bordered>
+            <a-descriptions-item label="Nucleotide">
+              {{ tooltip.alignedPosition.nucleotide }}
+            </a-descriptions-item>
+            <a-descriptions-item label="Variable">
+              <BooleanIndicator :value="tooltip.alignedPosition.variable" />
+            </a-descriptions-item>
+          </a-descriptions>
+        </div>
       </template>
 
       <div
-        class="heatmap-hover"
-        :style="{ left: hover.x + 'px', top: hover.y + 'px' }"
+        class="heatmap-tooltip-virtual-element"
+        :style="{
+          left: tooltip.position.x + 'px',
+          top: tooltip.position.y + 'px',
+        }"
       ></div>
     </a-popover>
+
+    <div
+      class="heatmap-hover"
+      v-if="hoverPosition && hasAllData"
+      :style="{ left: hoverPosition.x + 'px', top: hoverPosition.y + 'px' }"
+    ></div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.popover {
+.heatmap-tooltip-virtual-element {
   pointer-events: none;
+  position: absolute;
+  width: 10px;
+  height: 10px;
 }
+
 .heatmap-hover {
   pointer-events: none;
   border: 1px solid #1890ff;
   position: absolute;
-  top: 10px;
-  left: 10px;
   width: 10px;
   height: 10px;
 }
-.wrapper {
+
+.heatmap-wrapper {
   position: relative;
   transition: width 2000ms ease-in-out;
+}
+
+.heatmap-popover-content {
+  /* Take back padding from .ant-popover-inner-content */
+  margin: -12px -16px -12px -16px;
 }
 </style>
