@@ -1,9 +1,14 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 import { parse_newick, type TreeNode } from 'biojs-io-newick'
-import { csv, json } from 'd3'
+import d3, { csv, json } from 'd3'
 
-import { API_URL, DEFAULT_HOMOLOGY_ID, DEFAULT_SELECTED_REGION } from '@/config'
+import {
+  API_URL,
+  CELL_THEMES,
+  DATASET,
+  DEFAULT_SELECTED_REGION,
+} from '@/config'
 import {
   parseBool,
   parseNumber,
@@ -26,6 +31,9 @@ import type {
 } from '@/types'
 import { clamp } from 'lodash'
 
+type NucleotideColorFunc = (nucleotide: Nucleotide) => string
+type CellThemeName = keyof typeof CELL_THEMES
+
 export const useDataStore = defineStore('data', {
   state: () => ({
     // Data that is fetched once from the API.
@@ -46,9 +54,10 @@ export const useDataStore = defineStore('data', {
     hasError: false,
 
     // Application state.
-    homologyId: DEFAULT_HOMOLOGY_ID,
+    homologyId: DATASET.defaultHomologyId,
     selectedIds: [] as mRNAid[],
     selectedRegion: DEFAULT_SELECTED_REGION as Range,
+    cellTheme: 'default' as CellThemeName,
   }),
   getters: {
     homology: (state) => {
@@ -65,6 +74,13 @@ export const useDataStore = defineStore('data', {
         return this.alignedPositions.length / this.homology.members
       }
       return 0
+    },
+    nucleotideColor(): NucleotideColorFunc {
+      const colors = CELL_THEMES[this.cellTheme].colors
+      return d3
+        .scaleOrdinal<string>()
+        .domain(['A', 'C', 'G', 'T', 'a', 'c', 'g', 't', '-'])
+        .range(colors)
     },
   },
   actions: {

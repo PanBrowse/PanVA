@@ -51,7 +51,7 @@ export default {
       'varPosCount',
     ]),
     ...mapWritableState(useDataStore, ['selectedRegion']),
-    hasAllData() {
+    hasAllData(): boolean {
       return (
         this.varPosCount.length !== 0 &&
         this.sequenceCount !== 0 &&

@@ -20,7 +20,7 @@ export default ({ mode }: any) => {
         template: 'index.html',
         inject: {
           data: {
-            title: process.env.VITE_TITLE,
+            title: 'Some title',
           },
         },
       }),

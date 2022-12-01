@@ -4,7 +4,7 @@ export type Virulence = 'virulent' | 'avirulent' | '?'
 export type Range = [number, number]
 
 export type Homology = {
-  homology_id: number
+  homology_id: string
   name: string
   members: number
   class: string
@@ -83,3 +83,24 @@ export type VarPosCountCSVColumns =
   | 'gap'
   | 'other'
   | 'conservation'
+
+export type Dataset = {
+  defaultHomologyId: string
+  title: string
+}
+
+export type CellTheme = {
+  name: string
+  // ACGTacgt-, so 9 elements.
+  colors: [
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string
+  ]
+}

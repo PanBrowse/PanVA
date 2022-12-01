@@ -8,6 +8,8 @@ import HomologySelect from '@/components/HomologySelect.vue'
 import Layout from '@/components/Layout.vue'
 import LocusView from '@/components/LocusView.vue'
 
+// import { DATASET } from '@/config'
+
 export default {
   name: 'App',
   components: {
@@ -17,6 +19,9 @@ export default {
     Layout,
     LocusView,
   },
+  // metaInfo: {
+  //   title: DATASET.title,
+  // },
   methods: {
     ...mapActions(useDataStore, [
       'fetchHomologyIds',

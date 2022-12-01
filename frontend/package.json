@@ -21,7 +21,8 @@
     "lodash": "^4.17.21",
     "mitt": "^3.0.0",
     "pinia": "^2.0.23",
-    "vue": "^3.2.41"
+    "vue": "^3.2.41",
+    "vue-meta": "^3.0.0-alpha.8"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.1.4",
