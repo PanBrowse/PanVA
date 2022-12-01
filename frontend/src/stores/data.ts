@@ -53,7 +53,7 @@ export const useDataStore = defineStore('data', {
     homologyId: defaultHomologyId,
     selectedIds: [] as mRNAid[],
     selectedRegion: DEFAULT_SELECTED_REGION as Range,
-    cellTheme: 'default' as CellThemeName,
+    cellTheme: 'clustal' as CellThemeName,
   }),
   getters: {
     homology: (state) => {

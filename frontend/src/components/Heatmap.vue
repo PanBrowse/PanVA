@@ -38,9 +38,7 @@ export default {
       hoverPosition: null as Position | null,
       mutationObserver: null as MutationObserver | null,
       tooltip: null as Tooltip | null,
-      setTooltipDebounced: null as DebouncedFunc<
-        (tooltip: Tooltip) => any
-      > | null,
+      setTooltipDebounced: null as DebouncedFunc<(cell: Cell) => any> | null,
     }
   },
   computed: {
@@ -169,16 +167,10 @@ export default {
       const cell = this.mouseEventToCell(event)
       const position = this.cellToPosition(cell)
 
-      const index = cell.row * this.selectedRegionLength + cell.col
-      const alignedPosition = this.cells[index]
-
       // Only update data if values actually changed.
       if (!isEqual(position, this.hoverPosition)) {
         this.hoverPosition = position
-        this.setTooltipDebounced?.({
-          position,
-          alignedPosition,
-        })
+        this.setTooltipDebounced?.(cell)
       }
     },
     onMouseLeave() {
@@ -199,9 +191,15 @@ export default {
     this.drawCells()
   },
   created() {
-    const that = this
-    this.setTooltipDebounced = debounce((tooltip: Tooltip) => {
-      that.tooltip = tooltip
+    this.setTooltipDebounced = debounce((cell: Cell) => {
+      const position = this.cellToPosition(cell)
+      const index = cell.row * this.selectedRegionLength + cell.col
+      const alignedPosition = this.cells[index]
+
+      this.tooltip = {
+        position,
+        alignedPosition,
+      }
     }, 200)
   },
   unmounted() {
@@ -238,8 +236,8 @@ export default {
       :title="tooltip.alignedPosition.mRNA_id"
       visible="hover"
       v-bind:key="tooltip"
-      mouseLeaveDelay="0"
-      mouseEnterDelay="0"
+      :mouseLeaveDelay="0"
+      :mouseEnterDelay="0"
       v-if="tooltip && hasAllData"
     >
       <template #content>
