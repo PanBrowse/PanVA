@@ -20,7 +20,7 @@
     "biojs-io-newick": "^1.5.0",
     "combinations": "^1.0.0",
     "d3": "^7.6.1",
-    "floating-vue": "^2.0.0-beta.20",
+    "fast-deep-equal": "^3.1.3",
     "lodash": "^4.17.21",
     "mitt": "^3.0.0",
     "pinia": "^2.0.23",
@@ -44,8 +44,6 @@
     "sass": "^1.56.1",
     "typescript": "~4.7.4",
     "vite": "^3.1.8",
-    "vite-plugin-html": "^3.2.0",
-    "vite-plugin-require": "^1.1.10",
     "vue-tsc": "^1.0.8"
   }
 }

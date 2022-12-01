@@ -3,10 +3,12 @@ import * as d3 from 'd3'
 import { useDataStore } from '@/stores/data'
 import { mapState } from 'pinia'
 import { CELL_SIZE } from '@/config'
+import isEqual from 'fast-deep-equal'
 
 import LoadingBox from '@/components/LoadingBox.vue'
 
 import type { AlignedPosition, Nucleotide } from '@/types'
+import { debounce, type DebouncedFunc } from 'lodash'
 
 type Cell = {
   col: number
@@ -34,6 +36,7 @@ export default {
       mutationObserver: null as MutationObserver | null,
       tooltip: null as Tooltip | null,
       hover: null as Position | null,
+      updateHover: null as DebouncedFunc<(position: Position) => any> | null,
     }
   },
   computed: {
@@ -159,7 +162,11 @@ export default {
       }
     },
     onMouseMove(event: MouseEvent) {
-      this.hover = this.cellToPosition(this.mouseEventToCell(event))
+      const hover = this.cellToPosition(this.mouseEventToCell(event))
+      // Only update data if values actually changed.
+      if (!isEqual(hover, this.hover)) {
+        this.updateHover?.(hover)
+      }
     },
     // onClick(event: MouseEvent) {
     //   const cell = this.mouseEventToCell(event)
@@ -172,6 +179,7 @@ export default {
     //   }
     // },
     onMouseLeave() {
+      this.updateHover?.cancel()
       this.hover = null
     },
   },
@@ -186,7 +194,14 @@ export default {
     })
     this.drawCells()
   },
+  created() {
+    const that = this
+    this.updateHover = debounce((position: Position) => {
+      that.hover = position
+    }, 200)
+  },
   unmounted() {
+    this.updateHover?.cancel()
     this.mutationObserver?.disconnect()
   },
   watch: {
@@ -212,7 +227,15 @@ export default {
     ></canvas>
     <LoadingBox v-show="!hasAllData" />
 
-    <a-popover title="test" visible="hover">
+    <a-popover
+      class="popover"
+      title="test"
+      visible="hover"
+      v-bind:key="hover"
+      mouseLeaveDelay="0"
+      mouseEnterDelay="0"
+      v-if="hover"
+    >
       <template #content>
         <p>Content</p>
         <p>Content</p>
@@ -220,14 +243,16 @@ export default {
 
       <div
         class="heatmap-hover"
-        v-if="hover"
         :style="{ left: hover.x + 'px', top: hover.y + 'px' }"
       ></div>
     </a-popover>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.popover {
+  pointer-events: none;
+}
 .heatmap-hover {
   pointer-events: none;
   border: 1px solid #1890ff;
