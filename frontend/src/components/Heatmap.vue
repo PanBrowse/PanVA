@@ -70,35 +70,37 @@ export default {
 
       console.time('drawCells')
 
-      const selection = d3
-        .select(this.customNode)
+      d3.select(this.customNode)
         .selectAll('c')
         .data<AlignedPosition>(this.cells, (d) => (d as AlignedPosition).index)
-
-      selection
-        .enter()
-        .append('c')
-        .attr('nucleotide', (d) => d.nucleotide)
-        .attr('x', (d) => this.cellX(d))
-        .attr('y', (d) => this.cellY(d))
-        .merge(selection)
-        .transition()
-        .ease(d3.easeQuadInOut)
-        .duration(2000)
-        .attr('nucleotide', (d) => d.nucleotide)
-        .attr('x', (d) => this.cellX(d))
-        .attr('y', (d) => this.cellY(d))
-
-      selection.exit().remove()
+        .join(
+          (enter) =>
+            enter
+              // This call is the performance bottleneck.
+              .append('c')
+              .attr('nucleotide', (d) => d.nucleotide)
+              .attr('x', (d) => this.cellX(d))
+              .attr('y', (d) => this.cellY(d)),
+          (update) =>
+            update
+              .transition()
+              .ease(d3.easeQuadInOut)
+              .duration(2000)
+              .attr('nucleotide', (d) => d.nucleotide)
+              .attr('x', (d) => this.cellX(d))
+              .attr('y', (d) => this.cellY(d)),
+          (exit) => exit.remove()
+        )
 
       console.timeEnd('drawCells')
     },
     drawCanvas() {
-      // TODO: Draw in chunks so DOM gets released between chunks.
       const canvas = d3
         .select<HTMLCanvasElement, any>('#heatmap')
         .attr('width', this.width)
         .attr('height', this.height)
+        .style('width', this.width + 'px')
+        .style('height', this.height + 'px')
 
       const ctx = canvas.node()?.getContext('2d')
 
@@ -154,7 +156,7 @@ export default {
 </script>
 
 <template>
-  <div :style="{ width: width + 'px', height: height + 'px' }">
+  <div class="wrapper" :style="{ width: width + 'px', height: height + 'px' }">
     <canvas
       v-show="hasAllData"
       :width="width"
@@ -173,4 +175,8 @@ export default {
   </div>
 </template>
 
-<style lang="scss"></style>
+<style lang="scss" scoped>
+.wrapper {
+  transition: width 2000ms ease-in-out;
+}
+</style>
