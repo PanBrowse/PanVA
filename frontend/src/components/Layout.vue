@@ -1,6 +1,6 @@
 <script lang="ts">
 import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons-vue'
-import { DATASET } from '@/config'
+import { title } from '@dataset'
 
 export default {
   name: 'Layout',
@@ -12,7 +12,7 @@ export default {
   data() {
     return {
       collapsed: false,
-      title: DATASET.title,
+      title,
     }
   },
 }

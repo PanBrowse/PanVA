@@ -3,12 +3,8 @@ import { defineStore } from 'pinia'
 import { parse_newick, type TreeNode } from 'biojs-io-newick'
 import * as d3 from 'd3'
 
-import {
-  API_URL,
-  CELL_THEMES,
-  DATASET,
-  DEFAULT_SELECTED_REGION,
-} from '@/config'
+import { API_URL, CELL_THEMES, DEFAULT_SELECTED_REGION } from '@/config'
+import { defaultHomologyId } from '@dataset'
 import {
   parseBool,
   parseNumber,
@@ -54,7 +50,7 @@ export const useDataStore = defineStore('data', {
     hasError: false,
 
     // Application state.
-    homologyId: DATASET.defaultHomologyId,
+    homologyId: defaultHomologyId,
     selectedIds: [] as mRNAid[],
     selectedRegion: DEFAULT_SELECTED_REGION as Range,
     cellTheme: 'default' as CellThemeName,

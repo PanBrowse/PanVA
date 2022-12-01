@@ -9,7 +9,7 @@ import HomologySelect from '@/components/HomologySelect.vue'
 import Layout from '@/components/Layout.vue'
 import LocusView from '@/components/LocusView.vue'
 
-import { DATASET } from '@/config'
+import { title } from '@dataset'
 
 export default {
   name: 'App',
@@ -22,7 +22,7 @@ export default {
     LocusView,
   },
   head: {
-    title: DATASET.title,
+    title,
   },
   methods: {
     ...mapActions(useDataStore, [

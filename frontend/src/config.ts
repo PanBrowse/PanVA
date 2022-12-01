@@ -1,21 +1,10 @@
-import type { CellTheme, Dataset, Range } from '@/types'
+import type { CellTheme, Range } from '@/types'
 
 export const API_URL = `${import.meta.env.VITE_API_URL}`
 
 export const DEFAULT_SELECTED_REGION: Range = [1, 40]
 
 export const CELL_SIZE = 10
-
-// We are using the environment variable `VITE_DATASET` to determine
-// which dataset should be used at build time.
-// export const DATASET: Dataset = require(`./datasets/${
-//   import.meta.env.VITE_DATASET
-// }`).default
-
-export const DATASET: Dataset = {
-  title: 'Whatever',
-  defaultHomologyId: 13803671,
-}
 
 // When there are more groups, the colors will be cycled.
 export const GROUP_COLORS = [

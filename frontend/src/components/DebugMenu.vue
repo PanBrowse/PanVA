@@ -1,5 +1,5 @@
 <script lang="ts">
-import { mapWritableState } from 'pinia'
+import { mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { sortBy } from 'lodash'
 import type { Homology } from '@/types'
@@ -7,9 +7,14 @@ import type { Homology } from '@/types'
 export default {
   name: 'DebugMenu',
   computed: {
+    ...mapState(useDataStore, ['sequenceCount']),
     ...mapWritableState(useDataStore, ['selectedRegion']),
     sortedHomologies(): Homology[] {
       return sortBy(this.homologies, 'name')
+    },
+    cellCount(): number {
+      const [start, end] = this.selectedRegion
+      return (end - start + 1) * this.sequenceCount
     },
   },
 }
@@ -19,7 +24,15 @@ export default {
   <div>
     <a-divider />
 
-    <h3>Debug menu</h3>
+    <h3>Debug</h3>
+
+    <a-descriptions size="small" layout="horizontal" :column="1" bordered>
+      <a-descriptions-item label="Cell count">
+        {{ cellCount }}
+      </a-descriptions-item>
+    </a-descriptions>
+
+    <br />
 
     <a-button type="primary" @click="selectedRegion = [100, 500]">
       Change selection to 100-500

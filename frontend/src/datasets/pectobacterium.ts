@@ -1,8 +1,4 @@
-import type { Dataset } from '@/types'
+export const title = 'PanVA: Pectobacterium'
+export const defaultHomologyId = 13803671
 
-const dataset: Dataset = {
-  title: 'PanVA: Pectobacterium',
-  defaultHomologyId: '13803671',
-}
-
-export default dataset
+export type PhenoCSVColumns = 'species' | 'strain_name' | 'virulence'
