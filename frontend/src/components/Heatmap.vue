@@ -68,6 +68,8 @@ export default {
             .attr('x', this.cellX)
             .attr('y', this.cellY)
             .attr('fill', (d) => this.nucleotideColor(d.nucleotide))
+            .attr('stroke', 'white')
+            .attr('stroke-width', 0.5)
         )
     },
     drawSvg() {
