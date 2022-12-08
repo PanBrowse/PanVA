@@ -1,6 +1,5 @@
 <script lang="ts">
 import * as d3 from 'd3'
-// import { containsAll } from '@/helpers/contains'
 import { mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
@@ -25,7 +24,7 @@ export default {
       'sequenceCount',
     ]),
     hasAllData(): boolean {
-      return this.dendroDefault !== null
+      return this.dendroDefault !== null && this.sequenceCount !== 0
     },
     dendroData(): Dendro | null {
       return this.dendroDefault
@@ -34,18 +33,7 @@ export default {
       if (!this.dendroData) {
         throw Error('Dendrogram.root called with missing dendroDefault.')
       }
-      const h = d3.hierarchy<Dendro>(this.dendroData)
-      console.log(h)
-      return h
-    },
-    depths(): number[] {
-      return this.hierarchy.leaves().map((e) => e.depth)
-    },
-    minDepth(): number {
-      return d3.min(this.depths) || 1
-    },
-    maxDepth(): number {
-      return d3.max(this.depths) || 1
+      return d3.hierarchy<Dendro>(this.dendroData)
     },
     height(): number {
       return this.sequenceCount * CELL_SIZE
@@ -54,7 +42,6 @@ export default {
       const cluster = d3
         .cluster<Dendro>()
         .size([this.height, this.width - 2 * this.circleRadius])
-        // .separation((a, b) => a.parent === b.parent ? 1 : 1)
         .separation(() => 1)
 
       return cluster(this.hierarchy).links()
@@ -68,7 +55,11 @@ export default {
       return d3.select('#dendrogram')
     },
     linkPath(d: HierarchyPointLink<Dendro>): string {
-      return `M${d.source.y},${d.source.x}V${d.target.x}H${d.target.y}`
+      const sx = this.circleRadius + d.source.y
+      const sy = d.source.x
+      const tx = this.circleRadius + d.target.y
+      const ty = d.target.x
+      return `M${sx},${sy}V${ty}H${tx}`
     },
     drawDendro() {
       if (!this.hasAllData) return
@@ -114,8 +105,8 @@ export default {
               .attr('cx', (d) => this.circleRadius + d.y)
               .attr('cy', (d) => d.x)
               .attr('r', this.circleRadius)
-              .attr('stroke', ({ data }) => {
-                const ids = data.name.split('-')
+              .attr('stroke', (d) => {
+                const ids = d.data.name.split('-')
                 if (containsAll(this.selectedIds, ids)) {
                   return '#ff6251'
                 }
@@ -123,17 +114,15 @@ export default {
               })
               .attr('fill', function (d) {
                 if (d.height === 0 || d.depth === 0) {
-                  return 'none'
+                  return '#ffffff'
                 }
                 return 'rgba(192, 192, 192, 0.5)'
               }),
           (update) =>
             update
-              .attr('name', function (d) {
-                return d.data.name
-              })
-              .attr('stroke', ({ data }) => {
-                const ids = data.name.split('-')
+              .attr('name', (d) => d.data.name)
+              .attr('stroke', (d) => {
+                const ids = d.data.name.split('-')
                 if (containsAll(this.selectedIds, ids)) {
                   return '#ff6251'
                 }
@@ -147,7 +136,7 @@ export default {
                   .attr('cy', (d) => d.x)
                   .attr('fill', (d) => {
                     if (d.height === 0 || d.depth === 0) {
-                      return 'none'
+                      return '#ffffff'
                     }
                     return 'rgba(192, 192, 192, 0.5)'
                   })
@@ -168,6 +157,9 @@ export default {
     dendroData() {
       this.drawDendro()
     },
+    width() {
+      this.drawDendro()
+    },
   },
 }
 </script>
@@ -177,8 +169,15 @@ export default {
 </template>
 
 <style lang="scss">
-#dendrogram circle:hover {
-  stroke: #1890ff;
-  stroke-width: 1px;
+#dendrogram {
+  flex: 0 0 auto;
+
+  path {
+    pointer-events: none;
+  }
+
+  circle:hover {
+    stroke: #1890ff;
+  }
 }
 </style>

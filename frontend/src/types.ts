@@ -2,6 +2,7 @@ export type mRNAid = string
 export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
 export type Virulence = 'virulent' | 'avirulent' | '?'
 export type Range = [number, number]
+export type Position = { x: number; y: number }
 
 export type Homology = {
   homology_id: number
@@ -41,6 +42,14 @@ export type VarPosCount = {
   conservation: number
 }
 
+export type Sequence = {
+  mRNA_id: mRNAid
+  nuc_trimmed_seq: string
+  nuc_seq: string
+  prot_trimmed_seq: string
+  prot_seq: string
+}
+
 export type Pheno = {
   mRNA_id: mRNAid
   species: string
@@ -64,6 +73,13 @@ export type AlignedPositionsCSVColumns =
   | 'pheno_specific'
   | 'informative'
   | 'virulence'
+
+export type SequenceCSVColumns =
+  | 'mRNA_id'
+  | 'nuc_trimmed_seq'
+  | 'nuc_seq'
+  | 'prot_trimmed_seq'
+  | 'prot_seq'
 
 export type PhenoCSVColumns =
   | 'mRNA_id'

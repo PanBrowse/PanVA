@@ -29,8 +29,10 @@ import type {
   PhenoCSVColumns,
   AlignedPositionsCSVColumns,
   VarPosCountCSVColumns,
+  Sequence,
+  SequenceCSVColumns,
 } from '@/types'
-import { clamp } from 'lodash'
+import { clamp, map, shuffle } from 'lodash'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -44,10 +46,11 @@ export const useDataStore = defineStore('data', {
     // Data that is fetched from the API using `homologyId`.
     // We don't keep data for previous homology ids because of memory consumption.
     alignedPositions: [] as AlignedPosition[],
-    varPosCount: [] as VarPosCount[],
-    phenos: [] as Pheno[],
-    dendroDefault: null as Dendro | null,
     dendroCustom: null as Dendro | null,
+    dendroDefault: null as Dendro | null,
+    phenos: [] as Pheno[],
+    sequences: [] as Sequence[],
+    varPosCount: [] as VarPosCount[],
 
     // Visualization preferences.
 
@@ -55,11 +58,12 @@ export const useDataStore = defineStore('data', {
     hasError: false,
 
     // Application state.
+    cellTheme: 'clustal' as CellThemeName,
     homologyId: defaultHomologyId,
     selectedIds: [] as mRNAid[],
     selectedRegion: DEFAULT_SELECTED_REGION as Range,
-    cellTheme: 'clustal' as CellThemeName,
     transitionsEnabled: true,
+    mrnaIdsShuffled: false,
   }),
   getters: {
     homology: (state) => {
@@ -73,11 +77,11 @@ export const useDataStore = defineStore('data', {
       return end - start + 1
     },
     sequenceCount(): number {
-      return this.homology?.members || 0
+      return this.sequences.length
     },
     geneLength(): number {
-      if (this.homology) {
-        return this.alignedPositions.length / this.homology.members
+      if (this.sequences) {
+        return this.sequences[0].nuc_trimmed_seq.length
       }
       return 0
     },
@@ -90,6 +94,19 @@ export const useDataStore = defineStore('data', {
     },
     transitionTime(): number {
       return this.transitionsEnabled ? TRANSITION_TIME : 0
+    },
+    mrnaIds(): mRNAid[] {
+      if (this.sequences) {
+        return map(this.sequences, 'mRNA_id')
+      }
+      return []
+    },
+    mrnaIdsSorted(): mRNAid[] {
+      if (this.mrnaIdsShuffled) {
+        // For now we randomize the list so it looks pretty.
+        return shuffle(this.mrnaIds)
+      }
+      return this.mrnaIds
     },
   },
   actions: {
@@ -188,6 +205,29 @@ export const useDataStore = defineStore('data', {
         throw err
       }
     },
+    async fetchSequences() {
+      try {
+        this.sequences = await d3.csv<Sequence, SequenceCSVColumns>(
+          `${API_URL}/${this.homologyId}/sequences`,
+          ({
+            mRNA_id,
+            nuc_trimmed_seq,
+            nuc_seq,
+            prot_trimmed_seq,
+            prot_seq,
+          }) => ({
+            mRNA_id: parseString(mRNA_id),
+            nuc_trimmed_seq: parseString(nuc_trimmed_seq),
+            nuc_seq: parseString(nuc_seq),
+            prot_trimmed_seq: parseString(prot_trimmed_seq),
+            prot_seq: parseString(prot_seq),
+          })
+        )
+      } catch (err) {
+        this.hasError = true
+        throw err
+      }
+    },
     async fetchVarPosCount() {
       try {
         this.varPosCount = await d3.csv<VarPosCount, VarPosCountCSVColumns>(
@@ -217,6 +257,7 @@ export const useDataStore = defineStore('data', {
         dendroCustom: null,
         dendroDefault: null,
         phenos: [],
+        sequences: [],
         varPosCount: [],
       })
 
@@ -226,6 +267,7 @@ export const useDataStore = defineStore('data', {
         this.fetchAlignedPositions(),
         this.fetchDendrogramDefault(),
         this.fetchPhenos(),
+        this.fetchSequences(),
         this.fetchVarPosCount(),
       ])
 
