@@ -3,14 +3,19 @@ import { defineStore } from 'pinia'
 import { parse_newick, type TreeNode } from 'biojs-io-newick'
 import * as d3 from 'd3'
 
-import { API_URL, CELL_THEMES, DEFAULT_SELECTED_REGION } from '@/config'
+import {
+  API_URL,
+  CELL_THEMES,
+  DEFAULT_SELECTED_REGION,
+  TRANSITION_TIME,
+} from '@/config'
 import { defaultHomologyId } from '@dataset'
 import {
   parseBool,
   parseNumber,
   parseOptionalBool,
   parseString,
-} from '@/helpers/d3'
+} from '@/helpers/parse'
 import type {
   AlignedPosition,
   Dendro,
@@ -54,6 +59,7 @@ export const useDataStore = defineStore('data', {
     selectedIds: [] as mRNAid[],
     selectedRegion: DEFAULT_SELECTED_REGION as Range,
     cellTheme: 'clustal' as CellThemeName,
+    transitionsEnabled: true,
   }),
   getters: {
     homology: (state) => {
@@ -81,6 +87,9 @@ export const useDataStore = defineStore('data', {
         .scaleOrdinal<string>()
         .domain(['A', 'C', 'G', 'T', 'a', 'c', 'g', 't', '-'])
         .range(colors)
+    },
+    transitionTime(): number {
+      return this.transitionsEnabled ? TRANSITION_TIME : 0
     },
   },
   actions: {

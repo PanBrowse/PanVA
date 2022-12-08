@@ -7,7 +7,7 @@ import type { Homology } from '@/types'
 export default {
   computed: {
     ...mapState(useDataStore, ['sequenceCount', 'selectedRegionLength']),
-    ...mapWritableState(useDataStore, ['selectedRegion']),
+    ...mapWritableState(useDataStore, ['selectedRegion', 'transitionsEnabled']),
     sortedHomologies(): Homology[] {
       return sortBy(this.homologies, 'name')
     },
@@ -24,16 +24,20 @@ export default {
 
     <h3>Debug</h3>
 
-    <a-descriptions size="small" layout="horizontal" :column="1" bordered>
-      <a-descriptions-item label="Cell count">
-        {{ cellCount }}
-      </a-descriptions-item>
-    </a-descriptions>
+    <a-space direction="vertical" :size="16">
+      <a-descriptions size="small" layout="horizontal" :column="1" bordered>
+        <a-descriptions-item label="Cell count">
+          {{ cellCount }}
+        </a-descriptions-item>
+      </a-descriptions>
 
-    <br />
+      <a-checkbox v-model:checked="transitionsEnabled"
+        >Transitions enabled</a-checkbox
+      >
 
-    <a-button type="primary" @click="selectedRegion = [100, 500]">
-      Change selection to 100-500
-    </a-button>
+      <a-button type="primary" @click="selectedRegion = [100, 500]">
+        Change selection to 100-500
+      </a-button>
+    </a-space>
   </div>
 </template>

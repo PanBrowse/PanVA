@@ -42,6 +42,7 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
+      'transitionTime',
       'sequenceCount',
       'selectedRegion',
       'selectedRegionLength',
@@ -86,7 +87,7 @@ export default {
     drawCells() {
       if (!this.hasAllData) return
 
-      console.time('drawCells')
+      console.time('Heatmap#drawCells')
 
       d3.select(this.customNode)
         .selectAll('c')
@@ -103,14 +104,14 @@ export default {
             update
               .transition()
               .ease(d3.easeQuadInOut)
-              .duration(2000)
+              .duration(this.transitionTime)
               .attr('nucleotide', (d) => d.nucleotide)
               .attr('x', (d) => this.cellX(d))
               .attr('y', (d) => this.cellY(d)),
           (exit) => exit.remove()
         )
 
-      console.timeEnd('drawCells')
+      console.timeEnd('Heatmap#drawCells')
     },
     drawCanvas() {
       const canvas = d3
@@ -219,7 +220,11 @@ export default {
 <template>
   <div
     class="heatmap-wrapper"
-    :style="{ width: width + 'px', height: height + 'px' }"
+    :style="{
+      width: width + 'px',
+      height: height + 'px',
+      transitionDuration: transitionTime + 'ms',
+    }"
   >
     <canvas
       v-show="hasAllData"
@@ -287,7 +292,8 @@ export default {
 
 .heatmap-wrapper {
   position: relative;
-  transition: width 2000ms ease-in-out;
+  transition-property: width;
+  transition-timing-function: ease-in-out;
 }
 
 .heatmap-popover-content {

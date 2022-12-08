@@ -6,6 +6,8 @@ export const DEFAULT_SELECTED_REGION: Range = [1, 40]
 
 export const CELL_SIZE = 10
 
+export const TRANSITION_TIME = 2000
+
 // When there are more groups, the colors will be cycled.
 export const GROUP_COLORS = [
   '#b15928',

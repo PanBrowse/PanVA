@@ -4,7 +4,7 @@ import { mapValues, range, keyBy } from 'lodash'
 import { useDataStore } from '@/stores/data'
 import { mapState, mapWritableState } from 'pinia'
 import type { D3BrushEvent } from 'd3'
-import { zipEqual } from '@/helpers/lodash'
+import { zipEqual } from '@/helpers/zipEqual'
 
 import LoadingBox from '@/components/LoadingBox.vue'
 
