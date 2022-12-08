@@ -34,7 +34,12 @@ export default {
       <div style="background: gold; flex: 0 0 200px">Names</div>
       <scroll-sync
         horizontal
-        style="height: 60px; background: yellow; overflow: auto hidden"
+        style="
+          height: 60px;
+          background: yellow;
+          overflow: auto hidden;
+          min-width: 200px;
+        "
       >
         <div
           :style="{
@@ -58,7 +63,7 @@ export default {
         <Names />
         <scroll-sync
           horizontal
-          style="background: yellow; overflow: auto hidden"
+          style="background: yellow; overflow: auto hidden; min-width: 200px"
         >
           <Heatmap />
         </scroll-sync>
@@ -89,10 +94,13 @@ export default {
 
   .header {
     display: flex;
+    flex: 0 0 auto;
+    overflow: hidden;
   }
 
   .content-wrapper {
     overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .content {
