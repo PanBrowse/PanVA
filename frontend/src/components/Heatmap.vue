@@ -47,6 +47,7 @@ export default {
       'selectedRegion',
       'selectedRegionLength',
       'alignedPositions',
+      'mrnaIds',
       'mrnaIdsSorted',
       'geneLength',
       'nucleotideColor',
@@ -195,8 +196,11 @@ export default {
   created() {
     this.setTooltipDebounced = debounce((cell: Cell) => {
       const position = this.cellToPosition(cell)
-      const index = cell.row * this.selectedRegionLength + cell.col
-      const alignedPosition = this.cells[index]
+      const mRNA_id = this.mrnaIdsSorted[cell.row]
+      const mrnaIndex = this.mrnaIds.indexOf(mRNA_id)
+
+      const apIndex = mrnaIndex * this.selectedRegionLength + cell.col
+      const alignedPosition = this.cells[apIndex]
 
       this.tooltip = {
         position,
@@ -252,8 +256,11 @@ export default {
       <template #content>
         <div class="heatmap-popover-content">
           <a-descriptions size="small" layout="horizontal" :column="1" bordered>
-            <a-descriptions-item label="Nucleotide">
+            <a-descriptions-item label="Base">
               {{ tooltip.alignedPosition.nucleotide }}
+            </a-descriptions-item>
+            <a-descriptions-item label="Position">
+              {{ tooltip.alignedPosition.position }}
             </a-descriptions-item>
             <a-descriptions-item label="Variable">
               <BooleanIndicator :value="tooltip.alignedPosition.variable" />

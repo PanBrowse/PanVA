@@ -30,7 +30,7 @@ export default {
 
       this.svg()
         .selectAll('foreignObject')
-        .data(this.mrnaIdsSorted, (d) => d)
+        .data(this.mrnaIdsSorted, (d) => d as string)
         .join(
           (enter) =>
             enter
