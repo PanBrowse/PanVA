@@ -71,21 +71,17 @@ export default {
               .attr('stroke', 'rgba(192, 192, 192, 0.5)')
               .attr('d', (d) => this.linkPath(d)),
           (update) =>
-            update.call((update) =>
-              update
-                .transition()
-                .duration(this.transitionTime)
-                .attr('d', (d) => this.linkPath(d))
-                .attr('stroke', 'rgba(192, 192, 192, 0.5)')
-            ),
+            update
+              .transition()
+              .duration(this.transitionTime)
+              .attr('d', (d) => this.linkPath(d))
+              .attr('stroke', 'rgba(192, 192, 192, 0.5)'),
           (exit) =>
-            exit.call((exit) =>
-              exit
-                .transition()
-                .duration(this.transitionTime)
-                .attr('stroke', 'rgba(192, 192, 192, 0)')
-                .remove()
-            )
+            exit
+              .transition()
+              .duration(this.transitionTime)
+              .attr('stroke', 'rgba(192, 192, 192, 0)')
+              .remove()
         )
 
       console.timeEnd('Bipartite#drawBipartite')
@@ -99,9 +95,6 @@ export default {
       this.drawBipartite()
     },
     links() {
-      this.drawBipartite()
-    },
-    width() {
       this.drawBipartite()
     },
   },

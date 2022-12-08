@@ -63,7 +63,7 @@ export const useDataStore = defineStore('data', {
     selectedIds: [] as mRNAid[],
     selectedRegion: DEFAULT_SELECTED_REGION as Range,
     transitionsEnabled: true,
-    mrnaIdsShuffled: false,
+    shuffleSequences: false,
   }),
   getters: {
     homology: (state) => {
@@ -102,7 +102,7 @@ export const useDataStore = defineStore('data', {
       return []
     },
     mrnaIdsSorted(): mRNAid[] {
-      if (this.mrnaIdsShuffled) {
+      if (this.shuffleSequences) {
         // For now we randomize the list so it looks pretty.
         return shuffle(this.mrnaIds)
       }

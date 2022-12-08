@@ -1,17 +1,21 @@
 <script lang="ts">
 import { mapState } from 'pinia'
+
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
-import ScrollSync from '@/components/ScrollSync.vue'
-import Heatmap from '@/components/Heatmap.vue'
-import Dendrogram from '@/components/Dendrogram.vue'
+
 import Bipartite from '@/components/Bipartite.vue'
+import Dendrogram from '@/components/Dendrogram.vue'
+import Heatmap from '@/components/Heatmap.vue'
+import Names from '@/components/Names.vue'
+import ScrollSync from '@/components/ScrollSync.vue'
 
 export default {
   components: {
     Bipartite,
     Dendrogram,
     Heatmap,
+    Names,
     ScrollSync,
   },
   computed: {
@@ -27,7 +31,7 @@ export default {
   <a-card class="locus-view" title="Locus view" :bordered="false" size="small">
     <div class="header">
       <div style="height: 60px; background: red; flex: 0 0 320px">Options</div>
-      <div style="background: gold; flex: 0 0 100px">Names</div>
+      <div style="background: gold; flex: 0 0 200px">Names</div>
       <scroll-sync
         horizontal
         style="height: 60px; background: yellow; overflow: auto hidden"
@@ -51,7 +55,7 @@ export default {
       <div class="content">
         <Dendrogram />
         <Bipartite />
-        <div style="background: gold; flex: 0 0 100px">Names</div>
+        <Names />
         <scroll-sync
           horizontal
           style="background: yellow; overflow: auto hidden"

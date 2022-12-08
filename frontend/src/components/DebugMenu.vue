@@ -8,7 +8,7 @@ export default {
   computed: {
     ...mapState(useDataStore, ['sequenceCount', 'selectedRegionLength']),
     ...mapWritableState(useDataStore, [
-      'mrnaIdsShuffled',
+      'shuffleSequences',
       'selectedRegion',
       'transitionsEnabled',
     ]),
@@ -39,7 +39,7 @@ export default {
         >Transitions enabled</a-checkbox
       >
 
-      <a-checkbox v-model:checked="mrnaIdsShuffled"
+      <a-checkbox v-model:checked="shuffleSequences"
         >Shuffle sequences</a-checkbox
       >
 

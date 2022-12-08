@@ -47,6 +47,7 @@ export default {
       'selectedRegion',
       'selectedRegionLength',
       'alignedPositions',
+      'mrnaIdsSorted',
       'geneLength',
       'nucleotideColor',
     ]),
@@ -81,8 +82,9 @@ export default {
       const [start] = this.selectedRegion
       return (position - start) * CELL_SIZE
     },
-    cellY({ index }: AlignedPosition) {
-      return Math.floor(index / this.geneLength) * CELL_SIZE
+    cellY({ mRNA_id }: AlignedPosition) {
+      const index = this.mrnaIdsSorted.indexOf(mRNA_id)
+      return index * CELL_SIZE
     },
     drawCells() {
       if (!this.hasAllData) return
@@ -211,6 +213,9 @@ export default {
       this.drawCells()
     },
     selectedRegion() {
+      this.drawCells()
+    },
+    mrnaIdsSorted() {
       this.drawCells()
     },
   },

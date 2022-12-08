@@ -77,21 +77,17 @@ export default {
               .attr('stroke', 'rgba(192, 192, 192, 0.5)')
               .attr('d', (d) => this.linkPath(d)),
           (update) =>
-            update.call((update) =>
-              update
-                .transition()
-                .duration(this.transitionTime)
-                .attr('d', (d) => this.linkPath(d))
-                .attr('stroke', 'rgba(192, 192, 192, 0.5)')
-            ),
+            update
+              .transition()
+              .duration(this.transitionTime)
+              .attr('d', (d) => this.linkPath(d))
+              .attr('stroke', 'rgba(192, 192, 192, 0.5)'),
           (exit) =>
-            exit.call((exit) =>
-              exit
-                .transition()
-                .duration(this.transitionTime)
-                .attr('stroke', 'rgba(192, 192, 192, 0)')
-                .remove()
-            )
+            exit
+              .transition()
+              .duration(this.transitionTime)
+              .attr('stroke', 'rgba(192, 192, 192, 0)')
+              .remove()
         )
 
       this.svg()
@@ -155,9 +151,6 @@ export default {
       this.drawDendro()
     },
     dendroData() {
-      this.drawDendro()
-    },
-    width() {
       this.drawDendro()
     },
   },
