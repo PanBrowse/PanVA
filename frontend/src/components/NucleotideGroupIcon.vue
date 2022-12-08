@@ -5,7 +5,6 @@ import type { PropType } from 'vue'
 type NucleotideCounts = Record<Nucleotide, number>
 
 export default {
-  name: 'NucleotideGroupIcon',
   props: {
     nucleotides: {
       type: Array as PropType<Array<Nucleotide>>,

@@ -2,7 +2,6 @@
 import { CloseCircleOutlined, CheckCircleOutlined } from '@ant-design/icons-vue'
 
 export default {
-  name: 'BooleanIndicator',
   components: {
     CloseCircleOutlined,
     CheckCircleOutlined,

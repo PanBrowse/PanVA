@@ -7,7 +7,6 @@ import type { Homology } from '@/types'
 import LoadingBox from '@/components/LoadingBox.vue'
 
 export default {
-  name: 'HomologySelect',
   components: {
     LoadingBox,
   },

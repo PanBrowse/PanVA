@@ -14,7 +14,6 @@ type Score = {
 }
 
 export default {
-  name: 'GeneOverview',
   props: {
     title: String,
   },

@@ -5,7 +5,6 @@ import { sortBy } from 'lodash'
 import type { Homology } from '@/types'
 
 export default {
-  name: 'DebugMenu',
   computed: {
     ...mapState(useDataStore, ['sequenceCount', 'selectedRegionLength']),
     ...mapWritableState(useDataStore, ['selectedRegion']),

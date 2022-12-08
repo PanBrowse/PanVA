@@ -2,7 +2,6 @@
 import { Loading3QuartersOutlined } from '@ant-design/icons-vue'
 
 export default {
-  name: 'LoadingBox',
   props: {
     height: Number,
   },

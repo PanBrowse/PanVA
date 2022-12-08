@@ -13,7 +13,6 @@ import Tooltip from '@/components/Tooltip.vue'
 import { title } from '@dataset'
 
 export default {
-  name: 'App',
   components: {
     DebugMenu,
     GeneOverview,
@@ -53,7 +52,7 @@ export default {
 
 <template>
   <Layout>
-    <template #sider>
+    <template #sidebar>
       <HomologySelect />
       <HomologyInfo />
       <DebugMenu />

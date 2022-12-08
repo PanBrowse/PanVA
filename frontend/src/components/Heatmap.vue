@@ -27,7 +27,6 @@ type Tooltip = {
 }
 
 export default {
-  name: 'Heatmap',
   components: {
     BooleanIndicator,
     LoadingBox,

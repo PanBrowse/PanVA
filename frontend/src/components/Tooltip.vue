@@ -4,7 +4,6 @@ import { useTooltipStore } from '@/stores/tooltip'
 import { mapState } from 'pinia'
 
 export default {
-  name: 'Tooltip',
   data() {
     // https://popper.js.org/docs/v2/virtual-elements/
     const virtualElement = {

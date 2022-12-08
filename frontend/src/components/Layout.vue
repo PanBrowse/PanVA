@@ -3,8 +3,7 @@ import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons-vue'
 import { title } from '@dataset'
 
 export default {
-  name: 'Layout',
-  slots: ['sider'],
+  slots: ['sidebar'],
   components: {
     MenuUnfoldOutlined,
     MenuFoldOutlined,
@@ -44,7 +43,7 @@ export default {
       :width="360"
     >
       <a-card :title="title" :bordered="false" style="min-height: 100%">
-        <slot name="sider"></slot>
+        <slot name="sidebar"></slot>
       </a-card>
     </a-layout-sider>
   </a-layout>

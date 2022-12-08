@@ -5,7 +5,6 @@ import { useDataStore } from '@/stores/data'
 import BooleanIndicator from '@/components/BooleanIndicator.vue'
 
 export default {
-  name: 'HomologyInfo',
   components: {
     BooleanIndicator,
   },
