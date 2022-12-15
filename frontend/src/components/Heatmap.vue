@@ -42,15 +42,15 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
-      'transitionTime',
-      'sequenceCount',
-      'selectedRegion',
-      'selectedRegionLength',
       'alignedPositions',
       'mrnaIds',
-      'mrnaIdsSorted',
-      'geneLength',
       'nucleotideColor',
+      'selectedRegion',
+      'selectedRegionLength',
+      'sequenceCount',
+      'sortedMrnaPositions',
+      'sortedMrnaIndices',
+      'transitionTime',
     ]),
     hasAllData(): boolean {
       return this.sequenceCount !== 0
@@ -64,9 +64,8 @@ export default {
     cells(): AlignedPosition[] {
       const [start, end] = this.selectedRegion
 
-      const result = this.alignedPositions.filter((_value, index) => {
-        const rowPosition = (index % this.geneLength) + 1
-        return rowPosition >= start && rowPosition <= end
+      const result = this.alignedPositions.filter(({ position }) => {
+        return position >= start && position <= end
       })
 
       return result
@@ -83,9 +82,8 @@ export default {
       const [start] = this.selectedRegion
       return (position - start) * CELL_SIZE
     },
-    cellY({ mRNA_id }: AlignedPosition) {
-      const index = this.mrnaIdsSorted.indexOf(mRNA_id)
-      return index * CELL_SIZE
+    cellY({ mRNA_index }: AlignedPosition) {
+      return this.sortedMrnaPositions[mRNA_index] * CELL_SIZE
     },
     drawCells() {
       if (!this.hasAllData) return
@@ -106,7 +104,6 @@ export default {
           (update) =>
             update
               .transition()
-              .ease(d3.easeQuadInOut)
               .duration(this.transitionTime)
               .attr('nucleotide', (d) => d.nucleotide)
               .attr('x', (d) => this.cellX(d))
@@ -196,10 +193,9 @@ export default {
   created() {
     this.setTooltipDebounced = debounce((cell: Cell) => {
       const position = this.cellToPosition(cell)
-      const mRNA_id = this.mrnaIdsSorted[cell.row]
-      const mrnaIndex = this.mrnaIds.indexOf(mRNA_id)
+      const mRNA_index = this.sortedMrnaIndices[cell.row]
 
-      const apIndex = mrnaIndex * this.selectedRegionLength + cell.col
+      const apIndex = mRNA_index * this.selectedRegionLength + cell.col
       const alignedPosition = this.cells[apIndex]
 
       this.tooltip = {
@@ -219,7 +215,7 @@ export default {
     selectedRegion() {
       this.drawCells()
     },
-    mrnaIdsSorted() {
+    sortedMrnaPositions() {
       this.drawCells()
     },
   },
@@ -247,7 +243,7 @@ export default {
 
     <a-popover
       :title="tooltip.alignedPosition.mRNA_id"
-      visible="hover"
+      visible
       v-bind:key="tooltip"
       :mouseLeaveDelay="0"
       :mouseEnterDelay="0"

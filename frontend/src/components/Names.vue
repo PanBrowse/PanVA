@@ -26,8 +26,6 @@ export default {
     drawNames() {
       if (!this.hasAllData) return
 
-      console.time('Names#drawNames')
-
       this.svg()
         .selectAll('foreignObject')
         .data(this.mrnaIdsSorted, (d) => d as string)
@@ -49,7 +47,6 @@ export default {
 
           (exit) => exit.transition().duration(this.transitionTime).remove()
         )
-      console.timeEnd('Names#drawNames')
     },
   },
   mounted() {

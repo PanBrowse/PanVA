@@ -8,6 +8,7 @@ import Bipartite from '@/components/Bipartite.vue'
 import Dendrogram from '@/components/Dendrogram.vue'
 import Heatmap from '@/components/Heatmap.vue'
 import Names from '@/components/Names.vue'
+import PhenoBoolean from '@/components/PhenoBoolean.vue'
 import ScrollSync from '@/components/ScrollSync.vue'
 
 export default {
@@ -16,6 +17,7 @@ export default {
     Dendrogram,
     Heatmap,
     Names,
+    PhenoBoolean,
     ScrollSync,
   },
   computed: {
@@ -49,11 +51,9 @@ export default {
           Heatmap
         </div>
       </scroll-sync>
-      <div style="height: 60px; background: lime; flex: 0 0 40px">Pheno 1</div>
-      <div style="height: 60px; background: green; flex: 0 0 120px">
-        Pheno 2
+      <div style="height: 60px; background: lime; flex: 0 0 238px">
+        Phenotypes
       </div>
-      <div style="height: 60px; background: cyan; flex: 0 0 100px">Pheno 3</div>
     </div>
 
     <div class="content-wrapper">
@@ -67,7 +67,8 @@ export default {
         >
           <Heatmap />
         </scroll-sync>
-        <div style="background: lime; flex: 0 0 40px">Pheno 1</div>
+        <!-- <div style="background: lime; flex: 0 0 40px">Pheno 1</div> -->
+        <PhenoBoolean />
         <div style="background: green; flex: 0 0 120px">Pheno 2</div>
         <div style="background: cyan; flex: 0 0 100px">Pheno 3</div>
       </div>

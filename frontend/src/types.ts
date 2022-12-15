@@ -1,6 +1,5 @@
 export type mRNAid = string
 export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
-export type Virulence = 'virulent' | 'avirulent' | '?'
 export type Range = [number, number]
 export type Position = { x: number; y: number }
 
@@ -20,6 +19,7 @@ export type Homology = {
 export type AlignedPosition = {
   index: number
   mRNA_id: mRNAid
+  mRNA_index: number
   genome_nr: number
   position: number
   nucleotide: Nucleotide
@@ -54,7 +54,7 @@ export type Pheno = {
   mRNA_id: mRNAid
   species: string
   strain_name: string
-  virulence: Virulence
+  virulence: boolean | null
 }
 
 export type Dendro = {
@@ -66,6 +66,7 @@ export type Dendro = {
 export type AlignedPositionsCSVColumns =
   | 'index'
   | 'mRNA_id'
+  | 'mRNA_index'
   | 'genome_nr'
   | 'position'
   | 'nucleotide'

@@ -25,14 +25,15 @@ import type {
   VarPosCount,
   Range,
   Nucleotide,
-  Virulence,
   PhenoCSVColumns,
   AlignedPositionsCSVColumns,
   VarPosCountCSVColumns,
   Sequence,
   SequenceCSVColumns,
 } from '@/types'
-import { clamp, map, shuffle } from 'lodash'
+import { clamp, map, range, shuffle } from 'lodash'
+import arrayFlip from '@/helpers/arrayFlip'
+import { parseVirulence } from '@/datasets/pectobacterium'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -101,12 +102,42 @@ export const useDataStore = defineStore('data', {
       }
       return []
     },
-    mrnaIdsSorted(): mRNAid[] {
+    sortedMrnaIndices(): number[] {
+      /**
+       * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
+       * This function returns a mapping of `draw position` => `mRNA ids index`, which
+       * can be used when you iterate over draw positions.
+       * [
+       *   0 => 4, // on draw position 0 is mRNA ids index 4 (e)
+       *   1 => 1, // on draw position 1 is mRNA ids index 1 (b)
+       *   2 => 3, // on draw position 2 is mRNA ids index 3 (d)
+       *   3 => 0, // on draw position 3 is mRNA ids index 0 (a)
+       *   4 => 2, // on draw position 4 is mRNA ids index 2 (c)
+       * ]
+       */
       if (this.shuffleSequences) {
         // For now we randomize the list so it looks pretty.
-        return shuffle(this.mrnaIds)
+        return shuffle(range(this.sequenceCount))
       }
-      return this.mrnaIds
+      return range(this.sequenceCount)
+    },
+    sortedMrnaPositions(): number[] {
+      /**
+       * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
+       * This function returns a mapping of `mRNA ids index` => `draw position`, which
+       * can be used when you iterate over an unsorted data array.
+       * [
+       *   0 => 3, // mRNA ids index 0 (a) is on draw position 3
+       *   1 => 1, // mRNA ids index 1 (b) is on draw position 1
+       *   2 => 4, // mRNA ids index 2 (c) is on draw position 4
+       *   3 => 2, // mRNA ids index 3 (d) is on draw position 2
+       *   4 => 0, // mRNA ids index 4 (e) is on draw position 0
+       * ]
+       */
+      return arrayFlip(this.sortedMrnaIndices)
+    },
+    mrnaIdsSorted(): mRNAid[] {
+      return this.sortedMrnaIndices.map((index) => this.mrnaIds[index])
     },
   },
   actions: {
@@ -140,6 +171,7 @@ export const useDataStore = defineStore('data', {
             index,
             informative,
             mRNA_id,
+            mRNA_index,
             nucleotide,
             pheno_specific,
             position,
@@ -149,6 +181,7 @@ export const useDataStore = defineStore('data', {
             index: parseNumber(index),
             informative: parseOptionalBool(informative),
             mRNA_id: parseString(mRNA_id),
+            mRNA_index: parseNumber(mRNA_index),
             nucleotide: parseString(nucleotide) as Nucleotide,
             pheno_specific: parseOptionalBool(pheno_specific),
             position: parseNumber(position),
@@ -197,7 +230,7 @@ export const useDataStore = defineStore('data', {
             mRNA_id: parseString(mRNA_id),
             species: parseString(species),
             strain_name: parseString(strain_name),
-            virulence: parseString(virulence) as Virulence,
+            virulence: parseVirulence(virulence),
           })
         )
       } catch (err) {

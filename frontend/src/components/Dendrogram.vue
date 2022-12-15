@@ -64,8 +64,6 @@ export default {
     drawDendro() {
       if (!this.hasAllData) return
 
-      console.time('Dendrogram#drawDendro')
-
       this.svg()
         .selectAll('path')
         .data(this.links)
@@ -97,7 +95,6 @@ export default {
           (enter) =>
             enter
               .append('circle')
-              .attr('name', (d) => d.data.name)
               .attr('cx', (d) => this.circleRadius + d.y)
               .attr('cy', (d) => d.x)
               .attr('r', this.circleRadius)
@@ -116,7 +113,6 @@ export default {
               }),
           (update) =>
             update
-              .attr('name', (d) => d.data.name)
               .attr('stroke', (d) => {
                 const ids = d.data.name.split('-')
                 if (containsAll(this.selectedIds, ids)) {
@@ -139,8 +135,6 @@ export default {
               ),
           (exit) => exit.remove()
         )
-
-      console.timeEnd('Dendrogram#drawDendro')
     },
   },
   mounted() {
