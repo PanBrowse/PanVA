@@ -8,6 +8,7 @@ import HomologyInfo from '@/components/HomologyInfo.vue'
 import HomologySelect from '@/components/HomologySelect.vue'
 import Layout from '@/components/Layout.vue'
 import LocusView from '@/components/LocusView.vue'
+import LocusViewOptions from '@/components/LocusViewOptions.vue'
 import Tooltip from '@/components/Tooltip.vue'
 
 import { title } from '@dataset'
@@ -20,6 +21,7 @@ export default {
     HomologyInfo,
     Layout,
     LocusView,
+    LocusViewOptions,
     Tooltip,
   },
   head: {
@@ -55,6 +57,7 @@ export default {
     <template #sidebar>
       <HomologySelect />
       <HomologyInfo />
+      <LocusViewOptions />
       <DebugMenu />
     </template>
 

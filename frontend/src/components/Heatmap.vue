@@ -43,13 +43,14 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'alignedPositions',
+      'cellTheme',
       'mrnaIds',
       'nucleotideColor',
       'selectedRegion',
       'selectedRegionLength',
       'sequenceCount',
-      'sortedMrnaPositions',
       'sortedMrnaIndices',
+      'sortedMrnaPositions',
       'transitionTime',
     ]),
     hasAllData(): boolean {
@@ -130,7 +131,7 @@ export default {
       ctx.strokeStyle = '#ffffff'
       ctx.lineWidth = 0.5
 
-      const vis = this
+      const that = this
 
       d3.select(this.customNode)
         .selectAll<HTMLElement, any>('c')
@@ -141,7 +142,7 @@ export default {
           const x = parseInt(this.getAttribute('x') as string)
           const y = parseInt(this.getAttribute('y') as string)
 
-          ctx.fillStyle = vis.nucleotideColor(nucleotide)
+          ctx.fillStyle = that.nucleotideColor(nucleotide)
 
           ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
           ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE)
@@ -214,6 +215,9 @@ export default {
     },
     selectedRegion() {
       this.drawCells()
+    },
+    cellTheme() {
+      this.drawCanvas()
     },
     sortedMrnaPositions() {
       this.drawCells()
