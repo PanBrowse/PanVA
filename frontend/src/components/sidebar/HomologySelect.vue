@@ -5,10 +5,12 @@ import { sortBy } from 'lodash'
 import type { Homology } from '@/types'
 
 import LoadingBox from '@/components/common/LoadingBox.vue'
+import SidebarItem from '@/components/common/SidebarItem.vue'
 
 export default {
   components: {
     LoadingBox,
+    SidebarItem,
   },
   computed: {
     ...mapState(useDataStore, ['homologies']),
@@ -21,9 +23,7 @@ export default {
 </script>
 
 <template>
-  <div>
-    <h3>Homology</h3>
-
+  <SidebarItem title="Homology">
     <a-select
       ref="select"
       v-model:value="homologyId"
@@ -39,5 +39,5 @@ export default {
       </a-select-option>
     </a-select>
     <LoadingBox :height="32" v-else />
-  </div>
+  </SidebarItem>
 </template>

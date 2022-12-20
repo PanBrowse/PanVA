@@ -4,7 +4,12 @@ import { useDataStore } from '@/stores/data'
 import { sortBy } from 'lodash'
 import type { Homology } from '@/types'
 
+import SidebarItem from '@/components/common/SidebarItem.vue'
+
 export default {
+  components: {
+    SidebarItem,
+  },
   computed: {
     ...mapState(useDataStore, ['sequenceCount', 'selectedRegionLength']),
     ...mapWritableState(useDataStore, [
@@ -23,11 +28,7 @@ export default {
 </script>
 
 <template>
-  <div>
-    <a-divider />
-
-    <h3>Debug</h3>
-
+  <SidebarItem title="Debug" isDefaultCollapsed>
     <a-space direction="vertical" :size="16">
       <a-descriptions size="small" layout="horizontal" :column="1" bordered>
         <a-descriptions-item label="Cell count">
@@ -47,5 +48,5 @@ export default {
         Change selection to 100-500
       </a-button>
     </a-space>
-  </div>
+  </SidebarItem>
 </template>

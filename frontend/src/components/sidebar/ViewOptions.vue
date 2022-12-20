@@ -4,7 +4,12 @@ import { useDataStore } from '@/stores/data'
 
 import { CELL_THEMES } from '@/config'
 
+import SidebarItem from '@/components/common/SidebarItem.vue'
+
 export default {
+  components: {
+    SidebarItem,
+  },
   computed: {
     ...mapWritableState(useDataStore, ['cellTheme']),
     cellThemes() {
@@ -15,11 +20,7 @@ export default {
 </script>
 
 <template>
-  <div>
-    <a-divider />
-
-    <h3>Locus view</h3>
-
+  <SidebarItem title="View options">
     <a-form>
       <a-form-item label="Theme">
         <a-select ref="select" v-model:value="cellTheme" style="width: 100%">
@@ -33,5 +34,5 @@ export default {
         </a-select>
       </a-form-item>
     </a-form>
-  </div>
+  </SidebarItem>
 </template>

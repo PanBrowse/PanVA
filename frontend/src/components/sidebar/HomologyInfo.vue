@@ -3,10 +3,12 @@ import { mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 
 import BooleanIndicator from '@/components/common/BooleanIndicator.vue'
+import SidebarItem from '@/components/common/SidebarItem.vue'
 
 export default {
   components: {
     BooleanIndicator,
+    SidebarItem,
   },
   computed: {
     ...mapState(useDataStore, ['homology']),
@@ -15,11 +17,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="homology">
-    <a-divider />
-
-    <h3>Homology info</h3>
-
+  <SidebarItem v-if="homology" title="Homology info">
     <a-descriptions size="small" layout="horizontal" :column="1" bordered>
       <a-descriptions-item label="ID">
         {{ homology.homology_id }}
@@ -53,5 +51,5 @@ export default {
         </BooleanIndicator>
       </a-descriptions-item>
     </a-descriptions>
-  </div>
+  </SidebarItem>
 </template>

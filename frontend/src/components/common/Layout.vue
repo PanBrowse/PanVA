@@ -42,7 +42,12 @@ export default {
       :collapsedWidth="0"
       :width="360"
     >
-      <a-card :title="title" :bordered="false" style="min-height: 100%">
+      <a-card
+        :title="title"
+        :bordered="false"
+        style="min-height: 100%"
+        bodyStyle="padding: 0"
+      >
         <slot name="sidebar"></slot>
       </a-card>
     </a-layout-sider>
