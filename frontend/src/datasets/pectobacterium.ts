@@ -19,14 +19,14 @@ export const phenoColumns: PhenoColumn[] = [
     type: 'categorical',
     field: 'species',
     label: 'Species',
-    width: 120,
+    width: 80,
     parser: parseString,
   },
   {
     type: 'categorical',
     field: 'strain_name',
     label: 'Strain',
-    width: 100,
+    width: 120,
     parser: parseString,
   },
 ]

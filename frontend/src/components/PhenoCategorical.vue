@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 import { mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
-import type { Pheno, PhenoColumnBooleanData } from '@/types'
+import type { Pheno, PhenoColumnCategoricalData } from '@/types'
 
 export default {
   props: {
@@ -11,11 +11,10 @@ export default {
       type: String,
       required: true,
     },
-  },
-  data() {
-    return {
-      padding: 4,
-    }
+    width: {
+      type: Number,
+      required: true,
+    },
   },
   computed: {
     ...mapState(useDataStore, [
@@ -32,46 +31,37 @@ export default {
     name(): string {
       return `pheno-${this.field}`
     },
-    width(): number {
-      return this.padding * 2 + CELL_SIZE
-    },
   },
   methods: {
     svg() {
       return d3.select(`#${this.name}`)
     },
     cellY({ index }: Pheno): number {
-      return (this.sortedMrnaPositions[index] + 0.5) * CELL_SIZE
+      return this.sortedMrnaPositions[index] * CELL_SIZE
     },
     drawPheno() {
       if (!this.hasAllData) return
 
       this.svg()
-        .selectAll('circle')
+        .selectAll('foreignObject')
         .data(this.phenos, (d) => (d as Pheno).mRNA_id)
         .join(
           (enter) =>
             enter
-              .append('circle')
-              .attr('cx', this.padding + 0.5 * CELL_SIZE)
-              .attr('cy', this.cellY)
-              .attr('r', 4)
-              .attr('stroke', 'black')
-              .attr('fill', (d) => {
-                const value = d[this.field] as PhenoColumnBooleanData
-                if (value === true) {
-                  return 'black'
-                } else if (value === false) {
-                  return 'white'
-                } else {
-                  return 'lightgrey'
-                }
-              }),
+              .append('foreignObject')
+              .attr('x', 3)
+              .attr('y', this.cellY)
+              .attr('width', this.width)
+              .attr('height', CELL_SIZE)
+              .text((d) => d[this.field] as PhenoColumnCategoricalData),
+
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('cy', this.cellY),
+              .attr('y', this.cellY)
+              .text((d) => d[this.field] as PhenoColumnCategoricalData),
+
           (exit) => exit.transition().duration(this.transitionTime).remove()
         )
     },
@@ -94,11 +84,26 @@ export default {
 </script>
 
 <template>
-  <svg :id="name" :width="width" :height="height" class="pheno-boolean"></svg>
+  <svg
+    :id="name"
+    :width="width"
+    :height="height"
+    class="pheno-categorical"
+  ></svg>
 </template>
 
 <style lang="scss">
-.pheno-boolean {
+.pheno-categorical {
   flex: 0 0 auto;
+
+  foreignObject {
+    user-select: none;
+    color: darkgrey;
+    font-size: 9px;
+    line-height: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
 }
 </style>

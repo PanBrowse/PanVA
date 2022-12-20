@@ -50,8 +50,6 @@ export type Sequence = {
   prot_seq: string
 }
 
-export type PhenoColumnType = 'boolean' | 'categorical' | 'quantitative'
-export type PhenoColumnData = (boolean | null) | string | number
 export type PhenoColumnCSVParser<T> = (value?: string) => T
 
 type PhenoColumnBase = {
@@ -59,26 +57,32 @@ type PhenoColumnBase = {
   label: string
 }
 
+export type PhenoColumnBooleanData = boolean | null
 export type PhenoColumnBoolean = PhenoColumnBase & {
   type: 'boolean'
-  parser: PhenoColumnCSVParser<boolean | null>
+  parser: PhenoColumnCSVParser<PhenoColumnBooleanData>
 }
 
+export type PhenoColumnCategoricalData = string
 export type PhenoColumnCategorical = PhenoColumnBase & {
   type: 'categorical'
   width: number
-  parser: PhenoColumnCSVParser<string>
+  parser: PhenoColumnCSVParser<PhenoColumnCategoricalData>
 }
 
+export type PhenoColumnQuantitativeData = number | null
 export type PhenoColumnQuantitative = PhenoColumnBase & {
   type: 'quantitative'
-  parser: PhenoColumnCSVParser<number>
+  parser: PhenoColumnCSVParser<PhenoColumnQuantitativeData>
 }
 
 export type PhenoColumn =
   | PhenoColumnBoolean
   | PhenoColumnCategorical
   | PhenoColumnQuantitative
+
+export type PhenoColumnType = PhenoColumn['type']
+export type PhenoColumnData = ReturnType<PhenoColumn['parser']>
 
 export type Pheno = Record<string, PhenoColumnData> & {
   index: number
