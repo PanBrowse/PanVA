@@ -47,7 +47,8 @@ export default {
       'geneLength',
       'mrnaIds',
       'nucleotideColor',
-      'referenceMrnaPosition',
+      'referenceMrnaId',
+      'referenceMrnaNucleotideAtPosition',
       'selectedRegion',
       'selectedRegionLength',
       'sequenceCount',
@@ -87,9 +88,10 @@ export default {
       return this.sortedMrnaPositions[mRNA_index] * CELL_SIZE
     },
     cellColor(position: number, nucleotide: Nucleotide) {
-      if (!this.referenceMrnaPosition) return this.nucleotideColor(nucleotide)
+      if (!this.referenceMrnaId) return this.nucleotideColor(nucleotide)
 
-      const referenceNucleotide = this.referenceMrnaPosition(position)
+      const referenceNucleotide =
+        this.referenceMrnaNucleotideAtPosition(position)
 
       if (referenceNucleotide === nucleotide) {
         return '#e9ecef'
@@ -233,7 +235,7 @@ export default {
     cellTheme() {
       this.drawCanvas()
     },
-    referenceMrnaPosition() {
+    referenceMrnaId() {
       this.drawCanvas()
     },
     sortedMrnaPositions() {

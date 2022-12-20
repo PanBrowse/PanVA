@@ -105,8 +105,12 @@ export const useDataStore = defineStore('data', {
       }
       return []
     },
-    referenceMrnaPosition() {
-      if (!this.referenceMrnaId) return null
+    referenceMrnaNucleotideAtPosition() {
+      if (!this.referenceMrnaId) {
+        throw new Error(
+          'Should only be called if there is a referenceMrnaId set.'
+        )
+      }
 
       const mrnaIndex = this.mrnaIds.indexOf(this.referenceMrnaId)
 
