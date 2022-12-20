@@ -18,12 +18,14 @@ If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has a
 ## Project Setup
 
 ```sh
+nvm install
 npm ci
 ```
 
 ### Compile and Hot-Reload for Development
 
 ```sh
+nvm use
 npm run dev
 ```
 
