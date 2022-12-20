@@ -6,7 +6,7 @@ import { mapState, mapWritableState } from 'pinia'
 import type { D3BrushEvent } from 'd3'
 import { zipEqual } from '@/helpers/zipEqual'
 
-import LoadingBox from '@/components/LoadingBox.vue'
+import LoadingBox from '@/components/common/LoadingBox.vue'
 
 type Score = {
   x: number

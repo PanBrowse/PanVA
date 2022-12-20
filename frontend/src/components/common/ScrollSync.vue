@@ -10,11 +10,17 @@ export default {
     horizontal: Boolean,
     group: String,
     style: [String, Object],
+    class: String,
   },
   data() {
     return {
       uuid: _uuid++,
     }
+  },
+  computed: {
+    className() {
+      return this.class
+    },
   },
   methods: {
     handleScroll(event: any) {
@@ -103,7 +109,7 @@ export default {
 </script>
 
 <template>
-  <div :style="style">
+  <div :style="style" :class="className">
     <slot></slot>
   </div>
 </template>

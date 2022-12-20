@@ -5,8 +5,8 @@ import { mapState } from 'pinia'
 import { CELL_SIZE } from '@/config'
 import isEqual from 'fast-deep-equal'
 
-import LoadingBox from '@/components/LoadingBox.vue'
-import BooleanIndicator from '@/components/BooleanIndicator.vue'
+import LoadingBox from '@/components/common/LoadingBox.vue'
+import BooleanIndicator from '@/components/common/BooleanIndicator.vue'
 
 import type { AlignedPosition, Nucleotide } from '@/types'
 import { debounce, type DebouncedFunc } from 'lodash'
@@ -65,11 +65,9 @@ export default {
     cells(): AlignedPosition[] {
       const [start, end] = this.selectedRegion
 
-      const result = this.alignedPositions.filter(({ position }) => {
+      return this.alignedPositions.filter(({ position }) => {
         return position >= start && position <= end
       })
-
-      return result
     },
   },
   methods: {
@@ -305,7 +303,7 @@ export default {
 .heatmap-wrapper {
   position: relative;
   transition-property: width;
-  transition-timing-function: ease-in-out;
+  transition-timing-function: linear;
 }
 
 .heatmap-popover-content {

@@ -2,14 +2,14 @@
 import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 
-import DebugMenu from '@/components/DebugMenu.vue'
-import GeneOverview from '@/components/GeneOverview.vue'
-import HomologyInfo from '@/components/HomologyInfo.vue'
-import HomologySelect from '@/components/HomologySelect.vue'
-import Layout from '@/components/Layout.vue'
-import LocusView from '@/components/LocusView.vue'
-import LocusViewOptions from '@/components/LocusViewOptions.vue'
-import Tooltip from '@/components/Tooltip.vue'
+import DebugMenu from '@/components/sidebar/DebugMenu.vue'
+import GeneOverview from '@/components/views/GeneOverview.vue'
+import HomologyInfo from '@/components/sidebar/HomologyInfo.vue'
+import HomologySelect from '@/components/sidebar/HomologySelect.vue'
+import Layout from '@/components/common/Layout.vue'
+import LocusView from '@/components/views/LocusView.vue'
+import Tooltip from '@/components/common/Tooltip.vue'
+import ViewOptions from '@/components/sidebar/ViewOptions.vue'
 
 import { title } from '@dataset'
 
@@ -17,12 +17,12 @@ export default {
   components: {
     DebugMenu,
     GeneOverview,
-    HomologySelect,
     HomologyInfo,
+    HomologySelect,
     Layout,
     LocusView,
-    LocusViewOptions,
     Tooltip,
+    ViewOptions,
   },
   head: {
     title,
@@ -57,7 +57,7 @@ export default {
     <template #sidebar>
       <HomologySelect />
       <HomologyInfo />
-      <LocusViewOptions />
+      <ViewOptions />
       <DebugMenu />
     </template>
 

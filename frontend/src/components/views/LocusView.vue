@@ -1,24 +1,24 @@
 <script lang="ts">
-import { mapState } from 'pinia'
-
-import { useDataStore } from '@/stores/data'
-import { CELL_SIZE } from '@/config'
 import { phenoColumns } from '@dataset'
 
-import Bipartite from '@/components/Bipartite.vue'
-import Dendrogram from '@/components/Dendrogram.vue'
-import Heatmap from '@/components/Heatmap.vue'
-import Names from '@/components/Names.vue'
-import PhenoBoolean from '@/components/PhenoBoolean.vue'
-import PhenoCategorical from '@/components/PhenoCategorical.vue'
-import PhenoLabels from '@/components/PhenoLabels.vue'
-import ScrollSync from '@/components/ScrollSync.vue'
+import Bipartite from '@/components/visualizations/Bipartite.vue'
+import Dendrogram from '@/components/visualizations/Dendrogram.vue'
+import Heatmap from '@/components/visualizations/Heatmap.vue'
+import HeatmapHeader from '@/components/visualizations/HeatmapHeader.vue'
+import LocusOptions from '@/components/visualizations/LocusOptions.vue'
+import Names from '@/components/visualizations/Names.vue'
+import PhenoBoolean from '@/components/visualizations/PhenoBoolean.vue'
+import PhenoCategorical from '@/components/visualizations/PhenoCategorical.vue'
+import PhenoLabels from '@/components/visualizations/PhenoLabels.vue'
+import ScrollSync from '@/components/common/ScrollSync.vue'
 
 export default {
   components: {
     Bipartite,
     Dendrogram,
     Heatmap,
+    HeatmapHeader,
+    LocusOptions,
     Names,
     PhenoBoolean,
     PhenoCategorical,
@@ -26,10 +26,6 @@ export default {
     ScrollSync,
   },
   computed: {
-    ...mapState(useDataStore, ['selectedRegionLength']),
-    heatmapWidth(): number {
-      return this.selectedRegionLength * CELL_SIZE
-    },
     phenoColumns() {
       return phenoColumns
     },
@@ -40,24 +36,13 @@ export default {
 <template>
   <a-card class="locus-view" title="Locus view" :bordered="false" size="small">
     <div class="header">
-      <div style="height: 60px; background: red; flex: 0 0 320px">Options</div>
-      <div style="background: gold; flex: 0 0 200px">Names</div>
+      <div style="height: 60px; flex: 0 0 520px"><LocusOptions /></div>
       <scroll-sync
         horizontal
-        style="
-          height: 60px;
-          background: yellow;
-          overflow: auto hidden;
-          min-width: 200px;
-        "
+        style="overflow: auto hidden; min-width: 120px"
+        class="custom-scrollbar"
       >
-        <div
-          :style="{
-            width: heatmapWidth + 'px',
-          }"
-        >
-          Heatmap
-        </div>
+        <HeatmapHeader />
       </scroll-sync>
       <PhenoLabels />
     </div>
@@ -69,7 +54,8 @@ export default {
         <Names />
         <scroll-sync
           horizontal
-          style="background: yellow; overflow: auto hidden; min-width: 200px"
+          style="overflow: auto hidden; min-width: 120px"
+          class="custom-scrollbar"
         >
           <Heatmap />
         </scroll-sync>

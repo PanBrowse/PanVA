@@ -61,7 +61,10 @@ export const useDataStore = defineStore('data', {
     // Application state.
     cellTheme: 'clustal' as CellThemeName,
     homologyId: defaultHomologyId,
+    referenceMrnaId: null as mRNAid | null,
     selectedIds: [] as mRNAid[],
+    selectedPositions: [] as number[],
+    // The range is inclusive on both ends.
     selectedRegion: DEFAULT_SELECTED_REGION as Range,
     transitionsEnabled: true,
     shuffleSequences: false,

@@ -4,7 +4,7 @@ import { useDataStore } from '@/stores/data'
 import { sortBy } from 'lodash'
 import type { Homology } from '@/types'
 
-import LoadingBox from '@/components/LoadingBox.vue'
+import LoadingBox from '@/components/common/LoadingBox.vue'
 
 export default {
   components: {

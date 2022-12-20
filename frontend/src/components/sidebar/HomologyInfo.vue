@@ -2,7 +2,7 @@
 import { mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 
-import BooleanIndicator from '@/components/BooleanIndicator.vue'
+import BooleanIndicator from '@/components/common/BooleanIndicator.vue'
 
 export default {
   components: {
