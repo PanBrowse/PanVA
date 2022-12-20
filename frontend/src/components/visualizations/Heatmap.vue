@@ -44,8 +44,10 @@ export default {
     ...mapState(useDataStore, [
       'alignedPositions',
       'cellTheme',
+      'geneLength',
       'mrnaIds',
       'nucleotideColor',
+      'referenceMrnaPosition',
       'selectedRegion',
       'selectedRegionLength',
       'sequenceCount',
@@ -84,6 +86,17 @@ export default {
     cellY({ mRNA_index }: AlignedPosition) {
       return this.sortedMrnaPositions[mRNA_index] * CELL_SIZE
     },
+    cellColor(position: number, nucleotide: Nucleotide) {
+      if (!this.referenceMrnaPosition) return this.nucleotideColor(nucleotide)
+
+      const referenceNucleotide = this.referenceMrnaPosition(position)
+
+      if (referenceNucleotide === nucleotide) {
+        return '#e9ecef'
+      }
+
+      return this.nucleotideColor(nucleotide)
+    },
     drawCells() {
       if (!this.hasAllData) return
 
@@ -98,6 +111,7 @@ export default {
               // This call is the performance bottleneck.
               .append('c')
               .attr('nucleotide', (d) => d.nucleotide)
+              .attr('position', (d) => d.position)
               .attr('x', this.cellX)
               .attr('y', this.cellY),
           (update) =>
@@ -105,6 +119,7 @@ export default {
               .transition()
               .duration(this.transitionTime)
               .attr('nucleotide', (d) => d.nucleotide)
+              .attr('position', (d) => d.position)
               .attr('x', this.cellX)
               .attr('y', this.cellY),
           (exit) => exit.remove()
@@ -137,10 +152,11 @@ export default {
           if (!this) return
 
           const nucleotide = this.getAttribute('nucleotide') as Nucleotide
+          const position = parseInt(this.getAttribute('position') as string)
           const x = parseInt(this.getAttribute('x') as string)
           const y = parseInt(this.getAttribute('y') as string)
 
-          ctx.fillStyle = that.nucleotideColor(nucleotide)
+          ctx.fillStyle = that.cellColor(position, nucleotide)
 
           ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
           ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE)
@@ -215,6 +231,9 @@ export default {
       this.drawCells()
     },
     cellTheme() {
+      this.drawCanvas()
+    },
+    referenceMrnaPosition() {
       this.drawCanvas()
     },
     sortedMrnaPositions() {

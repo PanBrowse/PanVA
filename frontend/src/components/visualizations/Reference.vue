@@ -14,7 +14,7 @@ export default {
       'mrnaIds',
       'geneLength',
       'nucleotideColor',
-      'referenceMrnaId',
+      'referenceMrnaPosition',
       'selectedRegion',
       'selectedRegionLength',
       'transitionTime',
@@ -42,18 +42,12 @@ export default {
       return (position - start) * CELL_SIZE
     },
     cellColor(position: number) {
-      if (!this.referenceMrnaId) {
-        return '#e9ecef'
-      }
-
-      const mrnaIndex = this.mrnaIds.indexOf(this.referenceMrnaId)
-      const { nucleotide } =
-        this.alignedPositions[mrnaIndex * this.geneLength + position]
-      return this.nucleotideColor(nucleotide)
+      if (!this.referenceMrnaPosition) return '#e9ecef'
+      return this.nucleotideColor(this.referenceMrnaPosition(position))
     },
     drawCells() {
-      console.log(this.referenceMrnaId)
-      if (!this.hasAllData && this.referenceMrnaId) return
+      console.log(this.referenceMrnaPosition)
+      if (!this.hasAllData && this.referenceMrnaPosition) return
 
       this.svg()
         .selectAll('rect')
@@ -69,12 +63,7 @@ export default {
               .attr('stroke', 'white')
               .attr('stroke-width', 0.5),
 
-          (update) =>
-            update
-              .transition()
-              .duration(this.transitionTime)
-              .attr('fill', this.cellColor)
-              .attr('x', this.cellX),
+          (update) => update.attr('fill', this.cellColor).attr('x', this.cellX),
           (exit) => exit.remove()
         )
     },
@@ -89,7 +78,7 @@ export default {
     selectedRegion() {
       this.drawCells()
     },
-    referenceMrnaId() {
+    referenceMrnaPosition() {
       this.drawCells()
     },
     cellTheme() {

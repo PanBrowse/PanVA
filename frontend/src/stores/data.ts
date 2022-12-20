@@ -105,6 +105,17 @@ export const useDataStore = defineStore('data', {
       }
       return []
     },
+    referenceMrnaPosition() {
+      if (!this.referenceMrnaId) return null
+
+      const mrnaIndex = this.mrnaIds.indexOf(this.referenceMrnaId)
+
+      return (position: number) => {
+        const { nucleotide } =
+          this.alignedPositions[mrnaIndex * this.geneLength + position - 1]
+        return nucleotide
+      }
+    },
     sortedMrnaIndices(): number[] {
       /**
        * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
