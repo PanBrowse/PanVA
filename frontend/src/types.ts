@@ -66,6 +66,7 @@ export type PhenoColumnBoolean = PhenoColumnBase & {
 
 export type PhenoColumnCategorical = PhenoColumnBase & {
   type: 'categorical'
+  width: number
   parser: PhenoColumnCSVParser<string>
 }
 

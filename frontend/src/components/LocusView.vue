@@ -67,7 +67,6 @@ export default {
         >
           <Heatmap />
         </scroll-sync>
-        <!-- <div style="background: lime; flex: 0 0 40px">Pheno 1</div> -->
         <PhenoBoolean />
         <div style="background: green; flex: 0 0 120px">Pheno 2</div>
         <div style="background: cyan; flex: 0 0 100px">Pheno 3</div>

@@ -227,11 +227,14 @@ export const useDataStore = defineStore('data', {
         this.phenos = await d3.csv<Pheno, PhenoCSVColumns | string>(
           `${API_URL}/${this.homologyId}/phenos`,
           ({ mRNA_id, genome_nr, ...rest }) => {
+            // Common fields.
             const data: Pheno = {
               mRNA_id: parseString(mRNA_id),
               genome_nr: parseNumber(genome_nr),
               index: parseNumber(genome_nr) - 1,
             }
+
+            // Dataset specific fields.
             phenoColumns.forEach((column) => {
               const { field, parser } = column as PhenoColumn
               data[field] = parser(rest[field])
