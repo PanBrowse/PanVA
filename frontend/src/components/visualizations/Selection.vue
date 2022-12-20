@@ -67,22 +67,25 @@ export default {
 
 <style lang="scss">
 .selection-wrapper {
-  height: 10px;
-  overflow: hidden;
   line-height: 10px;
   transition-property: width;
   transition-timing-function: linear;
 
   .ant-checkbox-group {
-    height: 10px;
     line-height: 10px;
     white-space: nowrap;
   }
 
   .ant-checkbox-group-item {
     white-space: nowrap;
+    padding: 0;
     margin: 0;
-    padding: 0 1px;
+    align-items: flex-start;
+  }
+
+  .ant-checkbox {
+    top: 0;
+    padding: 1px;
   }
 
   .ant-checkbox-inner {

@@ -7,7 +7,7 @@ import { CELL_SIZE } from '@/config'
 export default {
   data() {
     return {
-      width: 200,
+      width: 180,
     }
   },
   computed: {
@@ -35,7 +35,7 @@ export default {
               .append('foreignObject')
               .attr('x', 3)
               .attr('y', (d, index) => index * CELL_SIZE)
-              .attr('width', 200)
+              .attr('width', this.width - 3)
               .attr('height', CELL_SIZE)
               .text((d) => d),
           (update) =>
