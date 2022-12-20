@@ -99,15 +99,15 @@ export default {
               // This call is the performance bottleneck.
               .append('c')
               .attr('nucleotide', (d) => d.nucleotide)
-              .attr('x', (d) => this.cellX(d))
-              .attr('y', (d) => this.cellY(d)),
+              .attr('x', this.cellX)
+              .attr('y', this.cellY),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
               .attr('nucleotide', (d) => d.nucleotide)
-              .attr('x', (d) => this.cellX(d))
-              .attr('y', (d) => this.cellY(d)),
+              .attr('x', this.cellX)
+              .attr('y', this.cellY),
           (exit) => exit.remove()
         )
 

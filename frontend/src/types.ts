@@ -50,11 +50,39 @@ export type Sequence = {
   prot_seq: string
 }
 
-export type Pheno = {
+export type PhenoColumnType = 'boolean' | 'categorical' | 'quantitative'
+export type PhenoColumnData = (boolean | null) | string | number
+export type PhenoColumnCSVParser<T> = (value?: string) => T
+
+type PhenoColumnBase = {
+  field: string
+  label: string
+}
+
+export type PhenoColumnBoolean = PhenoColumnBase & {
+  type: 'boolean'
+  parser: PhenoColumnCSVParser<boolean | null>
+}
+
+export type PhenoColumnCategorical = PhenoColumnBase & {
+  type: 'categorical'
+  parser: PhenoColumnCSVParser<string>
+}
+
+export type PhenoColumnQuantitative = PhenoColumnBase & {
+  type: 'quantitative'
+  parser: PhenoColumnCSVParser<number>
+}
+
+export type PhenoColumn =
+  | PhenoColumnBoolean
+  | PhenoColumnCategorical
+  | PhenoColumnQuantitative
+
+export type Pheno = Record<string, PhenoColumnData> & {
+  index: number
+  genome_nr: number
   mRNA_id: mRNAid
-  species: string
-  strain_name: string
-  virulence: boolean | null
 }
 
 export type Dendro = {
@@ -82,13 +110,7 @@ export type SequenceCSVColumns =
   | 'prot_trimmed_seq'
   | 'prot_seq'
 
-export type PhenoCSVColumns =
-  | 'mRNA_id'
-  | 'species'
-  | 'strain_name'
-  | 'virulence'
-  | 'genome_nr'
-  | 'pheno_node_id'
+export type PhenoCSVColumns = 'mRNA_id' | 'genome_nr' | 'pheno_node_id'
 
 export type VarPosCountCSVColumns =
   | 'position'
@@ -100,11 +122,6 @@ export type VarPosCountCSVColumns =
   | 'gap'
   | 'other'
   | 'conservation'
-
-export type Dataset = {
-  defaultHomologyId: number
-  title: string
-}
 
 export type CellTheme = {
   name: string

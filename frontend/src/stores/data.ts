@@ -9,7 +9,7 @@ import {
   DEFAULT_SELECTED_REGION,
   TRANSITION_TIME,
 } from '@/config'
-import { defaultHomologyId } from '@dataset'
+import { defaultHomologyId, phenoColumns } from '@dataset'
 import {
   parseBool,
   parseNumber,
@@ -30,10 +30,10 @@ import type {
   VarPosCountCSVColumns,
   Sequence,
   SequenceCSVColumns,
+  PhenoColumn,
 } from '@/types'
 import { clamp, map, range, shuffle } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
-import { parseVirulence } from '@/datasets/pectobacterium'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -224,14 +224,21 @@ export const useDataStore = defineStore('data', {
     },
     async fetchPhenos() {
       try {
-        this.phenos = await d3.csv<Pheno, PhenoCSVColumns>(
+        this.phenos = await d3.csv<Pheno, PhenoCSVColumns | string>(
           `${API_URL}/${this.homologyId}/phenos`,
-          ({ mRNA_id, species, strain_name, virulence }) => ({
-            mRNA_id: parseString(mRNA_id),
-            species: parseString(species),
-            strain_name: parseString(strain_name),
-            virulence: parseVirulence(virulence),
-          })
+          ({ mRNA_id, genome_nr, ...rest }) => {
+            const data: Pheno = {
+              mRNA_id: parseString(mRNA_id),
+              genome_nr: parseNumber(genome_nr),
+              index: parseNumber(genome_nr) - 1,
+            }
+            phenoColumns.forEach((column) => {
+              const { field, parser } = column as PhenoColumn
+              data[field] = parser(rest[field])
+            })
+
+            return data
+          }
         )
       } catch (err) {
         this.hasError = true

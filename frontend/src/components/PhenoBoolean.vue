@@ -3,8 +3,7 @@ import * as d3 from 'd3'
 import { mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
-
-type Value = boolean | null
+import type { Pheno } from '@/types'
 
 export default {
   // props: {
@@ -21,21 +20,17 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'phenos',
-      'sortedMrnaIndices',
+      'sortedMrnaPositions',
       'transitionTime',
     ]),
     hasAllData(): boolean {
-      return this.phenos.length !== 0 && this.sortedMrnaIndices.length !== 0
+      return this.phenos.length !== 0 && this.sortedMrnaPositions.length !== 0
     },
     height(): number {
-      return this.sortedMrnaIndices.length * CELL_SIZE
+      return this.sortedMrnaPositions.length * CELL_SIZE
     },
     name(): string {
       return `pheno-virulence`
-    },
-    values(): Value[] {
-      if (!this.hasAllData) return []
-      return this.sortedMrnaIndices.map((index) => this.phenos[index].virulence)
     },
     width(): number {
       return this.padding * 2 + CELL_SIZE
@@ -45,24 +40,28 @@ export default {
     svg() {
       return d3.select(`#${this.name}`)
     },
+    cellY({ index }: Pheno): number {
+      return (this.sortedMrnaPositions[index] + 0.5) * CELL_SIZE
+    },
     drawPheno() {
       if (!this.hasAllData) return
 
       this.svg()
         .selectAll('circle')
-        .data(this.values, (d, index) => index)
+        .data(this.phenos, (d) => (d as Pheno).mRNA_id)
         .join(
           (enter) =>
             enter
               .append('circle')
               .attr('cx', this.padding + 0.5 * CELL_SIZE)
-              .attr('cy', (d, index) => (index + 0.5) * CELL_SIZE)
+              .attr('cy', this.cellY)
               .attr('r', 4)
               .attr('stroke', 'black')
               .attr('fill', (d) => {
-                if (d === true) {
+                const virulence = d.virulence
+                if (virulence === true) {
                   return 'black'
-                } else if (d === false) {
+                } else if (virulence === false) {
                   return 'white'
                 } else {
                   return 'lightgrey'
@@ -72,7 +71,7 @@ export default {
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('cy', (d, index) => (index + 0.5) * CELL_SIZE),
+              .attr('cy', this.cellY),
           (exit) => exit.transition().duration(this.transitionTime).remove()
         )
     },
@@ -84,7 +83,7 @@ export default {
     hasAllData() {
       this.drawPheno()
     },
-    sortedMrnaIndices() {
+    sortedMrnaPositions() {
       this.drawPheno()
     },
     phenos() {
