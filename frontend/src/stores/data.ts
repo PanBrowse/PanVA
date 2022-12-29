@@ -32,9 +32,12 @@ import type {
   SequenceCSVColumns,
   PhenoColumn,
   Sorting,
+  PhenoColumnData,
 } from '@/types'
-import { clamp, map, range, shuffle } from 'lodash'
+import { clamp, map, orderBy, range, shuffle, uniq } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
+import { median } from '@/helpers/median'
+import { zipEqual } from '@/helpers/zipEqual'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -166,10 +169,38 @@ export const useDataStore = defineStore('data', {
 
       // We then sort the current rows with the updated sorting.
       if (this.sorting.field === 'pheno') {
-        const lookup = this.sortedMrnaIndices.map((index) => [
-          index,
-          this.phenos[index][this.sorting.payload],
-        ])
+        // Get the array of values in the currently sorted order.
+        const values = this.sortedMrnaIndices.map<PhenoColumnData>(
+          (index) => this.phenos[index][this.sorting.payload]
+        )
+
+        // We use a Map so we can use `null`, `false` and `true` as keys.
+        const map = new Map()
+
+        // Fill map with an array of indices per unique value.
+        values.forEach((value, index) => {
+          const indices = map.get(value) || []
+          indices.push(index)
+          map.set(value, indices)
+        })
+
+        // Determine the median index for each index array.
+        map.forEach((indices, key) => {
+          map.set(key, median(indices))
+        })
+
+        // Generate tuple array of mrna index and sorted median index.
+        const tuples = zipEqual(
+          this.sortedMrnaIndices,
+          values.map((value) => map.get(value))
+        )
+
+        // Sort by the sorted median index
+        const sortOrder = this.sorting.desc ? 'desc' : 'asc'
+        const sorted = orderBy(tuples, ([_index, value]) => value, sortOrder)
+
+        // Pull out the mrna indices.
+        this.sortedMrnaIndices = sorted.map(([index]) => index)
       } else {
         this.sortedMrnaIndices = shuffle(this.sortedMrnaIndices)
       }
