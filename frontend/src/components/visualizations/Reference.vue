@@ -20,7 +20,7 @@ export default {
       'selectedRegionLength',
       'transitionTime',
     ]),
-    regionRange() {
+    regionRange(): number[] {
       const [start, end] = this.selectedRegion
       return range(start, end + 1)
     },

@@ -3,6 +3,7 @@ import { CELL_SIZE } from '@/config'
 import { useDataStore } from '@/stores/data'
 import { range } from 'lodash'
 import { mapState, mapWritableState } from 'pinia'
+import type { CheckboxOptionType } from 'ant-design-vue'
 
 export default {
   computed: {
@@ -12,7 +13,7 @@ export default {
       'transitionTime',
     ]),
     ...mapWritableState(useDataStore, ['selectedPositions']),
-    isAllChecked() {
+    isAllChecked(): boolean {
       return (
         this.selectedPositions.length !== 0 &&
         this.selectedPositions.length === this.selectedRegionLength
@@ -21,11 +22,11 @@ export default {
     isIndeterminate(): boolean {
       return this.selectedPositions.length !== 0 && !this.isAllChecked
     },
-    regionRange() {
+    regionRange(): number[] {
       const [start, end] = this.selectedRegion
       return range(start, end + 1)
     },
-    options() {
+    options(): CheckboxOptionType[] {
       return this.regionRange.map((position) => ({
         value: position,
       }))

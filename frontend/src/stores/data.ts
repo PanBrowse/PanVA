@@ -9,7 +9,7 @@ import {
   DEFAULT_SELECTED_REGION,
   TRANSITION_TIME,
 } from '@/config'
-import { defaultSortBy, defaultHomologyId, phenoColumns } from '@dataset'
+import { defaultSorting, defaultHomologyId, phenoColumns } from '@dataset'
 import {
   parseBool,
   parseNumber,
@@ -31,7 +31,7 @@ import type {
   Sequence,
   SequenceCSVColumns,
   PhenoColumn,
-  SortBy,
+  Sorting,
 } from '@/types'
 import { clamp, map, range, shuffle } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
@@ -67,7 +67,7 @@ export const useDataStore = defineStore('data', {
     selectedPositions: [] as number[],
     // The range is inclusive on both ends.
     selectedRegion: DEFAULT_SELECTED_REGION as Range,
-    sortBy: defaultSortBy as SortBy,
+    sorting: defaultSorting as Sorting,
     /**
      * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
      * This field returns a mapping of `draw position` => `mRNA ids index`, which
@@ -154,18 +154,25 @@ export const useDataStore = defineStore('data', {
     },
   },
   actions: {
-    changeSortBy({ field, payload, desc }: SortBy) {
-      // First we update the sortBy field to a new value
-      if (field === this.sortBy.field && payload === this.sortBy.payload) {
+    changeSorting({ field, payload, desc }: Sorting) {
+      // First we update the sorting field to a new value
+      if (field === this.sorting.field && payload === this.sorting.payload) {
         // Same field and parameter, so we flip the `desc` flag.
-        this.sortBy = { field, payload, desc: !this.sortBy.desc }
+        this.sorting = { field, payload, desc: !this.sorting.desc }
       } else {
         // Ensure `desc` flag is a boolean.
-        this.sortBy = { field, payload, desc: !!desc }
+        this.sorting = { field, payload, desc: !!desc }
       }
 
-      // We then sort the current rows with the updated sortBy.
-      this.sortedMrnaIndices = shuffle(this.sortedMrnaIndices)
+      // We then sort the current rows with the updated sorting.
+      if (this.sorting.field === 'pheno') {
+        const lookup = this.sortedMrnaIndices.map((index) => [
+          index,
+          this.phenos[index][this.sorting.payload],
+        ])
+      } else {
+        this.sortedMrnaIndices = shuffle(this.sortedMrnaIndices)
+      }
     },
     async fetchHomologyIds() {
       try {
@@ -338,7 +345,7 @@ export const useDataStore = defineStore('data', {
         selectedRegion: DEFAULT_SELECTED_REGION.map((val) =>
           clamp(val, this.geneLength)
         ) as Range,
-        sortBy: defaultSortBy,
+        sorting: defaultSorting,
         sortedMrnaIndices: range(this.sequenceCount),
       })
 

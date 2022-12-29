@@ -10,28 +10,28 @@ export default {
     ...mapState(useDataStore, [
       'selectedRegion',
       'selectedRegionLength',
-      'sortBy',
+      'sorting',
       'transitionTime',
     ]),
-    regionRange() {
+    regionRange(): number[] {
       const [start, end] = this.selectedRegion
       return range(start, end + 1)
     },
     width(): number {
       return this.selectedRegionLength * CELL_SIZE
     },
-    height() {
+    height(): number {
       return 24
     },
-    sortByPosition() {
-      if (this.sortBy.field === 'position') {
-        return this.sortBy.payload
+    sortingPosition(): number | null {
+      if (this.sorting.field === 'position') {
+        return this.sorting.payload
       }
       return null
     },
   },
   methods: {
-    ...mapActions(useDataStore, ['changeSortBy']),
+    ...mapActions(useDataStore, ['changeSorting']),
     svg() {
       return d3.select('#positions')
     },
@@ -51,10 +51,12 @@ export default {
                 return `translate(${x},${y}) rotate(-90)`
               })
               .append('xhtml:div')
-              .attr('class', (d) => (this.sortByPosition === d ? 'sorted' : ''))
+              .attr('class', (d) =>
+                this.sortingPosition === d ? 'sorted' : ''
+              )
               .text((d) => d)
               .on('click', (event, d) => {
-                this.changeSortBy({
+                this.changeSorting({
                   field: 'position',
                   payload: d,
                 })
@@ -62,7 +64,9 @@ export default {
           (update) =>
             update
               .select('div')
-              .attr('class', (d) => (this.sortByPosition === d ? 'sorted' : ''))
+              .attr('class', (d) =>
+                this.sortingPosition === d ? 'sorted' : ''
+              )
               .text((d) => d)
         )
     },
@@ -71,7 +75,7 @@ export default {
     this.drawPositions()
   },
   watch: {
-    sortByPosition() {
+    sortingPosition() {
       this.drawPositions()
     },
     regionRange() {

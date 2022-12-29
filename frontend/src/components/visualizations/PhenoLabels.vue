@@ -9,14 +9,14 @@ import { useDataStore } from '@/stores/data'
 
 export default {
   computed: {
-    ...mapState(useDataStore, ['sortBy']),
-    height() {
+    ...mapState(useDataStore, ['sorting']),
+    height(): number {
       return 60
     },
-    width() {
+    width(): number {
       return sum(phenoColumns.map(this.columnWidth))
     },
-    xPositions() {
+    xPositions(): number[] {
       const result: number[] = []
       let total = 0
 
@@ -35,15 +35,15 @@ export default {
 
       return result
     },
-    sortByPheno() {
-      if (this.sortBy.field === 'pheno') {
-        return this.sortBy.payload
+    sortingPheno(): string | null {
+      if (this.sorting.field === 'pheno') {
+        return this.sorting.payload
       }
       return null
     },
   },
   methods: {
-    ...mapActions(useDataStore, ['changeSortBy']),
+    ...mapActions(useDataStore, ['changeSorting']),
     columnWidth(column: PhenoColumn): number {
       if (column.type === 'boolean') return 18
       if (column.type === 'categorical') return column.width
@@ -70,11 +70,11 @@ export default {
               })
               .append('xhtml:div')
               .attr('class', (d) =>
-                this.sortByPheno === d.field ? 'sorted' : ''
+                this.sortingPheno === d.field ? 'sorted' : ''
               )
               .text((d) => d.label)
               .on('click', (event, d) => {
-                this.changeSortBy({
+                this.changeSorting({
                   field: 'pheno',
                   payload: d.field,
                 })
@@ -83,7 +83,7 @@ export default {
             update
               .select('div')
               .attr('class', (d) =>
-                this.sortByPheno === d.field ? 'sorted' : ''
+                this.sortingPheno === d.field ? 'sorted' : ''
               )
         )
     },
@@ -92,7 +92,7 @@ export default {
     this.drawLabels()
   },
   watch: {
-    sortByPheno() {
+    sortingPheno() {
       this.drawLabels()
     },
   },

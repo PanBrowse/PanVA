@@ -4,24 +4,29 @@ import { useDataStore } from '@/stores/data'
 import { sortBy } from 'lodash'
 import { phenoColumns } from '@dataset'
 
+type SortOption = {
+  value: string
+  label: string
+}
+
 export default {
   computed: {
-    ...mapState(useDataStore, ['mrnaIds', 'selectedRegion', 'sortBy']),
+    ...mapState(useDataStore, ['mrnaIds', 'selectedRegion', 'sorting']),
     ...mapWritableState(useDataStore, ['referenceMrnaId']),
-    referenceMrnaIdOptions() {
+    referenceMrnaIdOptions(): string[] {
       return sortBy(this.mrnaIds)
     },
-    sortValue() {
-      if (this.sortBy.field === 'pheno') {
-        return this.sortBy.payload
+    sortValue(): string {
+      if (this.sorting.field === 'pheno') {
+        return this.sorting.payload
       }
-      return this.sortBy.field
+      return this.sorting.field
     },
-    sortOptions() {
+    sortOptions(): SortOption[] {
       // Determine number for position sorting.
       const [start] = this.selectedRegion
       const sortPosition =
-        this.sortBy.field === 'position' ? this.sortBy.payload : start
+        this.sorting.field === 'position' ? this.sorting.payload : start
 
       const options = [
         { value: 'dendro', label: 'Dendrogram' },
@@ -39,16 +44,16 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useDataStore, ['changeSortBy']),
+    ...mapActions(useDataStore, ['changeSorting']),
     changeSort(value: string) {
       if (value === 'dendro') {
-        this.changeSortBy({
+        this.changeSorting({
           field: 'dendro',
         })
       } else if (value === 'position') {
         // Sort by first position in selected region.
         const [start] = this.selectedRegion
-        this.changeSortBy({
+        this.changeSorting({
           field: 'position',
           payload: start,
         })
@@ -56,7 +61,7 @@ export default {
         // Look up phenoColumn to validate value, and to lookup default `desc` value.
         const column = phenoColumns.find(({ field }) => field === value)
         if (column) {
-          this.changeSortBy({
+          this.changeSorting({
             field: 'pheno',
             payload: column.field,
             desc: column.sortDesc,
