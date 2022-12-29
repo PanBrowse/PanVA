@@ -56,16 +56,17 @@ export default {
               .attr('cx', this.padding + 0.5 * CELL_SIZE)
               .attr('cy', this.cellY)
               .attr('r', 4)
-              .attr('stroke', 'black')
+              .attr('stroke', (d) => {
+                const value = d[this.field] as PhenoColumnBooleanData
+                if (value === true) return 'black'
+                if (value === false) return 'lightgrey'
+                return 'lightgrey'
+              })
               .attr('fill', (d) => {
                 const value = d[this.field] as PhenoColumnBooleanData
-                if (value === true) {
-                  return 'black'
-                } else if (value === false) {
-                  return 'white'
-                } else {
-                  return 'lightgrey'
-                }
+                if (value === true) return 'black'
+                if (value === false) return 'white'
+                return 'lightgrey'
               }),
           (update) =>
             update

@@ -67,7 +67,8 @@ export default {
               .attr('class', (d) =>
                 this.sortingPosition === d ? 'sorted' : ''
               )
-              .text((d) => d)
+              .text((d) => d),
+          (exit) => exit.remove()
         )
     },
   },

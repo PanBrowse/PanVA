@@ -64,7 +64,7 @@ export const useDataStore = defineStore('data', {
     hasError: false,
 
     // Application state.
-    cellTheme: 'clustal' as CellThemeName,
+    cellTheme: 'default' as CellThemeName,
     homologyId: defaultHomologyId,
     referenceMrnaId: null as mRNAid | null,
     selectedIds: [] as mRNAid[],

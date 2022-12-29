@@ -25,7 +25,6 @@ export default {
 <template>
   <SidebarItem title="Homology">
     <a-select
-      ref="select"
       v-model:value="homologyId"
       style="width: 100%"
       v-if="homologies.length !== 0"

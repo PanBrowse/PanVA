@@ -84,7 +84,8 @@ export default {
               .select('div')
               .attr('class', (d) =>
                 this.sortingPheno === d.field ? 'sorted' : ''
-              )
+              ),
+          (exit) => exit.remove()
         )
     },
   },
