@@ -9,10 +9,21 @@ export type Position = { x: number; y: number }
 /**
  * Sorting.
  */
-export type Sorting = {
-  field: string
-  payload?: any
+type SortingCommon = {
+  field: 'dendro'
 }
+
+type SortingPheno = {
+  field: 'pheno'
+  pheno: string
+}
+
+type SortingPosition = {
+  field: 'position'
+  position: number
+}
+
+export type Sorting = SortingCommon | SortingPheno | SortingPosition
 
 /**
  * Data structures.

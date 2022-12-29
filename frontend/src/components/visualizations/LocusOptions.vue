@@ -18,7 +18,7 @@ export default {
     },
     sortValue(): string {
       if (this.sorting.field === 'pheno') {
-        return this.sorting.payload
+        return this.sorting.pheno
       }
       return this.sorting.field
     },
@@ -26,7 +26,7 @@ export default {
       // Determine number for position sorting.
       const [start] = this.selectedRegion
       const sortPosition =
-        this.sorting.field === 'position' ? this.sorting.payload : start
+        this.sorting.field === 'position' ? this.sorting.position : start
 
       const options = [
         { value: 'dendro', label: 'Dendrogram' },
@@ -55,12 +55,12 @@ export default {
         const [start] = this.selectedRegion
         this.changeSorting({
           field: 'position',
-          payload: start,
+          position: start,
         })
       } else {
         this.changeSorting({
           field: 'pheno',
-          payload: value,
+          pheno: value,
         })
       }
     },

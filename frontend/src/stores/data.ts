@@ -38,6 +38,7 @@ import { clamp, map, range, reverse, sortBy } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
 import { median } from '@/helpers/median'
 import { zipEqual } from '@/helpers/zipEqual'
+import { sortingPayload } from '@/helpers/sorting'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -161,7 +162,7 @@ export const useDataStore = defineStore('data', {
       // Check if the requested sorting equals the current sorting.
       if (
         sorting.field === this.sorting.field &&
-        sorting.payload === this.sorting.payload
+        sortingPayload(sorting) === sortingPayload(this.sorting)
       ) {
         // Same field and parameter, so we reverse the current sorting.
         this.sortedMrnaIndices = reverse(this.sortedMrnaIndices)
@@ -174,19 +175,20 @@ export const useDataStore = defineStore('data', {
       // Get the array of values in the currently sorted order.
       const values = (() => {
         if (this.sorting.field === 'pheno') {
+          const pheno = this.sorting.pheno
           // Get the array of values in the currently sorted order.
           return this.sortedMrnaIndices.map<PhenoColumnData>(
-            (index) => this.phenos[index][this.sorting.payload]
+            (index) => this.phenos[index][pheno]
           )
         }
 
         if (this.sorting.field === 'position') {
+          const position = this.sorting.position
           // Get the array of values in the currently sorted order.
           return this.sortedMrnaIndices.map<Nucleotide>(
             (index) =>
-              this.alignedPositions[
-                index * this.geneLength + this.sorting.payload - 1
-              ].nucleotide
+              this.alignedPositions[index * this.geneLength + position - 1]
+                .nucleotide
           )
         }
 

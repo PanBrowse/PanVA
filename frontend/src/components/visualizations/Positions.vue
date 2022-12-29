@@ -25,7 +25,7 @@ export default {
     },
     sortingPosition(): number | null {
       if (this.sorting.field === 'position') {
-        return this.sorting.payload
+        return this.sorting.position
       }
       return null
     },
@@ -58,7 +58,7 @@ export default {
               .on('click', (event, d) => {
                 this.changeSorting({
                   field: 'position',
-                  payload: d,
+                  position: d,
                 })
               }),
           (update) =>

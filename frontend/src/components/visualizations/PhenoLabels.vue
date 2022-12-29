@@ -37,7 +37,7 @@ export default {
     },
     sortingPheno(): string | null {
       if (this.sorting.field === 'pheno') {
-        return this.sorting.payload
+        return this.sorting.pheno
       }
       return null
     },
@@ -76,7 +76,7 @@ export default {
               .on('click', (event, d) => {
                 this.changeSorting({
                   field: 'pheno',
-                  payload: d.field,
+                  pheno: d.field,
                 })
               }),
           (update) =>
