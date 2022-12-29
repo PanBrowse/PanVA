@@ -58,15 +58,10 @@ export default {
           payload: start,
         })
       } else {
-        // Look up phenoColumn to validate value, and to lookup default `desc` value.
-        const column = phenoColumns.find(({ field }) => field === value)
-        if (column) {
-          this.changeSorting({
-            field: 'pheno',
-            payload: column.field,
-            desc: column.sortDesc,
-          })
-        }
+        this.changeSorting({
+          field: 'pheno',
+          payload: value,
+        })
       }
     },
   },

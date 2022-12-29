@@ -34,7 +34,7 @@ import type {
   Sorting,
   PhenoColumnData,
 } from '@/types'
-import { clamp, map, orderBy, range, shuffle, uniq } from 'lodash'
+import { clamp, map, range, shuffle, sortBy } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
 import { median } from '@/helpers/median'
 import { zipEqual } from '@/helpers/zipEqual'
@@ -157,15 +157,17 @@ export const useDataStore = defineStore('data', {
     },
   },
   actions: {
-    changeSorting({ field, payload, desc }: Sorting) {
+    changeSorting(sorting: Sorting) {
       // First we update the sorting field to a new value
-      if (field === this.sorting.field && payload === this.sorting.payload) {
-        // Same field and parameter, so we flip the `desc` flag.
-        this.sorting = { field, payload, desc: !this.sorting.desc }
-      } else {
-        // Ensure `desc` flag is a boolean.
-        this.sorting = { field, payload, desc: !!desc }
+      if (
+        sorting.field === this.sorting.field &&
+        sorting.payload === this.sorting.payload
+      ) {
+        // Same field and parameter, no need to sort again.
+        return
       }
+
+      this.sorting = sorting
 
       // We then sort the current rows with the updated sorting.
       if (this.sorting.field === 'pheno') {
@@ -196,8 +198,7 @@ export const useDataStore = defineStore('data', {
         )
 
         // Sort by the sorted median index
-        const sortOrder = this.sorting.desc ? 'desc' : 'asc'
-        const sorted = orderBy(tuples, ([_index, value]) => value, sortOrder)
+        const sorted = sortBy(tuples, ([_index, value]) => value)
 
         // Pull out the mrna indices.
         this.sortedMrnaIndices = sorted.map(([index]) => index)

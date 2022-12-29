@@ -5,7 +5,6 @@ export type Position = { x: number; y: number }
 export type Sorting = {
   field: string
   payload?: any
-  desc?: boolean
 }
 
 export type Homology = {
@@ -60,7 +59,6 @@ export type PhenoColumnCSVParser<T> = (value?: string) => T
 type PhenoColumnBase = {
   field: string
   label: string
-  sortDesc?: boolean
 }
 
 export type PhenoColumnBooleanData = boolean | null
