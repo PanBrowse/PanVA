@@ -34,7 +34,7 @@ import type {
   Sorting,
   PhenoColumnData,
 } from '@/types'
-import { clamp, map, range, reverse, shuffle, sortBy } from 'lodash'
+import { clamp, map, range, reverse, sortBy } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
 import { median } from '@/helpers/median'
 import { zipEqual } from '@/helpers/zipEqual'
@@ -171,42 +171,54 @@ export const useDataStore = defineStore('data', {
       // First we update the sorting field to a new value.
       this.sorting = sorting
 
-      // We then sort the current rows with the updated sorting.
-      if (this.sorting.field === 'pheno') {
-        // Get the array of values in the currently sorted order.
-        const values = this.sortedMrnaIndices.map<PhenoColumnData>(
-          (index) => this.phenos[index][this.sorting.payload]
-        )
+      // Get the array of values in the currently sorted order.
+      const values = (() => {
+        if (this.sorting.field === 'pheno') {
+          // Get the array of values in the currently sorted order.
+          return this.sortedMrnaIndices.map<PhenoColumnData>(
+            (index) => this.phenos[index][this.sorting.payload]
+          )
+        }
 
-        // We use a Map so we can use `null`, `false` and `true` as keys.
-        const map = new Map()
+        if (this.sorting.field === 'position') {
+          // Get the array of values in the currently sorted order.
+          return this.sortedMrnaIndices.map<Nucleotide>(
+            (index) =>
+              this.alignedPositions[
+                index * this.geneLength + this.sorting.payload - 1
+              ].nucleotide
+          )
+        }
 
-        // Fill map with an array of indices per unique value.
-        values.forEach((value, index) => {
-          const indices = map.get(value) || []
-          indices.push(index)
-          map.set(value, indices)
-        })
+        return []
+      })()
 
-        // Determine the median index for each index array.
-        map.forEach((indices, key) => {
-          map.set(key, median(indices))
-        })
+      // We use a Map so we can use `null`, `false` and `true` as keys.
+      const map = new Map()
 
-        // Generate tuple array of mrna index and sorted median index.
-        const tuples = zipEqual(
-          this.sortedMrnaIndices,
-          values.map((value) => map.get(value))
-        )
+      // Fill map with an array of indices per unique value.
+      values.forEach((value, index) => {
+        const indices = map.get(value) || []
+        indices.push(index)
+        map.set(value, indices)
+      })
 
-        // Sort by the sorted median index
-        const sorted = sortBy(tuples, ([_index, value]) => value)
+      // Determine the median index for each index array.
+      map.forEach((indices, key) => {
+        map.set(key, median(indices))
+      })
 
-        // Pull out the mrna indices.
-        this.sortedMrnaIndices = sorted.map(([index]) => index)
-      } else {
-        this.sortedMrnaIndices = shuffle(this.sortedMrnaIndices)
-      }
+      // Generate tuple array of mrna index and sorted median index.
+      const tuples = zipEqual(
+        this.sortedMrnaIndices,
+        values.map((value) => map.get(value))
+      )
+
+      // Sort by the sorted median index
+      const sorted = sortBy(tuples, ([_index, value]) => value)
+
+      // Pull out the mrna indices.
+      this.sortedMrnaIndices = sorted.map(([index]) => index)
     },
     async fetchHomologyIds() {
       try {
@@ -374,6 +386,7 @@ export const useDataStore = defineStore('data', {
       // Fetch new data for now selected homology id.
       // We fetch the sequences first, so we can start displaying most visualizations early.
       await this.fetchSequences()
+
       this.$patch({
         // Reset to default selection, clamped to gene length.
         selectedRegion: DEFAULT_SELECTED_REGION.map((val) =>
