@@ -46,7 +46,7 @@ export default {
         :title="title"
         :bordered="false"
         style="min-height: 100%"
-        bodyStyle="padding: 0"
+        :bodyStyle="{ padding: 0 }"
       >
         <slot name="sidebar"></slot>
       </a-card>

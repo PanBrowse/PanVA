@@ -3,13 +3,14 @@ import { CELL_SIZE } from '@/config'
 import { useDataStore } from '@/stores/data'
 import * as d3 from 'd3'
 import { range } from 'lodash'
-import { mapState } from 'pinia'
+import { mapState, mapActions } from 'pinia'
 
 export default {
   computed: {
     ...mapState(useDataStore, [
       'selectedRegion',
       'selectedRegionLength',
+      'sortBy',
       'transitionTime',
     ]),
     regionRange() {
@@ -22,8 +23,15 @@ export default {
     height() {
       return 24
     },
+    sortByPosition() {
+      if (this.sortBy.field === 'position') {
+        return this.sortBy.payload
+      }
+      return null
+    },
   },
   methods: {
+    ...mapActions(useDataStore, ['changeSortBy']),
     svg() {
       return d3.select('#positions')
     },
@@ -35,13 +43,27 @@ export default {
           (enter) =>
             enter
               .append('foreignObject')
-              .attr('x', (d, index) => index * CELL_SIZE)
-              .attr('y', 0)
-              .attr('width', CELL_SIZE)
-              .attr('height', this.height)
-              .attr('fill', 'yellow')
-              .text((d) => d),
-          (update) => update.text((d) => d)
+              .attr('width', this.height)
+              .attr('height', CELL_SIZE)
+              .attr('transform', (d, index) => {
+                const x = index * CELL_SIZE
+                const y = this.height
+                return `translate(${x},${y}) rotate(-90)`
+              })
+              .append('xhtml:div')
+              .attr('class', (d) => (this.sortByPosition === d ? 'sorted' : ''))
+              .text((d) => d)
+              .on('click', (event, d) => {
+                this.changeSortBy({
+                  field: 'position',
+                  payload: d,
+                })
+              }),
+          (update) =>
+            update
+              .select('div')
+              .attr('class', (d) => (this.sortByPosition === d ? 'sorted' : ''))
+              .text((d) => d)
         )
     },
   },
@@ -49,6 +71,9 @@ export default {
     this.drawPositions()
   },
   watch: {
+    sortByPosition() {
+      this.drawPositions()
+    },
     regionRange() {
       this.drawPositions()
     },
@@ -96,17 +121,24 @@ export default {
     height: 4px;
   }
 
-  foreignObject {
-    display: block;
+  foreignObject div {
+    display: inline-block;
+    position: absolute;
     user-select: none;
     color: darkgrey;
     font-size: 9px;
     line-height: 10px;
     overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
-    writing-mode: sideways-lr;
-    text-indent: 10px;
+    cursor: pointer;
+
+    &.sorted {
+      color: black;
+    }
+
+    &:hover {
+      color: #1890ff;
+    }
   }
 }
 </style>

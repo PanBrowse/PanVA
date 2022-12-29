@@ -36,7 +36,9 @@ export default {
 <template>
   <a-card class="locus-view" title="Locus view" :bordered="false" size="small">
     <div class="header">
-      <div style="height: 60px; flex: 0 0 500px"><LocusOptions /></div>
+      <div style="flex: 0 0 500px; align-self: flex-start">
+        <LocusOptions />
+      </div>
       <scroll-sync
         horizontal
         style="overflow: auto hidden; min-width: 120px"
@@ -98,6 +100,7 @@ export default {
     display: flex;
     flex: 0 0 auto;
     overflow: hidden;
+    align-items: flex-end;
   }
 
   .content-wrapper {

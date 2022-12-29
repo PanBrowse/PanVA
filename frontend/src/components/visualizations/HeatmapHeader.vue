@@ -16,4 +16,15 @@ export default {
   <Selection />
   <Reference />
   <Positions />
+  <div class="scrollbar-spacing" />
 </template>
+
+<style lang="scss" scoped>
+/**
+ * We don't want a horizontal scrollbar blocking the positions,
+ * because that would make them no longer clickable.
+ */
+.scrollbar-spacing {
+  height: 20px;
+}
+</style>

@@ -2,19 +2,19 @@
 import * as d3 from 'd3'
 import { CELL_SIZE } from '@/config'
 import { phenoColumns } from '@dataset'
-import { map, sum } from 'lodash'
+import { mapState, mapActions } from 'pinia'
+import { sum } from 'lodash'
 import type { PhenoColumn } from '@/types'
+import { useDataStore } from '@/stores/data'
 
 export default {
   computed: {
+    ...mapState(useDataStore, ['sortBy']),
     height() {
       return 60
     },
     width() {
       return sum(phenoColumns.map(this.columnWidth))
-    },
-    labels() {
-      return map(phenoColumns, 'label')
     },
     xPositions() {
       const result: number[] = []
@@ -35,10 +35,16 @@ export default {
 
       return result
     },
+    sortByPheno() {
+      if (this.sortBy.field === 'pheno') {
+        return this.sortBy.payload
+      }
+      return null
+    },
   },
   methods: {
+    ...mapActions(useDataStore, ['changeSortBy']),
     columnWidth(column: PhenoColumn): number {
-      // See PhenoBoolean#width for details.
       if (column.type === 'boolean') return 18
       if (column.type === 'categorical') return column.width
       if (column.type === 'quantitative') return 80
@@ -50,23 +56,45 @@ export default {
     drawLabels() {
       this.svg()
         .selectAll('foreignObject')
-        .data(this.labels, (d) => d as string)
-        .join((enter) =>
-          enter
-            .append('foreignObject')
-            .attr('width', 200)
-            .attr('height', CELL_SIZE)
-            .attr('transform', (d, index) => {
-              const x = this.xPositions[index]
-              const y = this.height - 10
-              return `translate(${x},${y}) rotate(-45)`
-            })
-            .text((d) => d)
+        .data(phenoColumns, (d) => (d as PhenoColumn).label)
+        .join(
+          (enter) =>
+            enter
+              .append('foreignObject')
+              .attr('width', 200)
+              .attr('height', CELL_SIZE)
+              .attr('transform', (d, index) => {
+                const x = this.xPositions[index]
+                const y = this.height - 10
+                return `translate(${x},${y}) rotate(-45)`
+              })
+              .append('xhtml:div')
+              .attr('class', (d) =>
+                this.sortByPheno === d.field ? 'sorted' : ''
+              )
+              .text((d) => d.label)
+              .on('click', (event, d) => {
+                this.changeSortBy({
+                  field: 'pheno',
+                  payload: d.field,
+                })
+              }),
+          (update) =>
+            update
+              .select('div')
+              .attr('class', (d) =>
+                this.sortByPheno === d.field ? 'sorted' : ''
+              )
         )
     },
   },
   mounted() {
     this.drawLabels()
+  },
+  watch: {
+    sortByPheno() {
+      this.drawLabels()
+    },
   },
 }
 </script>
@@ -77,9 +105,11 @@ export default {
 
 <style lang="scss">
 #pheno-labels {
-  foreignObject {
+  foreignObject div {
+    display: inline-block;
+    position: absolute;
     user-select: none;
-    color: #888;
+    color: darkgrey;
     font-size: 10px;
     line-height: 10px;
     overflow: hidden;
@@ -87,6 +117,10 @@ export default {
     text-overflow: ellipsis;
     font-weight: 500;
     cursor: pointer;
+
+    &.sorted {
+      color: black;
+    }
 
     &:hover {
       color: #1890ff;

@@ -2,6 +2,11 @@ export type mRNAid = string
 export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
 export type Range = [number, number]
 export type Position = { x: number; y: number }
+export type SortBy = {
+  field: string
+  payload?: any
+  desc?: boolean
+}
 
 export type Homology = {
   homology_id: number
@@ -55,6 +60,7 @@ export type PhenoColumnCSVParser<T> = (value?: string) => T
 type PhenoColumnBase = {
   field: string
   label: string
+  sortDesc?: boolean
 }
 
 export type PhenoColumnBooleanData = boolean | null

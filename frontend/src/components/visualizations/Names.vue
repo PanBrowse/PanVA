@@ -77,6 +77,11 @@ export default {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    cursor: crosshair;
+
+    &:hover {
+      color: #1890ff;
+    }
   }
 
   flex: 0 0 auto;

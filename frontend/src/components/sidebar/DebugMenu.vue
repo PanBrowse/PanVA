@@ -12,11 +12,7 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, ['sequenceCount', 'selectedRegionLength']),
-    ...mapWritableState(useDataStore, [
-      'shuffleSequences',
-      'selectedRegion',
-      'transitionsEnabled',
-    ]),
+    ...mapWritableState(useDataStore, ['selectedRegion', 'transitionsEnabled']),
     sortedHomologies(): Homology[] {
       return sortBy(this.homologies, 'name')
     },
@@ -38,10 +34,6 @@ export default {
 
       <a-checkbox v-model:checked="transitionsEnabled"
         >Transitions enabled</a-checkbox
-      >
-
-      <a-checkbox v-model:checked="shuffleSequences"
-        >Shuffle sequences</a-checkbox
       >
 
       <a-button type="primary" @click="selectedRegion = [100, 500]">

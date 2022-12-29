@@ -57,7 +57,7 @@ export default {
       'transitionTime',
     ]),
     hasAllData(): boolean {
-      return this.sequenceCount !== 0
+      return this.sequenceCount !== 0 && this.sortedMrnaIndices.length !== 0
     },
     width(): number {
       return this.selectedRegionLength * CELL_SIZE
@@ -226,6 +226,9 @@ export default {
     this.mutationObserver?.disconnect()
   },
   watch: {
+    alignedPositions() {
+      this.drawCells()
+    },
     hasAllData() {
       this.drawCells()
     },
