@@ -1,12 +1,22 @@
+/**
+ * Common.
+ */
 export type mRNAid = string
 export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
 export type Range = [number, number]
 export type Position = { x: number; y: number }
+
+/**
+ * Sorting.
+ */
 export type Sorting = {
   field: string
   payload?: any
 }
 
+/**
+ * Data structures.
+ */
 export type Homology = {
   homology_id: number
   name: string
@@ -54,6 +64,14 @@ export type Sequence = {
   prot_seq: string
 }
 
+export type Dendro = {
+  name: string
+  children?: Dendro[]
+}
+
+/**
+ * Phenotype columns.
+ */
 export type PhenoColumnCSVParser<T> = (value?: string) => T
 
 type PhenoColumnBase = {
@@ -94,12 +112,9 @@ export type Pheno = Record<string, PhenoColumnData> & {
   mRNA_id: mRNAid
 }
 
-export type Dendro = {
-  name: string
-  children?: Dendro[]
-}
-
-// Types for CSV data that is sent by the API.
+/**
+ * Raw API data.
+ */
 export type AlignedPositionsCSVColumns =
   | 'index'
   | 'mRNA_id'

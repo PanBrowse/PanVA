@@ -34,7 +34,7 @@ import type {
   Sorting,
   PhenoColumnData,
 } from '@/types'
-import { clamp, map, range, shuffle, sortBy } from 'lodash'
+import { clamp, map, range, reverse, shuffle, sortBy } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
 import { median } from '@/helpers/median'
 import { zipEqual } from '@/helpers/zipEqual'
@@ -158,15 +158,17 @@ export const useDataStore = defineStore('data', {
   },
   actions: {
     changeSorting(sorting: Sorting) {
-      // First we update the sorting field to a new value
+      // Check if the requested sorting equals the current sorting.
       if (
         sorting.field === this.sorting.field &&
         sorting.payload === this.sorting.payload
       ) {
-        // Same field and parameter, no need to sort again.
+        // Same field and parameter, so we reverse the current sorting.
+        this.sortedMrnaIndices = reverse(this.sortedMrnaIndices)
         return
       }
 
+      // First we update the sorting field to a new value.
       this.sorting = sorting
 
       // We then sort the current rows with the updated sorting.
