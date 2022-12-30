@@ -1,8 +1,8 @@
 <script lang="ts">
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
-import { sortBy } from 'lodash'
 import { phenoColumns } from '@dataset'
+import { naturalSort } from '@/helpers/sorting'
 
 type SortOption = {
   value: string
@@ -14,7 +14,7 @@ export default {
     ...mapState(useDataStore, ['mrnaIds', 'selectedRegion', 'sorting']),
     ...mapWritableState(useDataStore, ['referenceMrnaId']),
     referenceMrnaIdOptions(): string[] {
-      return sortBy(this.mrnaIds)
+      return naturalSort(this.mrnaIds)
     },
     sortValue(): string {
       if (this.sorting.field === 'pheno') {
