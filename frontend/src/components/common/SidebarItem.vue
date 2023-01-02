@@ -34,6 +34,7 @@ export default {
   <a-collapse
     v-model:activeKey="activeKey"
     expandIconPosition="right"
+    collapsible="header"
     :ghost="true"
     class="sidebar-item"
     @change="toggleExpanded"

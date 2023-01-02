@@ -26,6 +26,17 @@ type SortingPosition = {
 export type Sorting = SortingCommon | SortingPheno | SortingPosition
 
 /**
+ * Grouping.
+ */
+export type Group = {
+  name: string
+  color: string
+  isCollapsed: boolean
+  isColorized: boolean
+  ids: mRNAid[]
+}
+
+/**
  * Data structures.
  */
 export type Homology = {

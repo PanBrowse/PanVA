@@ -8,6 +8,13 @@
   shape-rendering: auto !important;
 }
 
+/**
+ * Tooltips should never be interactive.
+ */
+.ant-tooltip {
+  pointer-events: none;
+}
+
 /** Custom CSS */
 
 body {

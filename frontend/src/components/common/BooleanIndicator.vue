@@ -14,8 +14,8 @@ export default {
 
 <template>
   <div class="container">
-    <check-circle-outlined v-if="value" />
-    <close-circle-outlined v-else />
+    <CheckCircleOutlined v-if="value" />
+    <CloseCircleOutlined v-else />
     <slot></slot>
   </div>
 </template>

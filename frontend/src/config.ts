@@ -17,6 +17,7 @@ export const GROUP_COLORS = [
   '#fb9a99',
   '#ff7f00',
   '#766aaf',
+  '#226F54',
 ]
 
 // Different themes for coloring the nucleotide cells.

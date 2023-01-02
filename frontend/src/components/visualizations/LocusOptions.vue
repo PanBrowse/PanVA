@@ -76,10 +76,6 @@ export default {
       :wrapperCol="{ span: 8 }"
       hideRequiredMark
     >
-      <!-- <a-form-item :colon="false">
-        <template #label>
-          <close-circle-outlined />
-        </template> -->
       <a-form-item label="Reference">
         <a-select
           show-search

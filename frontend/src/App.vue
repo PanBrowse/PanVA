@@ -4,6 +4,7 @@ import { useDataStore } from '@/stores/data'
 
 import DebugMenu from '@/components/sidebar/DebugMenu.vue'
 import GeneOverview from '@/components/views/GeneOverview.vue'
+import Groups from '@/components/sidebar/Groups.vue'
 import HomologyInfo from '@/components/sidebar/HomologyInfo.vue'
 import HomologySelect from '@/components/sidebar/HomologySelect.vue'
 import Layout from '@/components/common/Layout.vue'
@@ -17,6 +18,7 @@ export default {
   components: {
     DebugMenu,
     GeneOverview,
+    Groups,
     HomologyInfo,
     HomologySelect,
     Layout,
@@ -57,6 +59,7 @@ export default {
     <template #sidebar>
       <HomologySelect />
       <HomologyInfo />
+      <Groups />
       <ViewOptions />
       <DebugMenu />
     </template>

@@ -13,7 +13,7 @@ export default {
 
 <template>
   <div class="loading-box" :style="{ height: height ? height + 'px' : 'auto' }">
-    <loading3-quarters-outlined spin />
+    <Loading3QuartersOutlined spin />
   </div>
 </template>
 

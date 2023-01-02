@@ -18,21 +18,22 @@ import {
 } from '@/helpers/parse'
 import type {
   AlignedPosition,
+  AlignedPositionsCSVColumns,
   Dendro,
+  Group,
   Homology,
   mRNAid,
-  Pheno,
-  VarPosCount,
-  Range,
   Nucleotide,
+  Pheno,
+  PhenoColumn,
+  PhenoColumnData,
   PhenoCSVColumns,
-  AlignedPositionsCSVColumns,
-  VarPosCountCSVColumns,
+  Range,
   Sequence,
   SequenceCSVColumns,
-  PhenoColumn,
   Sorting,
-  PhenoColumnData,
+  VarPosCount,
+  VarPosCountCSVColumns,
 } from '@/types'
 import { clamp, map, range, reverse, sortBy } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
@@ -65,9 +66,27 @@ export const useDataStore = defineStore('data', {
 
     // Application state.
     cellTheme: 'default' as CellThemeName,
+    groups: [
+      {
+        name: 'First group',
+        ids: [],
+        color: '#b15928',
+        isCollapsed: true,
+        isColorized: true,
+      },
+      {
+        name: 'Another group',
+        ids: [],
+        color: '#38c7a6',
+        isCollapsed: false,
+        isColorized: true,
+      },
+    ] as Group[],
     homologyId: defaultHomologyId,
     referenceMrnaId: null as mRNAid | null,
+    // Selected rows, can be used to create a group.
     selectedIds: [] as mRNAid[],
+    // Checkboxes above the positions.
     selectedPositions: [] as number[],
     // The range is inclusive on both ends.
     selectedRegion: DEFAULT_SELECTED_REGION as Range,
