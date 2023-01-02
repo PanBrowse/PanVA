@@ -98,7 +98,7 @@ export default {
       </a-col>
       <a-col flex="0 0 auto">
         <a-button
-          :type="group.isColorized ? 'default' : 'dashed'"
+          :type="group.isColorized ? 'default' : 'text'"
           @click="group.isColorized = !group.isColorized"
           class="toggle"
         >
@@ -107,7 +107,7 @@ export default {
       </a-col>
       <a-col flex="0 0 auto">
         <a-button
-          :type="group.isCollapsed ? 'default' : 'dashed'"
+          :type="group.isCollapsed ? 'default' : 'text'"
           @click="group.isCollapsed = !group.isCollapsed"
           class="toggle"
         >
@@ -146,12 +146,17 @@ export default {
 </template>
 
 <style lang="scss">
-.ant-btn.toggle:not(:hover) {
-  border-color: #929292;
+.ant-btn.toggle:not(.ant-btn-text) {
+  border-color: #d9d9d9;
   color: #525252;
+  background: #f2f2f2;
+
+  &:hover {
+    border-color: #b5b5b5;
+    color: #323232;
+  }
 }
-.ant-btn-dashed.toggle:not(:hover) {
-  border-color: #b5b5b5;
+.ant-btn-text.toggle:not(:hover) {
   color: #b5b5b5;
 }
 </style>
