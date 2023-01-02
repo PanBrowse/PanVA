@@ -98,16 +98,18 @@ export default {
       </a-col>
       <a-col flex="0 0 auto">
         <a-button
-          :type="group.isColorized ? 'primary' : 'default'"
+          :type="group.isColorized ? 'default' : 'dashed'"
           @click="group.isColorized = !group.isColorized"
+          class="toggle"
         >
           <template #icon><BgColorsOutlined /></template>
         </a-button>
       </a-col>
       <a-col flex="0 0 auto">
         <a-button
-          :type="group.isCollapsed ? 'primary' : 'default'"
+          :type="group.isCollapsed ? 'default' : 'dashed'"
           @click="group.isCollapsed = !group.isCollapsed"
+          class="toggle"
         >
           <template #icon><ShrinkOutlined /></template>
         </a-button>
@@ -142,3 +144,14 @@ export default {
     </a-row>
   </SidebarItem>
 </template>
+
+<style lang="scss">
+.ant-btn.toggle:not(:hover) {
+  border-color: #929292;
+  color: #525252;
+}
+.ant-btn-dashed.toggle:not(:hover) {
+  border-color: #b5b5b5;
+  color: #b5b5b5;
+}
+</style>
