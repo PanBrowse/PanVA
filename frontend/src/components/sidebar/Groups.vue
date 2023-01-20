@@ -13,6 +13,7 @@ import { useDataStore } from '@/stores/data'
 import type { Group } from '@/types'
 import { GROUP_COLORS } from '@/config'
 import { chain, difference, map } from 'lodash'
+import { arraySplice } from '@/helpers/arraySplice'
 
 export default {
   components: {
@@ -37,13 +38,19 @@ export default {
     },
     createGroup() {
       if (this.newGroup) {
-        this.groups.push({ ...this.newGroup, ids: this.selectedMrnaIds })
-        this.selectedMrnaIds = []
+        this.groups = [
+          ...this.groups,
+          { ...this.newGroup, ids: this.selectedMrnaIds },
+        ]
+        this.clearSelection()
         this.resetNewGroup()
       }
     },
+    clearSelection() {
+      this.selectedMrnaIds = []
+    },
     deleteGroup(index: number) {
-      this.groups.splice(index, 1)
+      this.groups = arraySplice(this.groups, index, 1)
     },
     availableColor(): string {
       const taken = map(this.groups, 'color')
@@ -77,6 +84,11 @@ export default {
     // We reset it on mount to get a better color suggestion.
     this.resetNewGroup()
   },
+  watch: {
+    groups() {
+      console.log(this.groups)
+    },
+  },
 }
 </script>
 
@@ -84,7 +96,7 @@ export default {
   <SidebarItem title="Groups">
     <a-row
       type="flex"
-      gutter="4"
+      :gutter="4"
       style="margin-bottom: 8px"
       v-for="(group, index) in groups"
       v-bind:key="index"
@@ -124,11 +136,22 @@ export default {
     <a-divider v-if="groups.length !== 0" />
 
     <!-- Height should match form height. -->
-    <p style="margin-bottom: 10px" v-if="selectedMrnaIds.length === 0">
-      Please make a selection to create a new group.
+    <p style="margin-bottom: 10px">
+      <span v-if="selectedMrnaIds.length === 0">
+        Please make a selection to create a new group.
+      </span>
+      <span v-if="selectedMrnaIds.length === 1">
+        There is 1 sequence selected &ndash;
+      </span>
+      <span v-if="selectedMrnaIds.length > 1">
+        There are {{ selectedMrnaIds.length }} sequences selected &ndash;
+      </span>
+      <a v-if="selectedMrnaIds.length !== 0" @click="clearSelection"
+        >Clear selection</a
+      >
     </p>
 
-    <a-row type="flex" gutter="4" v-else>
+    <a-row type="flex" :gutter="4" v-if="selectedMrnaIds.length !== 0">
       <a-col flex="0 0 auto">
         <ColorSelect v-model="newGroup.color" />
       </a-col>

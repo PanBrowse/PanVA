@@ -35,7 +35,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useDataStore, ['toggleSelectedId']),
+    ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
     svg() {
       return d3.select(`#${this.name}`)
     },
@@ -73,14 +73,23 @@ export default {
           'data-hovered',
           ({ index }) => this.hoverRowIndex === this.sortedMrnaPositions[index]
         )
-        .on('mouseover', (event, { index }) => {
-          this.hoverRowIndex = this.sortedMrnaPositions[index]
+        .on('mousedown', (event: MouseEvent, { index: idx }) => {
+          const index = this.sortedMrnaPositions[idx]
+          this.dragStart(index, event.ctrlKey)
+        })
+        .on('mouseover', (event, { index: idx }) => {
+          const index = this.sortedMrnaPositions[idx]
+          if (this.hoverRowIndex !== index) {
+            this.hoverRowIndex = index
+            this.dragUpdate(index)
+          }
+        })
+        .on('mouseup', (event, { index: idx }) => {
+          const index = this.sortedMrnaPositions[idx]
+          this.dragEnd(index)
         })
         .on('mouseout', () => {
           this.hoverRowIndex = null
-        })
-        .on('click', (event, { mRNA_id }) => {
-          this.toggleSelectedId(mRNA_id)
         })
     },
   },

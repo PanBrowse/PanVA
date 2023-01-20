@@ -3,20 +3,20 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
+import type { mRNAid } from '@/types'
 
 export default {
   data() {
     return {
       width: 180,
+      dragStartIndex: null as number | null,
+      dragAdditive: false,
+      originalSelectedMrnaIds: [] as mRNAid[],
     }
   },
   computed: {
-    ...mapState(useDataStore, [
-      'mrnaIdsSorted',
-      'selectedMrnaIds',
-      'transitionTime',
-    ]),
-    ...mapWritableState(useDataStore, ['hoverRowIndex']),
+    ...mapState(useDataStore, ['mrnaIdsSorted', 'transitionTime']),
+    ...mapWritableState(useDataStore, ['hoverRowIndex', 'selectedMrnaIds']),
     hasAllData(): boolean {
       return this.mrnaIdsSorted.length !== 0
     },
@@ -25,7 +25,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useDataStore, ['toggleSelectedId']),
+    ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
     svg() {
       return d3.select('#names')
     },
@@ -54,14 +54,18 @@ export default {
         )
         .attr('data-selected', ([, id]) => this.selectedMrnaIds.includes(id))
         .attr('data-hovered', ([index]) => this.hoverRowIndex === index)
+        .on('mousedown', (event: MouseEvent, [index]) =>
+          this.dragStart(index, event.ctrlKey)
+        )
         .on('mouseover', (event, [index]) => {
-          this.hoverRowIndex = index
+          if (this.hoverRowIndex !== index) {
+            this.hoverRowIndex = index
+            this.dragUpdate(index)
+          }
         })
+        .on('mouseup', (event, [index]) => this.dragEnd(index))
         .on('mouseout', () => {
           this.hoverRowIndex = null
-        })
-        .on('click', (event, [, id]) => {
-          this.toggleSelectedId(id)
         })
     },
   },

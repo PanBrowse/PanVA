@@ -36,12 +36,13 @@ import type {
   VarPosCount,
   VarPosCountCSVColumns,
 } from '@/types'
-import { chain, clamp, range, reverse, sortBy, xor } from 'lodash'
+import { chain, clamp, range, reverse, sortBy, union, xor } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
 import { median } from '@/helpers/median'
 import { zipEqual } from '@/helpers/zipEqual'
 import { sortingPayload } from '@/helpers/sorting'
 import { leafNodes } from '@/helpers/dendro'
+import { arrayRange } from '@/helpers/arrayRange'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -66,17 +67,26 @@ export const useDataStore = defineStore('data', {
     // API fetching state.
     hasError: false,
 
-    // Application state.
+    // What row index is being hovered over.
+    hoverRowIndex: null as number | null,
+
+    // Drag state.
+    dragStartRowIndex: null as number | null,
+    dragIsCumulative: false,
+    dragInitialSelectedMrnaIds: [] as mRNAid[],
+
+    // Row selection.
+    selectedMrnaIds: [] as mRNAid[],
+
+    // Position selection (checkboxes above the positions).
+    selectedPositions: [] as number[],
+
+    // Application options.
     cellTheme: 'default' as CellThemeName,
     groups: [] as Group[],
-    hoverRowIndex: null as number | null,
     homologyId: defaultHomologyId,
     referenceMrnaId: null as mRNAid | null,
-    selectedMrnaIds: [] as mRNAid[],
-    // Checkboxes above the positions.
-    selectedPositions: [] as number[],
-    // The range is inclusive on both ends.
-    selectedRegion: DEFAULT_SELECTED_REGION,
+    selectedRegion: DEFAULT_SELECTED_REGION, // The range is inclusive on both ends.
     sorting: DEFAULT_SORTING,
     /**
      * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
@@ -462,6 +472,38 @@ export const useDataStore = defineStore('data', {
         sorting: DEFAULT_SORTING,
         sortedMrnaIndices: range(this.sequenceCount),
       })
+    },
+    dragStart(index: number, isCumulative = false) {
+      this.dragInitialSelectedMrnaIds = this.selectedMrnaIds
+      this.dragStartRowIndex = index
+      this.dragIsCumulative = isCumulative
+
+      this.dragUpdate(index)
+    },
+    dragUpdate(index: number) {
+      if (this.dragStartRowIndex === null) return
+
+      const draggedMrnaIds = arrayRange(
+        this.mrnaIdsSorted,
+        this.dragStartRowIndex,
+        index
+      )
+
+      if (this.dragIsCumulative) {
+        this.selectedMrnaIds = union(
+          this.dragInitialSelectedMrnaIds,
+          draggedMrnaIds
+        )
+      } else {
+        this.selectedMrnaIds = draggedMrnaIds
+      }
+    },
+    dragEnd(index: number) {
+      this.dragUpdate(index)
+
+      this.dragInitialSelectedMrnaIds = []
+      this.dragStartRowIndex = null
+      this.dragIsCumulative = false
     },
   },
 })

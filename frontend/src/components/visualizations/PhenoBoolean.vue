@@ -39,25 +39,34 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useDataStore, ['toggleSelectedId']),
+    ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
     svg() {
       return d3.select(`#${this.name}`)
     },
-    cellY({ index }: Pheno): number {
-      return (this.sortedMrnaPositions[index] + 0.5) * CELL_SIZE
+    positionTransform({ index }: Pheno) {
+      const y = this.sortedMrnaPositions[index] * CELL_SIZE
+      return `translate(0,${y})`
     },
     drawPheno() {
       if (!this.hasAllData) return
 
       this.svg()
-        .selectAll('circle')
+        .selectAll('g')
         .data(this.phenos, (d) => (d as Pheno).mRNA_id)
         .join(
-          (enter) =>
-            enter
-              .append('circle')
+          (enter) => {
+            const g = enter
+              .append('g')
+              .attr('transform', this.positionTransform)
+
+            g.append('rect')
+              .attr('height', CELL_SIZE)
+              .attr('width', this.padding * 2 + CELL_SIZE)
+              .attr('fill', 'transparent')
+
+            g.append('circle')
               .attr('cx', this.padding + 0.5 * CELL_SIZE)
-              .attr('cy', this.cellY)
+              .attr('cy', 0.5 * CELL_SIZE)
               .attr('r', (d) => {
                 const value = d[this.field] as PhenoColumnBooleanData
                 if (value === true) return 4
@@ -75,12 +84,14 @@ export default {
                 if (value === true) return '#666'
                 if (value === false) return 'white'
                 return '#ccc'
-              }),
+              })
+            return g
+          },
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('cy', this.cellY),
+              .attr('transform', this.positionTransform),
           (exit) => exit.remove()
         )
         .attr('data-selected', ({ mRNA_id }) =>
@@ -90,14 +101,23 @@ export default {
           'data-hovered',
           ({ index }) => this.hoverRowIndex === this.sortedMrnaPositions[index]
         )
-        .on('mouseover', (event, { index }) => {
-          this.hoverRowIndex = this.sortedMrnaPositions[index]
+        .on('mousedown', (event: MouseEvent, { index: idx }) => {
+          const index = this.sortedMrnaPositions[idx]
+          this.dragStart(index, event.ctrlKey)
+        })
+        .on('mouseover', (event, { index: idx }) => {
+          const index = this.sortedMrnaPositions[idx]
+          if (this.hoverRowIndex !== index) {
+            this.hoverRowIndex = index
+            this.dragUpdate(index)
+          }
+        })
+        .on('mouseup', (event, { index: idx }) => {
+          const index = this.sortedMrnaPositions[idx]
+          this.dragEnd(index)
         })
         .on('mouseout', () => {
           this.hoverRowIndex = null
-        })
-        .on('click', (event, { mRNA_id }) => {
-          this.toggleSelectedId(mRNA_id)
         })
     },
   },
@@ -132,14 +152,14 @@ export default {
 .pheno-boolean {
   flex: 0 0 auto;
 
-  circle {
+  g {
     cursor: crosshair;
 
-    &[data-selected='true'] {
+    &[data-selected='true'] circle {
       stroke: #000;
     }
 
-    &[data-hovered='true'] {
+    &[data-hovered='true'] circle {
       stroke: #1890ff;
     }
   }
