@@ -1,13 +1,8 @@
 import { parseString } from '@/helpers/parse'
-import type { PhenoColumn, Sorting } from '@/types'
+import type { PhenoColumn } from '@/types'
 
 export const title = 'PanVA: Pectobacterium'
 export const defaultHomologyId = 13803671
-
-// This should match the sorting of the data returned by the API.
-export const defaultSorting: Sorting = {
-  field: 'dendro',
-}
 
 export const phenoColumns: PhenoColumn[] = [
   {

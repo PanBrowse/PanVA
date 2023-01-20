@@ -19,7 +19,7 @@ export default {
       'coreSNP',
       'dendroCustom',
       'dendroDefault',
-      'selectedIds',
+      'selectedMrnaIds',
       'transitionTime',
       'sequenceCount',
     ]),
@@ -100,7 +100,7 @@ export default {
               .attr('r', this.circleRadius)
               .attr('stroke', (d) => {
                 const ids = d.data.name.split('-')
-                if (containsAll(this.selectedIds, ids)) {
+                if (containsAll(this.selectedMrnaIds, ids)) {
                   return '#ff6251'
                 }
                 return 'rgba(192, 192, 192, 0.5)'
@@ -115,7 +115,7 @@ export default {
             update
               .attr('stroke', (d) => {
                 const ids = d.data.name.split('-')
-                if (containsAll(this.selectedIds, ids)) {
+                if (containsAll(this.selectedMrnaIds, ids)) {
                   return '#ff6251'
                 }
                 return 'rgba(192, 192, 192, 0.5)'

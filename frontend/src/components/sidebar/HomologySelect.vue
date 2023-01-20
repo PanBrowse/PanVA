@@ -1,8 +1,6 @@
 <script lang="ts">
 import { mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
-import { sortBy } from 'lodash'
-import type { Homology } from '@/types'
 
 import LoadingBox from '@/components/common/LoadingBox.vue'
 import SidebarItem from '@/components/common/SidebarItem.vue'
@@ -15,9 +13,6 @@ export default {
   computed: {
     ...mapState(useDataStore, ['homologies']),
     ...mapWritableState(useDataStore, ['homologyId']),
-    sortedHomologies(): Homology[] {
-      return sortBy(this.homologies, 'name')
-    },
   },
 }
 </script>
@@ -30,7 +25,7 @@ export default {
       v-if="homologies.length !== 0"
     >
       <a-select-option
-        v-for="item in sortedHomologies"
+        v-for="item in homologies"
         :value="item.homology_id"
         v-bind:key="item.homology_id"
       >

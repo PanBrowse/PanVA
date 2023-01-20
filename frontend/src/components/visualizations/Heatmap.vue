@@ -1,7 +1,7 @@
 <script lang="ts">
 import * as d3 from 'd3'
 import { useDataStore } from '@/stores/data'
-import { mapState } from 'pinia'
+import { mapState, mapWritableState } from 'pinia'
 import { CELL_SIZE } from '@/config'
 import isEqual from 'fast-deep-equal'
 
@@ -45,6 +45,7 @@ export default {
       'alignedPositions',
       'cellTheme',
       'geneLength',
+      'homologyId',
       'mrnaIds',
       'nucleotideColor',
       'referenceMrnaId',
@@ -56,8 +57,13 @@ export default {
       'sortedMrnaPositions',
       'transitionTime',
     ]),
+    ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
-      return this.sequenceCount !== 0 && this.sortedMrnaIndices.length !== 0
+      return (
+        this.sequenceCount !== 0 &&
+        this.sortedMrnaIndices.length !== 0 &&
+        this.alignedPositions.length !== 0
+      )
     },
     width(): number {
       return this.selectedRegionLength * CELL_SIZE
@@ -71,6 +77,20 @@ export default {
       return this.alignedPositions.filter(({ position }) => {
         return position >= start && position <= end
       })
+    },
+    hoverCellStyle() {
+      if (!this.hoverPosition) return
+      return {
+        left: this.hoverPosition.x + 'px',
+        top: this.hoverPosition.y + 'px',
+      }
+    },
+    hoverRowStyle() {
+      if (this.hoverRowIndex === null) return
+      return {
+        top: this.hoverRowIndex * CELL_SIZE + 'px',
+        width: this.width + 'px',
+      }
     },
   },
   methods: {
@@ -106,7 +126,10 @@ export default {
 
       d3.select(this.customNode)
         .selectAll('c')
-        .data<AlignedPosition>(this.cells, (d) => (d as AlignedPosition).index)
+        .data<AlignedPosition>(
+          this.cells,
+          (d) => `${this.homologyId}:${(d as AlignedPosition).index}`
+        )
         .join(
           (enter) =>
             enter
@@ -130,10 +153,12 @@ export default {
       console.timeEnd('Heatmap#drawCells')
     },
     drawCanvas() {
+      const scaleFactor = 2.0
+
       const canvas = d3
         .select<HTMLCanvasElement, any>('#heatmap')
-        .attr('width', this.width)
-        .attr('height', this.height)
+        .attr('width', this.width * scaleFactor)
+        .attr('height', this.height * scaleFactor)
         .style('width', this.width + 'px')
         .style('height', this.height + 'px')
 
@@ -141,8 +166,14 @@ export default {
 
       if (!ctx) return
 
+      // Render everything at 2x for improved graphics on higher DPI screens.
+      ctx.scale(scaleFactor, scaleFactor)
+
+      // Clear the screen.
       ctx.save()
       ctx.clearRect(0, 0, this.width, this.height)
+
+      // Setup default drawing style.
       ctx.strokeStyle = '#ffffff'
       ctx.lineWidth = 0.5
 
@@ -163,6 +194,7 @@ export default {
           ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
           ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE)
         })
+
       ctx.restore()
     },
     mouseEventToCell(event: MouseEvent): Cell {
@@ -181,8 +213,12 @@ export default {
       }
     },
     onMouseMove(event: MouseEvent) {
+      if (!this.hasAllData) return
+
       const cell = this.mouseEventToCell(event)
       const position = this.cellToPosition(cell)
+
+      this.hoverRowIndex = cell.row
 
       // Only update data if values actually changed.
       if (!isEqual(position, this.hoverPosition)) {
@@ -194,6 +230,7 @@ export default {
       this.setTooltipDebounced?.cancel()
       this.tooltip = null
       this.hoverPosition = null
+      this.hoverRowIndex = null
     },
   },
   mounted() {
@@ -265,7 +302,7 @@ export default {
       @mousemove="onMouseMove"
       @mouseleave="onMouseLeave"
     ></canvas>
-    <LoadingBox v-show="!hasAllData" />
+    <LoadingBox v-show="!hasAllData" :height="120" />
 
     <a-popover
       :title="tooltip.alignedPosition.mRNA_id"
@@ -301,10 +338,16 @@ export default {
     </a-popover>
 
     <div
-      class="heatmap-hover"
+      class="heatmap-cell-hover"
       v-if="hoverPosition && hasAllData"
-      :style="{ left: hoverPosition.x + 'px', top: hoverPosition.y + 'px' }"
-    ></div>
+      :style="hoverCellStyle"
+    />
+
+    <div
+      class="heatmap-row-hover"
+      v-if="hoverRowIndex !== null && hasAllData"
+      :style="hoverRowStyle"
+    />
   </div>
 </template>
 
@@ -316,7 +359,7 @@ export default {
   height: 10px;
 }
 
-.heatmap-hover {
+.heatmap-cell-hover {
   pointer-events: none;
   border: 1px solid #1890ff;
   position: absolute;
@@ -324,10 +367,22 @@ export default {
   height: 10px;
 }
 
+.heatmap-row-hover {
+  pointer-events: none;
+  border-top: 1px solid #1890ff;
+  border-bottom: 1px solid #1890ff;
+  position: absolute;
+  height: 10px;
+}
+
 .heatmap-wrapper {
   position: relative;
   transition-property: width;
   transition-timing-function: linear;
+
+  /* canvas {
+    image-rendering: pixelated;
+  } */
 }
 
 .heatmap-popover-content {

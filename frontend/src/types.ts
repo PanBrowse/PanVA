@@ -140,7 +140,6 @@ export type Pheno = Record<string, PhenoColumnData> & {
 export type AlignedPositionsCSVColumns =
   | 'index'
   | 'mRNA_id'
-  | 'mRNA_index'
   | 'genome_nr'
   | 'position'
   | 'nucleotide'

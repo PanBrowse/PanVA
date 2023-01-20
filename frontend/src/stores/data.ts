@@ -6,10 +6,11 @@ import * as d3 from 'd3'
 import {
   API_URL,
   CELL_THEMES,
+  DEFAULT_SORTING,
   DEFAULT_SELECTED_REGION,
   TRANSITION_TIME,
 } from '@/config'
-import { defaultSorting, defaultHomologyId, phenoColumns } from '@dataset'
+import { defaultHomologyId, phenoColumns } from '@dataset'
 import {
   parseBool,
   parseNumber,
@@ -35,11 +36,12 @@ import type {
   VarPosCount,
   VarPosCountCSVColumns,
 } from '@/types'
-import { clamp, map, range, reverse, sortBy } from 'lodash'
+import { chain, clamp, range, reverse, sortBy, xor } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
 import { median } from '@/helpers/median'
 import { zipEqual } from '@/helpers/zipEqual'
 import { sortingPayload } from '@/helpers/sorting'
+import { leafNodes } from '@/helpers/dendro'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -58,39 +60,24 @@ export const useDataStore = defineStore('data', {
     phenos: [] as Pheno[],
     sequences: [] as Sequence[],
     varPosCount: [] as VarPosCount[],
-
-    // Visualization preferences.
+    // This is populated by taking the leaf nodes from dendroDefault.
+    mrnaIds: [] as mRNAid[],
 
     // API fetching state.
     hasError: false,
 
     // Application state.
     cellTheme: 'default' as CellThemeName,
-    groups: [
-      {
-        name: 'First group',
-        ids: [],
-        color: '#b15928',
-        isCollapsed: true,
-        isColorized: true,
-      },
-      {
-        name: 'Another group',
-        ids: [],
-        color: '#38c7a6',
-        isCollapsed: false,
-        isColorized: true,
-      },
-    ] as Group[],
+    groups: [] as Group[],
+    hoverRowIndex: null as number | null,
     homologyId: defaultHomologyId,
     referenceMrnaId: null as mRNAid | null,
-    // Selected rows, can be used to create a group.
-    selectedIds: [] as mRNAid[],
+    selectedMrnaIds: [] as mRNAid[],
     // Checkboxes above the positions.
     selectedPositions: [] as number[],
     // The range is inclusive on both ends.
-    selectedRegion: DEFAULT_SELECTED_REGION as Range,
-    sorting: defaultSorting as Sorting,
+    selectedRegion: DEFAULT_SELECTED_REGION,
+    sorting: DEFAULT_SORTING,
     /**
      * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
      * This field returns a mapping of `draw position` => `mRNA ids index`, which
@@ -107,6 +94,18 @@ export const useDataStore = defineStore('data', {
     transitionsEnabled: true,
   }),
   getters: {
+    mrnaIdsLookup: (state) => {
+      /**
+       * We need to sort many data sets by the order as defined in `this.mrnaIds`.
+       * Instead of using `this.mrnaIds.indexOf(mRNA_id)` as a sorting method,
+       * which is O(n), we can use `this.mrnaIdsLookup[mRNA_id]`, which is O(1).
+       * This brings down the total computation time from O(n^2) to O(2n).
+       */
+      return state.mrnaIds.reduce((acc, mrnaId, index) => {
+        acc[mrnaId] = index
+        return acc
+      }, {} as Record<string, number>)
+    },
     homology: (state) => {
       // This will return undefined if the homologies have not yet loaded.
       return state.homologies.find(
@@ -118,7 +117,7 @@ export const useDataStore = defineStore('data', {
       return end - start + 1
     },
     sequenceCount(): number {
-      return this.sequences.length
+      return this.mrnaIds.length
     },
     geneLength(): number {
       if (this.sequences) {
@@ -135,12 +134,6 @@ export const useDataStore = defineStore('data', {
     },
     transitionTime(): number {
       return this.transitionsEnabled ? TRANSITION_TIME : 0
-    },
-    mrnaIds(): mRNAid[] {
-      if (this.sequences) {
-        return map(this.sequences, 'mRNA_id')
-      }
-      return []
     },
     referenceMrnaNucleotideAtPosition() {
       if (!this.referenceMrnaId) {
@@ -185,6 +178,12 @@ export const useDataStore = defineStore('data', {
       ) {
         // Same field and parameter, so we reverse the current sorting.
         this.sortedMrnaIndices = reverse(this.sortedMrnaIndices)
+        return
+      }
+
+      // Sorting by dendrogram is the default sorting, so we reset everything.
+      if (sorting.field === 'dendro') {
+        this.resetSorting()
         return
       }
 
@@ -241,10 +240,13 @@ export const useDataStore = defineStore('data', {
       // Pull out the mrna indices.
       this.sortedMrnaIndices = sorted.map(([index]) => index)
     },
+    toggleSelectedId(mrnaId: string) {
+      this.selectedMrnaIds = xor(this.selectedMrnaIds, [mrnaId])
+    },
     async fetchHomologyIds() {
       try {
         const response = await axios.get<Homology[]>(`${API_URL}/homology_ids`)
-        this.homologies = response.data
+        this.homologies = sortBy(response.data, 'name')
       } catch (err) {
         this.hasError = true
         throw err
@@ -260,34 +262,47 @@ export const useDataStore = defineStore('data', {
       }
     },
     async fetchAlignedPositions() {
+      if (this.mrnaIds.length === 0) {
+        throw new Error(
+          'Order of mRNA ids must be known (by fetching dendrogram) before fetching aligned positions.'
+        )
+      }
+
       try {
-        this.alignedPositions = await d3.csv<
-          AlignedPosition,
-          AlignedPositionsCSVColumns
-        >(
+        const data = await d3.csv<AlignedPosition, AlignedPositionsCSVColumns>(
           `${API_URL}/${this.homologyId}/al_pos`,
           ({
             genome_nr,
-            index,
             informative,
             mRNA_id,
-            mRNA_index,
             nucleotide,
             pheno_specific,
             position,
             variable,
           }) => ({
             genome_nr: parseNumber(genome_nr),
-            index: parseNumber(index),
             informative: parseOptionalBool(informative),
             mRNA_id: parseString(mRNA_id),
-            mRNA_index: parseNumber(mRNA_index),
             nucleotide: parseString(nucleotide) as Nucleotide,
             pheno_specific: parseOptionalBool(pheno_specific),
             position: parseNumber(position),
             variable: parseBool(variable),
+            index: 0, // Value gets generated later.
+            mRNA_index: 0, // Value gets generated later.
           })
         )
+
+        this.alignedPositions = chain(data)
+          // 1. Sort by mRNA id in the order as defined by the dendrogram.
+          // 2. Sort by the position within each mRNA id.
+          .sortBy([({ mRNA_id }) => this.mrnaIdsLookup[mRNA_id], 'position'])
+          // Fix the mRNA_index column.
+          .map((alignedPosition, index) => ({
+            ...alignedPosition,
+            index,
+            mRNA_index: this.mrnaIdsLookup[alignedPosition.mRNA_id],
+          }))
+          .value()
       } catch (err) {
         this.hasError = true
         throw err
@@ -300,6 +315,7 @@ export const useDataStore = defineStore('data', {
         )
         if (data) {
           this.dendroDefault = data
+          this.mrnaIds = leafNodes(data)
         } else {
           this.hasError = true
         }
@@ -324,14 +340,14 @@ export const useDataStore = defineStore('data', {
     },
     async fetchPhenos() {
       try {
-        this.phenos = await d3.csv<Pheno, PhenoCSVColumns | string>(
+        const data = await d3.csv<Pheno, PhenoCSVColumns | string>(
           `${API_URL}/${this.homologyId}/phenos`,
           ({ mRNA_id, genome_nr, ...rest }) => {
             // Common fields.
             const data: Pheno = {
               mRNA_id: parseString(mRNA_id),
               genome_nr: parseNumber(genome_nr),
-              index: parseNumber(genome_nr) - 1,
+              index: 0, // Value gets generated later.
             }
 
             // Dataset specific fields.
@@ -343,6 +359,13 @@ export const useDataStore = defineStore('data', {
             return data
           }
         )
+
+        this.phenos = chain(data)
+          // Sort by mRNA id in the order as defined by the dendrogram.
+          .sortBy(({ mRNA_id }) => this.mrnaIdsLookup[mRNA_id])
+          // Fix the index column.
+          .map((pheno, index) => ({ ...pheno, index }))
+          .value()
       } catch (err) {
         this.hasError = true
         throw err
@@ -350,7 +373,7 @@ export const useDataStore = defineStore('data', {
     },
     async fetchSequences() {
       try {
-        this.sequences = await d3.csv<Sequence, SequenceCSVColumns>(
+        const data = await d3.csv<Sequence, SequenceCSVColumns>(
           `${API_URL}/${this.homologyId}/sequences`,
           ({
             mRNA_id,
@@ -365,6 +388,12 @@ export const useDataStore = defineStore('data', {
             prot_trimmed_seq: parseString(prot_trimmed_seq),
             prot_seq: parseString(prot_seq),
           })
+        )
+
+        // Sort by mRNA id in the order as defined by the dendrogram.
+        this.sequences = sortBy(
+          data,
+          ({ mRNA_id }) => this.mrnaIdsLookup[mRNA_id]
         )
       } catch (err) {
         this.hasError = true
@@ -399,31 +428,40 @@ export const useDataStore = defineStore('data', {
         dendroCustom: null,
         dendroDefault: null,
         phenos: [],
-        selectedIds: [],
+        selectedMrnaIds: [],
         sequences: [],
         varPosCount: [],
       })
 
       // Fetch new data for now selected homology id.
-      // We fetch the sequences first, so we can start displaying most visualizations early.
+      // We fetch the dendrogram first, as it will define the order in which the other data will be stored.
+      await this.fetchDendrogramDefault()
+
+      // Fetch the sequences after, so we can start displaying most visualizations early.
       await this.fetchSequences()
 
-      this.$patch({
-        // Reset to default selection, clamped to gene length.
-        selectedRegion: DEFAULT_SELECTED_REGION.map((val) =>
-          clamp(val, this.geneLength)
-        ) as Range,
-        sorting: defaultSorting,
-        sortedMrnaIndices: range(this.sequenceCount),
-      })
+      this.resetSorting()
+      this.resetSelectedRegion()
 
       // The remaining requests are performed concurrently to speed up loading.
       await Promise.all([
         this.fetchAlignedPositions(),
-        this.fetchDendrogramDefault(),
         this.fetchPhenos(),
         this.fetchVarPosCount(),
       ])
+    },
+    resetSelectedRegion() {
+      // Reset to default selection, clamped to gene length.
+      this.selectedRegion = DEFAULT_SELECTED_REGION.map((val) =>
+        clamp(val, this.geneLength)
+      ) as Range
+    },
+    resetSorting() {
+      this.$patch({
+        // Reset to default sorting as defined by dendrogram.
+        sorting: DEFAULT_SORTING,
+        sortedMrnaIndices: range(this.sequenceCount),
+      })
     },
   },
 })

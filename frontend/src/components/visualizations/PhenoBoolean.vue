@@ -1,6 +1,6 @@
 <script lang="ts">
 import * as d3 from 'd3'
-import { mapState } from 'pinia'
+import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
 import type { Pheno, PhenoColumnBooleanData } from '@/types'
@@ -20,9 +20,11 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'phenos',
+      'selectedMrnaIds',
       'sortedMrnaPositions',
       'transitionTime',
     ]),
+    ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
       return this.phenos.length !== 0 && this.sortedMrnaPositions.length !== 0
     },
@@ -37,6 +39,7 @@ export default {
     },
   },
   methods: {
+    ...mapActions(useDataStore, ['toggleSelectedId']),
     svg() {
       return d3.select(`#${this.name}`)
     },
@@ -55,26 +58,47 @@ export default {
               .append('circle')
               .attr('cx', this.padding + 0.5 * CELL_SIZE)
               .attr('cy', this.cellY)
-              .attr('r', 4)
+              .attr('r', (d) => {
+                const value = d[this.field] as PhenoColumnBooleanData
+                if (value === true) return 4
+                if (value === false) return 4
+                return 1
+              })
               .attr('stroke', (d) => {
                 const value = d[this.field] as PhenoColumnBooleanData
-                if (value === true) return 'black'
-                if (value === false) return 'lightgrey'
-                return 'lightgrey'
+                if (value === true) return 'transparent'
+                if (value === false) return '#aaa'
+                return '#ccc'
               })
               .attr('fill', (d) => {
                 const value = d[this.field] as PhenoColumnBooleanData
-                if (value === true) return 'black'
+                if (value === true) return '#666'
                 if (value === false) return 'white'
-                return 'lightgrey'
+                return '#ccc'
               }),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
               .attr('cy', this.cellY),
-          (exit) => exit.transition().duration(this.transitionTime).remove()
+          (exit) => exit.remove()
         )
+        .attr('data-selected', ({ mRNA_id }) =>
+          this.selectedMrnaIds.includes(mRNA_id)
+        )
+        .attr(
+          'data-hovered',
+          ({ index }) => this.hoverRowIndex === this.sortedMrnaPositions[index]
+        )
+        .on('mouseover', (event, { index }) => {
+          this.hoverRowIndex = this.sortedMrnaPositions[index]
+        })
+        .on('mouseout', () => {
+          this.hoverRowIndex = null
+        })
+        .on('click', (event, { mRNA_id }) => {
+          this.toggleSelectedId(mRNA_id)
+        })
     },
   },
   mounted() {
@@ -90,6 +114,12 @@ export default {
     phenos() {
       this.drawPheno()
     },
+    selectedMrnaIds() {
+      this.drawPheno()
+    },
+    hoverRowIndex() {
+      this.drawPheno()
+    },
   },
 }
 </script>
@@ -101,5 +131,17 @@ export default {
 <style lang="scss">
 .pheno-boolean {
   flex: 0 0 auto;
+
+  circle {
+    cursor: crosshair;
+
+    &[data-selected='true'] {
+      stroke: #000;
+    }
+
+    &[data-hovered='true'] {
+      stroke: #1890ff;
+    }
+  }
 }
 </style>

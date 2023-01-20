@@ -17,12 +17,17 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
+      'hoverRowIndex',
       'sequenceCount',
       'sortedMrnaPositions',
       'transitionTime',
     ]),
     hasAllData(): boolean {
-      return this.sortedMrnaPositions.length !== 0 && this.sequenceCount !== 0
+      return (
+        this.sortedMrnaPositions.length !== 0 &&
+        this.sequenceCount !== 0 &&
+        this.sortedMrnaPositions.length === this.sequenceCount
+      )
     },
     height(): number {
       return this.sequenceCount * CELL_SIZE
@@ -76,8 +81,7 @@ export default {
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('d', (d) => this.linkPath(d))
-              .attr('stroke', 'rgba(192, 192, 192, 0.5)'),
+              .attr('d', (d) => this.linkPath(d)),
           (exit) =>
             exit
               .transition()
@@ -85,6 +89,13 @@ export default {
               .attr('stroke', 'rgba(192, 192, 192, 0)')
               .remove()
         )
+        .attr('stroke', (d, index) => {
+          const toIndex = this.sortedMrnaPositions[index]
+          if (toIndex === this.hoverRowIndex) {
+            return '#1890ff'
+          }
+          return 'rgba(192, 192, 192, 0.5)'
+        })
     },
   },
   mounted() {
@@ -95,6 +106,9 @@ export default {
       this.drawBipartite()
     },
     links() {
+      this.drawBipartite()
+    },
+    hoverRowIndex() {
       this.drawBipartite()
     },
   },

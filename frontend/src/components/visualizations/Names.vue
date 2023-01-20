@@ -1,6 +1,6 @@
 <script lang="ts">
 import * as d3 from 'd3'
-import { mapState } from 'pinia'
+import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
 
@@ -11,7 +11,12 @@ export default {
     }
   },
   computed: {
-    ...mapState(useDataStore, ['mrnaIdsSorted', 'transitionTime']),
+    ...mapState(useDataStore, [
+      'mrnaIdsSorted',
+      'selectedMrnaIds',
+      'transitionTime',
+    ]),
+    ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
       return this.mrnaIdsSorted.length !== 0
     },
@@ -20,6 +25,7 @@ export default {
     },
   },
   methods: {
+    ...mapActions(useDataStore, ['toggleSelectedId']),
     svg() {
       return d3.select('#names')
     },
@@ -28,25 +34,35 @@ export default {
 
       this.svg()
         .selectAll('foreignObject')
-        .data(this.mrnaIdsSorted, (d) => d as string)
+        .data(this.mrnaIdsSorted.entries(), ([, mrnaId]: any) => mrnaId)
         .join(
           (enter) =>
             enter
               .append('foreignObject')
               .attr('x', 3)
-              .attr('y', (d, index) => index * CELL_SIZE)
+              .attr('y', ([index]) => index * CELL_SIZE)
               .attr('width', this.width - 3)
               .attr('height', CELL_SIZE)
-              .text((d) => d),
+              .text(([, id]) => id),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('y', (d, index) => index * CELL_SIZE)
-              .text((d) => d),
+              .attr('y', ([index]) => index * CELL_SIZE),
 
-          (exit) => exit.transition().duration(this.transitionTime).remove()
+          (exit) => exit.remove()
         )
+        .attr('data-selected', ([, id]) => this.selectedMrnaIds.includes(id))
+        .attr('data-hovered', ([index]) => this.hoverRowIndex === index)
+        .on('mouseover', (event, [index]) => {
+          this.hoverRowIndex = index
+        })
+        .on('mouseout', () => {
+          this.hoverRowIndex = null
+        })
+        .on('click', (event, [, id]) => {
+          this.toggleSelectedId(id)
+        })
     },
   },
   mounted() {
@@ -57,6 +73,12 @@ export default {
       this.drawNames()
     },
     mrnaIdsSorted() {
+      this.drawNames()
+    },
+    selectedMrnaIds() {
+      this.drawNames()
+    },
+    hoverRowIndex() {
       this.drawNames()
     },
   },
@@ -79,7 +101,12 @@ export default {
     text-overflow: ellipsis;
     cursor: crosshair;
 
-    &:hover {
+    &[data-selected='true'] {
+      font-weight: 500;
+      color: #333;
+    }
+
+    &[data-hovered='true'] {
       color: #1890ff;
     }
   }

@@ -32,6 +32,11 @@ export default {
   },
   methods: {
     ...mapActions(useDataStore, ['changeSorting']),
+    positionTransform(index: number) {
+      const x = index * CELL_SIZE
+      const y = this.height
+      return `translate(${x},${y}) rotate(-90)`
+    },
     svg() {
       return d3.select('#positions')
     },
@@ -45,31 +50,23 @@ export default {
               .append('foreignObject')
               .attr('width', this.height)
               .attr('height', CELL_SIZE)
-              .attr('transform', (d, index) => {
-                const x = index * CELL_SIZE
-                const y = this.height
-                return `translate(${x},${y}) rotate(-90)`
-              })
-              .append('xhtml:div')
-              .attr('class', (d) =>
-                this.sortingPosition === d ? 'sorted' : ''
-              )
-              .text((d) => d)
+              .attr('transform', (d, index) => this.positionTransform(index))
               .on('click', (event, d) => {
                 this.changeSorting({
                   field: 'position',
                   position: d,
                 })
-              }),
-          (update) =>
-            update
-              .select('div')
-              .attr('class', (d) =>
-                this.sortingPosition === d ? 'sorted' : ''
-              )
+              })
+              .append('xhtml:div')
               .text((d) => d),
+          (update) =>
+            update.attr('transform', (d, index) =>
+              this.positionTransform(index)
+            ),
           (exit) => exit.remove()
         )
+        .select('div')
+        .attr('class', (d) => (this.sortingPosition === d ? 'sorted' : ''))
     },
   },
   mounted() {

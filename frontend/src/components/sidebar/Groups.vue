@@ -8,7 +8,7 @@ import {
 
 import ColorSelect from '@/components/common/ColorSelect.vue'
 import SidebarItem from '@/components/common/SidebarItem.vue'
-import { mapState, mapWritableState } from 'pinia'
+import { mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import type { Group } from '@/types'
 import { GROUP_COLORS } from '@/config'
@@ -24,8 +24,7 @@ export default {
     SidebarItem,
   },
   computed: {
-    ...mapState(useDataStore, ['selectedIds']),
-    ...mapWritableState(useDataStore, ['groups']),
+    ...mapWritableState(useDataStore, ['groups', 'selectedMrnaIds']),
   },
   data() {
     return {
@@ -38,7 +37,8 @@ export default {
     },
     createGroup() {
       if (this.newGroup) {
-        this.groups.push(this.newGroup)
+        this.groups.push({ ...this.newGroup, ids: this.selectedMrnaIds })
+        this.selectedMrnaIds = []
         this.resetNewGroup()
       }
     },
@@ -124,7 +124,7 @@ export default {
     <a-divider v-if="groups.length !== 0" />
 
     <!-- Height should match form height. -->
-    <p style="margin-bottom: 10px" v-if="selectedIds.length === 0">
+    <p style="margin-bottom: 10px" v-if="selectedMrnaIds.length === 0">
       Please make a selection to create a new group.
     </p>
 

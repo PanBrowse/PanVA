@@ -69,24 +69,17 @@ export default {
                 return `translate(${x},${y}) rotate(-45)`
               })
               .append('xhtml:div')
-              .attr('class', (d) =>
-                this.sortingPheno === d.field ? 'sorted' : ''
-              )
-              .text((d) => d.label)
               .on('click', (event, d) => {
                 this.changeSorting({
                   field: 'pheno',
                   pheno: d.field,
                 })
-              }),
-          (update) =>
-            update
-              .select('div')
-              .attr('class', (d) =>
-                this.sortingPheno === d.field ? 'sorted' : ''
-              ),
+              })
+              .text((d) => d.label),
+          (update) => update,
           (exit) => exit.remove()
         )
+        .attr('class', (d) => (this.sortingPheno === d.field ? 'sorted' : ''))
     },
   },
   mounted() {

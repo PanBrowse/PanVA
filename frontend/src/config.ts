@@ -1,6 +1,10 @@
-import type { CellTheme, Range } from '@/types'
+import type { CellTheme, Range, Sorting } from '@/types'
 
 export const API_URL = `${import.meta.env.VITE_API_URL}`
+
+export const DEFAULT_SORTING: Sorting = {
+  field: 'dendro',
+}
 
 export const DEFAULT_SELECTED_REGION: Range = [1, 40]
 

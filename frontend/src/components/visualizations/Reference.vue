@@ -64,7 +64,6 @@ export default {
               .attr('height', CELL_SIZE)
               .attr('stroke', 'white')
               .attr('stroke-width', 0.5),
-
           (update) => update.attr('fill', this.cellColor).attr('x', this.cellX),
           (exit) => exit.remove()
         )

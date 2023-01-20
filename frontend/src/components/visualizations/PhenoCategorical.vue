@@ -1,6 +1,6 @@
 <script lang="ts">
 import * as d3 from 'd3'
-import { mapState } from 'pinia'
+import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
 import type { Pheno, PhenoColumnCategoricalData } from '@/types'
@@ -19,9 +19,11 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'phenos',
+      'selectedMrnaIds',
       'sortedMrnaPositions',
       'transitionTime',
     ]),
+    ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
       return this.phenos.length !== 0 && this.sortedMrnaPositions.length !== 0
     },
@@ -33,6 +35,7 @@ export default {
     },
   },
   methods: {
+    ...mapActions(useDataStore, ['toggleSelectedId']),
     svg() {
       return d3.select(`#${this.name}`)
     },
@@ -52,18 +55,33 @@ export default {
               .attr('x', 3)
               .attr('y', this.cellY)
               .attr('width', this.width)
-              .attr('height', CELL_SIZE)
-              .text((d) => d[this.field] as PhenoColumnCategoricalData),
+              .attr('height', CELL_SIZE),
 
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('y', this.cellY)
-              .text((d) => d[this.field] as PhenoColumnCategoricalData),
+              .attr('y', this.cellY),
 
-          (exit) => exit.transition().duration(this.transitionTime).remove()
+          (exit) => exit.remove()
         )
+        .text((d) => d[this.field] as PhenoColumnCategoricalData)
+        .attr('data-selected', ({ mRNA_id }) =>
+          this.selectedMrnaIds.includes(mRNA_id)
+        )
+        .attr(
+          'data-hovered',
+          ({ index }) => this.hoverRowIndex === this.sortedMrnaPositions[index]
+        )
+        .on('mouseover', (event, { index }) => {
+          this.hoverRowIndex = this.sortedMrnaPositions[index]
+        })
+        .on('mouseout', () => {
+          this.hoverRowIndex = null
+        })
+        .on('click', (event, { mRNA_id }) => {
+          this.toggleSelectedId(mRNA_id)
+        })
     },
   },
   mounted() {
@@ -77,6 +95,12 @@ export default {
       this.drawPheno()
     },
     phenos() {
+      this.drawPheno()
+    },
+    selectedMrnaIds() {
+      this.drawPheno()
+    },
+    hoverRowIndex() {
       this.drawPheno()
     },
   },
@@ -104,6 +128,16 @@ export default {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    cursor: crosshair;
+
+    &[data-selected='true'] {
+      font-weight: 500;
+      color: #333;
+    }
+
+    &[data-hovered='true'] {
+      color: #1890ff;
+    }
   }
 }
 </style>
