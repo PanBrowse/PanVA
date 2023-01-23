@@ -9,7 +9,7 @@ export default {
   components: {
     CheckOutlined,
   },
-  emits: ['update:modelValue'],
+  emits: ['update:modelValue', 'change'],
   computed: {
     groupColors() {
       return GROUP_COLORS
@@ -18,6 +18,7 @@ export default {
   methods: {
     handleChange(event: Event) {
       this.$emit('update:modelValue', (event.target as HTMLInputElement).value)
+      this.$emit('change')
     },
   },
 }

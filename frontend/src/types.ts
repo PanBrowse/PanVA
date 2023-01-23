@@ -5,6 +5,7 @@ export type mRNAid = string
 export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
 export type Range = [number, number]
 export type Position = { x: number; y: number }
+export type DataIndexCollapsed = number | Group
 
 /**
  * Sorting.
@@ -29,11 +30,12 @@ export type Sorting = SortingCommon | SortingPheno | SortingPosition
  * Grouping.
  */
 export type Group = {
+  id: number
   name: string
   color: string
   isCollapsed: boolean
   isColorized: boolean
-  ids: mRNAid[]
+  dataIndices: number[]
 }
 
 /**

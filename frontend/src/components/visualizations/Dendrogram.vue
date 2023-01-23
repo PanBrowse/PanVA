@@ -5,7 +5,6 @@ import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
 import type { Dendro } from '@/types'
 import type { HierarchyNode, HierarchyPointLink, HierarchyPointNode } from 'd3'
-import { containsAll } from '@/helpers/contains'
 
 export default {
   data() {
@@ -19,7 +18,8 @@ export default {
       'coreSNP',
       'dendroCustom',
       'dendroDefault',
-      'selectedMrnaIds',
+      'mrnaIdsLookup',
+      'rowColors',
       'transitionTime',
       'sequenceCount',
     ]),
@@ -99,10 +99,13 @@ export default {
               .attr('cy', (d) => d.x)
               .attr('r', this.circleRadius)
               .attr('stroke', (d) => {
-                const ids = d.data.name.split('-')
-                if (containsAll(this.selectedMrnaIds, ids)) {
-                  return '#ff6251'
+                // Leaf nodes.
+                if (d.height === 0) {
+                  const dataIndex = this.mrnaIdsLookup[d.data.name]
+                  const color = this.rowColors[dataIndex]
+                  if (color) return color
                 }
+
                 return 'rgba(192, 192, 192, 0.5)'
               })
               .attr('fill', function (d) {
@@ -113,26 +116,17 @@ export default {
               }),
           (update) =>
             update
-              .attr('stroke', (d) => {
-                const ids = d.data.name.split('-')
-                if (containsAll(this.selectedMrnaIds, ids)) {
-                  return '#ff6251'
+              .transition()
+              .duration(this.transitionTime)
+              .attr('cx', (d) => this.circleRadius + d.y)
+              .attr('cy', (d) => d.x)
+              .attr('fill', (d) => {
+                if (d.height === 0 || d.depth === 0) {
+                  return '#ffffff'
                 }
                 return 'rgba(192, 192, 192, 0.5)'
-              })
-              .call((update) =>
-                update
-                  .transition()
-                  .duration(this.transitionTime)
-                  .attr('cx', (d) => this.circleRadius + d.y)
-                  .attr('cy', (d) => d.x)
-                  .attr('fill', (d) => {
-                    if (d.height === 0 || d.depth === 0) {
-                      return '#ffffff'
-                    }
-                    return 'rgba(192, 192, 192, 0.5)'
-                  })
-              ),
+              }),
+
           (exit) => exit.remove()
         )
     },
@@ -142,6 +136,9 @@ export default {
   },
   watch: {
     hasAllData() {
+      this.drawDendro()
+    },
+    rowColors() {
       this.drawDendro()
     },
     dendroData() {
@@ -163,8 +160,12 @@ export default {
     pointer-events: none;
   }
 
-  circle:hover {
-    stroke: #1890ff;
+  circle {
+    cursor: pointer;
+
+    &:hover {
+      stroke: #1890ff;
+    }
   }
 }
 </style>

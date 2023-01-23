@@ -3,7 +3,10 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
-import type { Pheno, PhenoColumnBooleanData } from '@/types'
+import type { DataIndexCollapsed, PhenoColumnBooleanData } from '@/types'
+import { eventIndex } from '@/helpers/eventIndex'
+import { valueKey } from '@/helpers/valueKey'
+import { isGroup } from '@/helpers/isGroup'
 
 export default {
   props: {
@@ -20,16 +23,19 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'phenos',
-      'selectedMrnaIds',
-      'sortedMrnaPositions',
+      'selectedDataIndices',
+      'sequenceCount',
+      'sortedDataIndicesCollapsed',
       'transitionTime',
     ]),
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
-      return this.phenos.length !== 0 && this.sortedMrnaPositions.length !== 0
+      return (
+        this.phenos.length !== 0 && this.sortedDataIndicesCollapsed.length !== 0
+      )
     },
     height(): number {
-      return this.sortedMrnaPositions.length * CELL_SIZE
+      return this.sequenceCount * CELL_SIZE
     },
     name(): string {
       return `pheno-${this.field}`
@@ -43,8 +49,8 @@ export default {
     svg() {
       return d3.select(`#${this.name}`)
     },
-    positionTransform({ index }: Pheno) {
-      const y = this.sortedMrnaPositions[index] * CELL_SIZE
+    positionTransform(index: number) {
+      const y = index * CELL_SIZE
       return `translate(0,${y})`
     },
     drawPheno() {
@@ -52,12 +58,12 @@ export default {
 
       this.svg()
         .selectAll('g')
-        .data(this.phenos, (d) => (d as Pheno).mRNA_id)
+        .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
         .join(
           (enter) => {
             const g = enter
               .append('g')
-              .attr('transform', this.positionTransform)
+              .attr('transform', (data, index) => this.positionTransform(index))
 
             g.append('rect')
               .attr('height', CELL_SIZE)
@@ -67,20 +73,44 @@ export default {
             g.append('circle')
               .attr('cx', this.padding + 0.5 * CELL_SIZE)
               .attr('cy', 0.5 * CELL_SIZE)
-              .attr('r', (d) => {
-                const value = d[this.field] as PhenoColumnBooleanData
+              .attr('r', (data) => {
+                if (isGroup(data)) {
+                  // TODO: Count unique values
+                  return 4
+                }
+
+                const value = this.phenos[data][
+                  this.field
+                ] as PhenoColumnBooleanData
+
                 if (value === true) return 4
                 if (value === false) return 4
                 return 1
               })
-              .attr('stroke', (d) => {
-                const value = d[this.field] as PhenoColumnBooleanData
+              .attr('stroke', (data) => {
+                if (isGroup(data)) {
+                  // TODO: Count unique values
+                  return '#aaa'
+                }
+
+                const value = this.phenos[data][
+                  this.field
+                ] as PhenoColumnBooleanData
+
                 if (value === true) return 'transparent'
                 if (value === false) return '#aaa'
                 return '#ccc'
               })
-              .attr('fill', (d) => {
-                const value = d[this.field] as PhenoColumnBooleanData
+              .attr('fill', (data) => {
+                if (isGroup(data)) {
+                  // TODO: Count unique values
+                  return 'url(#diagonalHatch)'
+                }
+
+                const value = this.phenos[data][
+                  this.field
+                ] as PhenoColumnBooleanData
+
                 if (value === true) return '#666'
                 if (value === false) return 'white'
                 return '#ccc'
@@ -91,29 +121,36 @@ export default {
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('transform', this.positionTransform),
+              .attr('transform', (data, index) =>
+                this.positionTransform(index)
+              ),
           (exit) => exit.remove()
         )
-        .attr('data-selected', ({ mRNA_id }) =>
-          this.selectedMrnaIds.includes(mRNA_id)
-        )
-        .attr(
-          'data-hovered',
-          ({ index }) => this.hoverRowIndex === this.sortedMrnaPositions[index]
-        )
-        .on('mousedown', (event: MouseEvent, { index: idx }) => {
-          const index = this.sortedMrnaPositions[idx]
+        .attr('data-index', (data, index) => index)
+        .attr('data-selected', (data) => {
+          if (isGroup(data)) return false
+          return this.selectedDataIndices.includes(data)
+        })
+        .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
+        .on('mousedown', (event: MouseEvent) => {
+          const index = eventIndex(event)
+          if (index === null) return
+
           this.dragStart(index, event.ctrlKey)
         })
-        .on('mouseover', (event, { index: idx }) => {
-          const index = this.sortedMrnaPositions[idx]
+        .on('mouseover', (event) => {
+          const index = eventIndex(event)
+          if (index === null) return
+
           if (this.hoverRowIndex !== index) {
             this.hoverRowIndex = index
             this.dragUpdate(index)
           }
         })
-        .on('mouseup', (event, { index: idx }) => {
-          const index = this.sortedMrnaPositions[idx]
+        .on('mouseup', (event) => {
+          const index = eventIndex(event)
+          if (index === null) return
+
           this.dragEnd(index)
         })
         .on('mouseout', () => {
@@ -128,13 +165,13 @@ export default {
     hasAllData() {
       this.drawPheno()
     },
-    sortedMrnaPositions() {
+    sortedDataIndicesCollapsed() {
       this.drawPheno()
     },
     phenos() {
       this.drawPheno()
     },
-    selectedMrnaIds() {
+    selectedDataIndices() {
       this.drawPheno()
     },
     hoverRowIndex() {
@@ -145,7 +182,22 @@ export default {
 </script>
 
 <template>
-  <svg :id="name" :width="width" :height="height" class="pheno-boolean"></svg>
+  <svg :id="name" :width="width" :height="height" class="pheno-boolean">
+    <defs>
+      <pattern
+        id="diagonalHatch"
+        patternUnits="userSpaceOnUse"
+        width="4"
+        height="4"
+      >
+        <path
+          d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2"
+          stroke="#000000"
+          stroke-width="1"
+        ></path>
+      </pattern>
+    </defs>
+  </svg>
 </template>
 
 <style lang="scss">

@@ -53,15 +53,15 @@ export default {
       'selectedRegion',
       'selectedRegionLength',
       'sequenceCount',
-      'sortedMrnaIndices',
-      'sortedMrnaPositions',
+      'sortedDataIndices',
+      'sortedRowPositions',
       'transitionTime',
     ]),
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
       return (
         this.sequenceCount !== 0 &&
-        this.sortedMrnaIndices.length !== 0 &&
+        this.sortedDataIndices.length !== 0 &&
         this.alignedPositions.length !== 0
       )
     },
@@ -106,7 +106,7 @@ export default {
       return (position - start) * CELL_SIZE
     },
     cellY({ mRNA_index }: AlignedPosition) {
-      return this.sortedMrnaPositions[mRNA_index] * CELL_SIZE
+      return this.sortedRowPositions[mRNA_index] * CELL_SIZE
     },
     cellColor(position: number, nucleotide: Nucleotide) {
       if (!this.referenceMrnaId) return this.nucleotideColor(nucleotide)
@@ -251,7 +251,7 @@ export default {
   created() {
     this.setTooltipDebounced = debounce((cell: Cell) => {
       const position = this.cellToPosition(cell)
-      const mRNA_index = this.sortedMrnaIndices[cell.row]
+      const mRNA_index = this.sortedDataIndices[cell.row]
 
       const apIndex = mRNA_index * this.selectedRegionLength + cell.col
       const alignedPosition = this.cells[apIndex]
@@ -282,7 +282,7 @@ export default {
     referenceMrnaId() {
       this.drawCanvas()
     },
-    sortedMrnaPositions() {
+    sortedRowPositions() {
       this.drawCells()
     },
   },

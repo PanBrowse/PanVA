@@ -8,11 +8,11 @@ import {
 
 import ColorSelect from '@/components/common/ColorSelect.vue'
 import SidebarItem from '@/components/common/SidebarItem.vue'
-import { mapWritableState } from 'pinia'
+import { mapActions, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import type { Group } from '@/types'
 import { GROUP_COLORS } from '@/config'
-import { chain, difference, map } from 'lodash'
+import { chain, cloneDeep, difference, map } from 'lodash'
 import { arraySplice } from '@/helpers/arraySplice'
 
 export default {
@@ -25,7 +25,7 @@ export default {
     SidebarItem,
   },
   computed: {
-    ...mapWritableState(useDataStore, ['groups', 'selectedMrnaIds']),
+    ...mapWritableState(useDataStore, ['groups', 'selectedDataIndices']),
   },
   data() {
     return {
@@ -33,24 +33,31 @@ export default {
     }
   },
   methods: {
+    ...mapActions(useDataStore, ['createGroup']),
     resetNewGroup() {
       this.newGroup = this.emptyGroup()
     },
-    createGroup() {
-      if (this.newGroup) {
-        this.groups = [
-          ...this.groups,
-          { ...this.newGroup, ids: this.selectedMrnaIds },
-        ]
-        this.clearSelection()
-        this.resetNewGroup()
-      }
+    onCreate() {
+      this.createGroup(this.newGroup)
+      this.clearSelection()
+      this.resetNewGroup()
     },
     clearSelection() {
-      this.selectedMrnaIds = []
+      this.selectedDataIndices = []
     },
     deleteGroup(index: number) {
       this.groups = arraySplice(this.groups, index, 1)
+    },
+    updateGroups() {
+      this.groups = cloneDeep(this.groups)
+    },
+    toggleGroupColorized(group: Group) {
+      group.isColorized = !group.isColorized
+      this.updateGroups()
+    },
+    toggleGroupCollapsed(group: Group) {
+      group.isCollapsed = !group.isCollapsed
+      this.updateGroups()
     },
     availableColor(): string {
       const taken = map(this.groups, 'color')
@@ -69,12 +76,12 @@ export default {
         .first()
         .value()
     },
-    emptyGroup(): Group {
+    emptyGroup(): Omit<Group, 'id'> {
       return {
         name: '',
         isColorized: true,
         isCollapsed: true,
-        ids: [],
+        dataIndices: [],
         color: this.availableColor(),
       }
     },
@@ -83,11 +90,6 @@ export default {
     // Initial value set in `data` is set when dataStore is not yet available.
     // We reset it on mount to get a better color suggestion.
     this.resetNewGroup()
-  },
-  watch: {
-    groups() {
-      console.log(this.groups)
-    },
   },
 }
 </script>
@@ -102,16 +104,20 @@ export default {
       v-bind:key="index"
     >
       <a-col flex="0 0 auto">
-        <ColorSelect v-model="group.color" />
+        <ColorSelect v-model="group.color" @change="updateGroups()" />
       </a-col>
       <!-- -->
       <a-col flex="0 0 188px">
-        <a-input placeholder="Name" v-model:value="group.name" />
+        <a-input
+          placeholder="Name"
+          v-model:value="group.name"
+          :onBlur="updateGroups"
+        />
       </a-col>
       <a-col flex="0 0 auto">
         <a-button
           :type="group.isColorized ? 'default' : 'text'"
-          @click="group.isColorized = !group.isColorized"
+          @click="toggleGroupColorized(group)"
           class="toggle"
         >
           <template #icon><BgColorsOutlined /></template>
@@ -120,7 +126,7 @@ export default {
       <a-col flex="0 0 auto">
         <a-button
           :type="group.isCollapsed ? 'default' : 'text'"
-          @click="group.isCollapsed = !group.isCollapsed"
+          @click="toggleGroupCollapsed(group)"
           class="toggle"
         >
           <template #icon><ShrinkOutlined /></template>
@@ -137,21 +143,21 @@ export default {
 
     <!-- Height should match form height. -->
     <p style="margin-bottom: 10px">
-      <span v-if="selectedMrnaIds.length === 0">
+      <span v-if="selectedDataIndices.length === 0">
         Please make a selection to create a new group.
       </span>
-      <span v-if="selectedMrnaIds.length === 1">
+      <span v-if="selectedDataIndices.length === 1">
         There is 1 sequence selected &ndash;
       </span>
-      <span v-if="selectedMrnaIds.length > 1">
-        There are {{ selectedMrnaIds.length }} sequences selected &ndash;
+      <span v-if="selectedDataIndices.length > 1">
+        There are {{ selectedDataIndices.length }} sequences selected &ndash;
       </span>
-      <a v-if="selectedMrnaIds.length !== 0" @click="clearSelection"
+      <a v-if="selectedDataIndices.length !== 0" @click="clearSelection"
         >Clear selection</a
       >
     </p>
 
-    <a-row type="flex" :gutter="4" v-if="selectedMrnaIds.length !== 0">
+    <a-row type="flex" :gutter="4" v-if="selectedDataIndices.length !== 0">
       <a-col flex="0 0 auto">
         <ColorSelect v-model="newGroup.color" />
       </a-col>
@@ -160,7 +166,7 @@ export default {
         <a-input v-model:value="newGroup.name" placeholder="Name" />
       </a-col>
       <a-col flex="0 0 auto">
-        <a-button type="primary" @click="createGroup">
+        <a-button type="primary" @click="onCreate">
           <template #icon><PlusOutlined /></template>
         </a-button>
       </a-col>

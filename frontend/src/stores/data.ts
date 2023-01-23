@@ -20,6 +20,7 @@ import {
 import type {
   AlignedPosition,
   AlignedPositionsCSVColumns,
+  DataIndexCollapsed,
   Dendro,
   Group,
   Homology,
@@ -36,13 +37,25 @@ import type {
   VarPosCount,
   VarPosCountCSVColumns,
 } from '@/types'
-import { chain, clamp, range, reverse, sortBy, union, xor } from 'lodash'
+import {
+  chain,
+  clamp,
+  constant,
+  filter,
+  range,
+  reverse,
+  sortBy,
+  times,
+  union,
+  xor,
+} from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
-import { median } from '@/helpers/median'
+import { medianRight } from '@/helpers/medianRight'
 import { zipEqual } from '@/helpers/zipEqual'
 import { sortingPayload } from '@/helpers/sorting'
 import { leafNodes } from '@/helpers/dendro'
 import { arrayRange } from '@/helpers/arrayRange'
+import { isGroup } from '@/helpers/isGroup'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -73,37 +86,161 @@ export const useDataStore = defineStore('data', {
     // Drag state.
     dragStartRowIndex: null as number | null,
     dragIsCumulative: false,
-    dragInitialSelectedMrnaIds: [] as mRNAid[],
+    dragInitialSelectedRowIndices: [] as number[],
 
     // Row selection.
-    selectedMrnaIds: [] as mRNAid[],
+    // Stored as data indices.
+    selectedDataIndices: [] as number[],
 
-    // Position selection (checkboxes above the positions).
+    // Position selection.
+    // Checkboxes above the positions.
     selectedPositions: [] as number[],
 
     // Application options.
     cellTheme: 'default' as CellThemeName,
-    groups: [] as Group[],
+    // groups: [] as Group[],
+    // lastGroupId: 0,
+    groups: [
+      {
+        id: 1,
+        name: 'First Group',
+        isColorized: true,
+        isCollapsed: true,
+        color: '#b15928',
+        dataIndices: range(13, 21),
+      },
+      {
+        id: 2,
+        name: 'Second Group',
+        isColorized: true,
+        isCollapsed: true,
+        color: '#1f78b4',
+        dataIndices: range(40, 57),
+      },
+    ] as Group[],
+    lastGroupId: 2,
     homologyId: defaultHomologyId,
     referenceMrnaId: null as mRNAid | null,
     selectedRegion: DEFAULT_SELECTED_REGION, // The range is inclusive on both ends.
     sorting: DEFAULT_SORTING,
     /**
      * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
-     * This field returns a mapping of `draw position` => `mRNA ids index`, which
+     * This field returns a mapping of `draw position` => `data index`, which
      * can be used when you iterate over draw positions.
      * [
-     *   0 => 4, // on draw position 0 is mRNA ids index 4 (e)
-     *   1 => 1, // on draw position 1 is mRNA ids index 1 (b)
-     *   2 => 3, // on draw position 2 is mRNA ids index 3 (d)
-     *   3 => 0, // on draw position 3 is mRNA ids index 0 (a)
-     *   4 => 2, // on draw position 4 is mRNA ids index 2 (c)
+     *   0 => 4, // on draw position 0 is data index 4 (this.mrnaIds[4] = e)
+     *   1 => 1, // on draw position 1 is data index 1 (this.mrnaIds[1] = b)
+     *   2 => 3, // on draw position 2 is data index 3 (this.mrnaIds[3] = d)
+     *   3 => 0, // on draw position 3 is data index 0 (this.mrnaIds[0] = a)
+     *   4 => 2, // on draw position 4 is data index 2 (this.mrnaIds[2] = c)
      * ]
      */
-    sortedMrnaIndices: [] as number[],
+    sortedDataIndices: [] as number[],
     transitionsEnabled: true,
   }),
   getters: {
+    sortedDataIndicesCollapsed(): DataIndexCollapsed[] {
+      /**
+       * This returns the same mapping as `sortedDataIndices`, but with collapsed
+       * groups as a Group object in the correct drawing position.
+       *
+       * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c],
+       * but with a group containing [b,d,c] this function returns:
+       * [
+       *   0 => 4,     // on draw position 0 is data index 4
+       *   1 => Group, // on draw position 1 is Group with indices [1,3,2] (b,d,c)
+       *   2 => 0,     // on draw position 2 is mRNA ids index 0 (a)
+       * ]
+       *
+       * The group is placed at drawing position 1 because that is the median drawing
+       * position in `sortedDataIndices` after removing empty rows:
+       */
+
+      // Work on a copy of the original `sortedDataIndices`.
+      const indices: (DataIndexCollapsed | null)[] = [...this.sortedDataIndices]
+
+      // Lookup table for mRNA ids index => draw position.
+      const lookup = arrayFlip(this.sortedDataIndices)
+
+      // For each collapsed group.
+      filter(this.groups, 'isCollapsed').forEach((group) => {
+        const { dataIndices } = group
+
+        // Determine all draw positions for this group's data indices.
+        const positions = dataIndices.map((dataIndex) => lookup[dataIndex])
+
+        // Determine the median draw position where to draw this group.
+        const medianPosition = medianRight(positions)
+
+        // Set draw position to null for all data indices of this group.
+        positions.forEach((position) => {
+          indices[position] = null
+        })
+
+        // Add group at correct draw position.
+        indices[medianPosition] = group
+      })
+
+      // Remove null values. Any gaps in draw positions will be removed.
+      const condenced = indices.filter(
+        (value): value is DataIndexCollapsed => value !== null
+      )
+
+      return condenced
+    },
+    rowColors(): string[] {
+      const colors = times(this.sequenceCount, constant(''))
+      this.groups.forEach(({ color, dataIndices, isColorized }) => {
+        if (!isColorized) return
+
+        dataIndices.forEach((index) => {
+          colors[index] = color
+        })
+      })
+      return colors
+    },
+    sortedRowPositions(): number[] {
+      /**
+       * TODO: Try to deprecate this function.
+       * Two separate approaches will make for confusing code.
+       */
+
+      /**
+       * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
+       * This function returns a mapping of `mRNA ids index` => `draw position`, which
+       * can be used when you iterate over an unsorted data array.
+       * [
+       *   0 => 3, // mRNA ids index 0 (a) is on draw position 3
+       *   1 => 1, // mRNA ids index 1 (b) is on draw position 1
+       *   2 => 4, // mRNA ids index 2 (c) is on draw position 4
+       *   3 => 2, // mRNA ids index 3 (d) is on draw position 2
+       *   4 => 0, // mRNA ids index 4 (e) is on draw position 0
+       * ]
+       */
+      return arrayFlip(this.sortedDataIndices)
+    },
+    sortedRowPositionsCollapsed(): number[] {
+      /**
+       * TODO: Try to deprecate this function.
+       * Two separate approaches will make for confusing code.
+       */
+
+      /**
+       * This returns the same mapping as `sortedRowPositions`, but with collapsed
+       * groups placed together in an array in the correct drawing position.
+       *
+       * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c],
+       * but with a group containing [b,d,c] this function returns:
+       * [
+       *   0 => 2, // mRNA ids index 0 (a) is on draw position 2
+       *   1 => 1, // mRNA ids index 1 (b) is on draw position 1
+       *   2 => 1, // mRNA ids index 2 (c) is on draw position 1
+       *   3 => 1, // mRNA ids index 3 (d) is on draw position 1
+       *   4 => 0, // mRNA ids index 4 (e) is on draw position 0
+       * ]
+       */
+      return []
+    },
     mrnaIdsLookup: (state) => {
       /**
        * We need to sort many data sets by the order as defined in `this.mrnaIds`.
@@ -160,23 +297,8 @@ export const useDataStore = defineStore('data', {
         return nucleotide
       }
     },
-    sortedMrnaPositions(): number[] {
-      /**
-       * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
-       * This function returns a mapping of `mRNA ids index` => `draw position`, which
-       * can be used when you iterate over an unsorted data array.
-       * [
-       *   0 => 3, // mRNA ids index 0 (a) is on draw position 3
-       *   1 => 1, // mRNA ids index 1 (b) is on draw position 1
-       *   2 => 4, // mRNA ids index 2 (c) is on draw position 4
-       *   3 => 2, // mRNA ids index 3 (d) is on draw position 2
-       *   4 => 0, // mRNA ids index 4 (e) is on draw position 0
-       * ]
-       */
-      return arrayFlip(this.sortedMrnaIndices)
-    },
     mrnaIdsSorted(): mRNAid[] {
-      return this.sortedMrnaIndices.map((index) => this.mrnaIds[index])
+      return this.sortedDataIndices.map((index) => this.mrnaIds[index])
     },
   },
   actions: {
@@ -187,7 +309,7 @@ export const useDataStore = defineStore('data', {
         sortingPayload(sorting) === sortingPayload(this.sorting)
       ) {
         // Same field and parameter, so we reverse the current sorting.
-        this.sortedMrnaIndices = reverse(this.sortedMrnaIndices)
+        this.sortedDataIndices = reverse(this.sortedDataIndices)
         return
       }
 
@@ -205,7 +327,7 @@ export const useDataStore = defineStore('data', {
         if (this.sorting.field === 'pheno') {
           const pheno = this.sorting.pheno
           // Get the array of values in the currently sorted order.
-          return this.sortedMrnaIndices.map<PhenoColumnData>(
+          return this.sortedDataIndices.map<PhenoColumnData>(
             (index) => this.phenos[index][pheno]
           )
         }
@@ -213,7 +335,7 @@ export const useDataStore = defineStore('data', {
         if (this.sorting.field === 'position') {
           const position = this.sorting.position
           // Get the array of values in the currently sorted order.
-          return this.sortedMrnaIndices.map<Nucleotide>(
+          return this.sortedDataIndices.map<Nucleotide>(
             (index) =>
               this.alignedPositions[index * this.geneLength + position - 1]
                 .nucleotide
@@ -235,12 +357,12 @@ export const useDataStore = defineStore('data', {
 
       // Determine the median index for each index array.
       map.forEach((indices, key) => {
-        map.set(key, median(indices))
+        map.set(key, medianRight(indices))
       })
 
       // Generate tuple array of mrna index and sorted median index.
       const tuples = zipEqual(
-        this.sortedMrnaIndices,
+        this.sortedDataIndices,
         values.map((value) => map.get(value))
       )
 
@@ -248,10 +370,10 @@ export const useDataStore = defineStore('data', {
       const sorted = sortBy(tuples, ([_index, value]) => value)
 
       // Pull out the mrna indices.
-      this.sortedMrnaIndices = sorted.map(([index]) => index)
+      this.sortedDataIndices = sorted.map(([index]) => index)
     },
-    toggleSelectedId(mrnaId: string) {
-      this.selectedMrnaIds = xor(this.selectedMrnaIds, [mrnaId])
+    toggleSelectedIndex(index: number) {
+      this.selectedDataIndices = xor(this.selectedDataIndices, [index])
     },
     async fetchHomologyIds() {
       try {
@@ -438,7 +560,7 @@ export const useDataStore = defineStore('data', {
         dendroCustom: null,
         dendroDefault: null,
         phenos: [],
-        selectedMrnaIds: [],
+        selectedDataIndices: [],
         sequences: [],
         varPosCount: [],
       })
@@ -470,11 +592,11 @@ export const useDataStore = defineStore('data', {
       this.$patch({
         // Reset to default sorting as defined by dendrogram.
         sorting: DEFAULT_SORTING,
-        sortedMrnaIndices: range(this.sequenceCount),
+        sortedDataIndices: range(this.sequenceCount),
       })
     },
     dragStart(index: number, isCumulative = false) {
-      this.dragInitialSelectedMrnaIds = this.selectedMrnaIds
+      this.dragInitialSelectedRowIndices = this.selectedDataIndices
       this.dragStartRowIndex = index
       this.dragIsCumulative = isCumulative
 
@@ -483,19 +605,19 @@ export const useDataStore = defineStore('data', {
     dragUpdate(index: number) {
       if (this.dragStartRowIndex === null) return
 
-      const draggedMrnaIds = arrayRange(
-        this.mrnaIdsSorted,
+      const draggedDataIndices = arrayRange(
+        this.sortedDataIndicesCollapsed,
         this.dragStartRowIndex,
         index
-      )
+      ).filter((data): data is number => !isGroup(data))
 
       if (this.dragIsCumulative) {
-        this.selectedMrnaIds = union(
-          this.dragInitialSelectedMrnaIds,
-          draggedMrnaIds
+        this.selectedDataIndices = union(
+          this.dragInitialSelectedRowIndices,
+          draggedDataIndices
         )
       } else {
-        this.selectedMrnaIds = draggedMrnaIds
+        this.selectedDataIndices = draggedDataIndices
       }
     },
     dragEnd(index?: number) {
@@ -503,9 +625,19 @@ export const useDataStore = defineStore('data', {
         this.dragUpdate(index)
       }
 
-      this.dragInitialSelectedMrnaIds = []
+      this.dragInitialSelectedRowIndices = []
       this.dragStartRowIndex = null
       this.dragIsCumulative = false
+    },
+    createGroup(group: Omit<Group, 'id' | 'selectedDataIndices'>) {
+      this.groups = [
+        ...this.groups,
+        {
+          ...group,
+          dataIndices: this.selectedDataIndices,
+          id: ++this.lastGroupId,
+        },
+      ]
     },
   },
 })

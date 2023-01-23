@@ -3,25 +3,31 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
-import type { mRNAid } from '@/types'
+import { isGroup } from '@/helpers/isGroup'
+import { eventIndex } from '@/helpers/eventIndex'
+import { valueKey } from '@/helpers/valueKey'
+import type { DataIndexCollapsed } from '@/types'
 
 export default {
   data() {
     return {
       width: 180,
-      dragStartIndex: null as number | null,
-      dragAdditive: false,
-      originalSelectedMrnaIds: [] as mRNAid[],
     }
   },
   computed: {
-    ...mapState(useDataStore, ['mrnaIdsSorted', 'transitionTime']),
-    ...mapWritableState(useDataStore, ['hoverRowIndex', 'selectedMrnaIds']),
+    ...mapState(useDataStore, [
+      'mrnaIds',
+      'rowColors',
+      'sequenceCount',
+      'sortedDataIndicesCollapsed',
+      'transitionTime',
+    ]),
+    ...mapWritableState(useDataStore, ['hoverRowIndex', 'selectedDataIndices']),
     hasAllData(): boolean {
-      return this.mrnaIdsSorted.length !== 0
+      return this.sortedDataIndicesCollapsed.length !== 0
     },
     height(): number {
-      return this.mrnaIdsSorted.length * CELL_SIZE
+      return this.sequenceCount * CELL_SIZE
     },
   },
   methods: {
@@ -34,36 +40,63 @@ export default {
 
       this.svg()
         .selectAll('foreignObject')
-        .data(this.mrnaIdsSorted.entries(), ([, mrnaId]: any) => mrnaId)
+        .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
         .join(
           (enter) =>
             enter
               .append('foreignObject')
               .attr('x', 3)
-              .attr('y', ([index]) => index * CELL_SIZE)
+              .attr('y', (data, index) => index * CELL_SIZE)
               .attr('width', this.width - 3)
               .attr('height', CELL_SIZE)
-              .text(([, id]) => id),
+              .text((data) => {
+                if (isGroup(data)) {
+                  return `${data.name || 'Group'} (${data.dataIndices.length})`
+                }
+                return this.mrnaIds[data]
+              }),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('y', ([index]) => index * CELL_SIZE),
+              .attr('y', (data, index) => index * CELL_SIZE),
 
           (exit) => exit.remove()
         )
-        .attr('data-selected', ([, id]) => this.selectedMrnaIds.includes(id))
-        .attr('data-hovered', ([index]) => this.hoverRowIndex === index)
-        .on('mousedown', (event: MouseEvent, [index]) =>
+        .style('color', (data) => {
+          if (isGroup(data)) {
+            if (data.isColorized) return data.color
+            return ''
+          }
+          return this.rowColors[data]
+        })
+        .attr('data-index', (data, index) => index)
+        .attr('data-selected', (data) => {
+          if (isGroup(data)) return false
+          return this.selectedDataIndices.includes(data)
+        })
+        .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
+        .on('mousedown', (event: MouseEvent) => {
+          const index = eventIndex(event)
+          if (index === null) return
+
           this.dragStart(index, event.ctrlKey)
-        )
-        .on('mouseover', (event, [index]) => {
+        })
+        .on('mouseover', (event) => {
+          const index = eventIndex(event)
+          if (index === null) return
+
           if (this.hoverRowIndex !== index) {
             this.hoverRowIndex = index
             this.dragUpdate(index)
           }
         })
-        .on('mouseup', (event, [index]) => this.dragEnd(index))
+        .on('mouseup', (event) => {
+          const index = eventIndex(event)
+          if (index === null) return
+
+          this.dragEnd(index)
+        })
         .on('mouseout', () => {
           this.hoverRowIndex = null
         })
@@ -76,13 +109,16 @@ export default {
     hasAllData() {
       this.drawNames()
     },
-    mrnaIdsSorted() {
-      this.drawNames()
-    },
-    selectedMrnaIds() {
-      this.drawNames()
-    },
     hoverRowIndex() {
+      this.drawNames()
+    },
+    selectedDataIndices() {
+      this.drawNames()
+    },
+    sortedDataIndicesCollapsed() {
+      this.drawNames()
+    },
+    rowColors() {
       this.drawNames()
     },
   },
@@ -111,7 +147,7 @@ export default {
     }
 
     &[data-hovered='true'] {
-      color: #1890ff;
+      color: #1890ff !important;
     }
   }
 
