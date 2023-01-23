@@ -1,7 +1,7 @@
 <script lang="ts">
 import * as d3 from 'd3'
 import { useDataStore } from '@/stores/data'
-import { mapState, mapWritableState } from 'pinia'
+import { mapActions, mapState, mapWritableState } from 'pinia'
 import { CELL_SIZE } from '@/config'
 import isEqual from 'fast-deep-equal'
 
@@ -94,6 +94,7 @@ export default {
     },
   },
   methods: {
+    ...mapActions(useDataStore, ['dragUpdate']),
     context() {
       return d3
         .select<HTMLCanvasElement, any>('#heatmap')
@@ -218,7 +219,10 @@ export default {
       const cell = this.mouseEventToCell(event)
       const position = this.cellToPosition(cell)
 
-      this.hoverRowIndex = cell.row
+      if (this.hoverRowIndex !== cell.row) {
+        this.hoverRowIndex = cell.row
+        this.dragUpdate(cell.row)
+      }
 
       // Only update data if values actually changed.
       if (!isEqual(position, this.hoverPosition)) {

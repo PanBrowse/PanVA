@@ -498,8 +498,10 @@ export const useDataStore = defineStore('data', {
         this.selectedMrnaIds = draggedMrnaIds
       }
     },
-    dragEnd(index: number) {
-      this.dragUpdate(index)
+    dragEnd(index?: number) {
+      if (index !== undefined) {
+        this.dragUpdate(index)
+      }
 
       this.dragInitialSelectedMrnaIds = []
       this.dragStartRowIndex = null

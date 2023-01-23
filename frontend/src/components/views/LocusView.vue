@@ -11,6 +11,8 @@ import PhenoBoolean from '@/components/visualizations/PhenoBoolean.vue'
 import PhenoCategorical from '@/components/visualizations/PhenoCategorical.vue'
 import PhenoLabels from '@/components/visualizations/PhenoLabels.vue'
 import ScrollSync from '@/components/common/ScrollSync.vue'
+import { mapActions } from 'pinia'
+import { useDataStore } from '@/stores/data'
 
 export default {
   components: {
@@ -29,6 +31,19 @@ export default {
     phenoColumns() {
       return phenoColumns
     },
+  },
+  methods: {
+    ...mapActions(useDataStore, ['dragEnd']),
+    onMouseUp() {
+      // We should be able to release the mouse anywhere and have the selection drag end.
+      this.dragEnd()
+    },
+  },
+  mounted() {
+    document.body.addEventListener('mouseup', this.onMouseUp)
+  },
+  unmounted() {
+    document.body.removeEventListener('mouseup', this.onMouseUp)
   },
 }
 </script>
