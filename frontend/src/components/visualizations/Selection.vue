@@ -1,11 +1,19 @@
 <script lang="ts">
 import { CELL_SIZE } from '@/config'
 import { useDataStore } from '@/stores/data'
-import { range } from 'lodash'
+import { difference, range, union } from 'lodash'
 import { mapState, mapWritableState } from 'pinia'
 import type { CheckboxOptionType } from 'ant-design-vue'
+import type { CheckboxChangeEvent } from 'ant-design-vue/lib/checkbox/interface'
+import { arrayRange } from '@/helpers/arrayRange'
 
 export default {
+  data: function () {
+    return {
+      lastPosition: null as number | null,
+      lastChecked: null as boolean | null,
+    }
+  },
   computed: {
     ...mapState(useDataStore, [
       'selectedRegion',
@@ -29,6 +37,7 @@ export default {
     options(): CheckboxOptionType[] {
       return this.regionRange.map((position) => ({
         value: position,
+        onChange: this.onCheckboxChange,
       }))
     },
     width(): number {
@@ -39,6 +48,42 @@ export default {
     onCheckAll() {
       const [start, end] = this.selectedRegion
       this.selectedPositions = this.isAllChecked ? [] : range(start, end + 1)
+    },
+    onCheckboxChange(event: CheckboxChangeEvent) {
+      const { value, checked } = event.target
+      const { shiftKey } = event.nativeEvent
+
+      if (shiftKey && this.lastPosition !== null && this.lastChecked !== null) {
+        // Previous and current action is that the checkbox is being *checked*.
+        // Therefore, we also check everything between the two positions.
+        if (checked && this.lastChecked) {
+          const start = this.lastPosition
+          const end = value
+
+          this.$nextTick(() => {
+            this.selectedPositions = union(
+              this.selectedPositions,
+              arrayRange(start, end)
+            )
+          })
+        }
+        // Previous and current action is that the checkbox is being *unchecked*.
+        // Therefore, we also uncheck everything between the two positions.
+        else if (!checked && !this.lastChecked) {
+          const start = this.lastPosition
+          const end = value
+
+          this.$nextTick(() => {
+            this.selectedPositions = difference(
+              this.selectedPositions,
+              arrayRange(start, end)
+            )
+          })
+        }
+      }
+
+      this.lastPosition = value
+      this.lastChecked = checked
     },
   },
 }

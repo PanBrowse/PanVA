@@ -8,12 +8,14 @@ import {
 
 import ColorSelect from '@/components/common/ColorSelect.vue'
 import SidebarItem from '@/components/common/SidebarItem.vue'
-import { mapActions, mapWritableState } from 'pinia'
+import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import type { Group } from '@/types'
 import { GROUP_COLORS } from '@/config'
 import { chain, cloneDeep, difference, map } from 'lodash'
 import { arraySplice } from '@/helpers/arraySplice'
+
+type FormGroup = Omit<Group, 'id' | 'dataIndices'>
 
 export default {
   components: {
@@ -25,22 +27,22 @@ export default {
     SidebarItem,
   },
   computed: {
+    ...mapState(useDataStore, ['lastGroupId']),
     ...mapWritableState(useDataStore, ['groups', 'selectedDataIndices']),
   },
   data() {
     return {
-      newGroup: this.emptyGroup(),
+      newGroup: null as FormGroup | null,
     }
   },
   methods: {
     ...mapActions(useDataStore, ['createGroup']),
-    resetNewGroup() {
-      this.newGroup = this.emptyGroup()
-    },
     onCreate() {
+      if (!this.newGroup) return
+
       this.createGroup(this.newGroup)
       this.clearSelection()
-      this.resetNewGroup()
+      this.newGroup = null
     },
     clearSelection() {
       this.selectedDataIndices = []
@@ -76,20 +78,23 @@ export default {
         .first()
         .value()
     },
-    emptyGroup(): Omit<Group, 'id'> {
+    emptyGroup(): FormGroup {
       return {
         name: '',
         isColorized: true,
         isCollapsed: true,
-        dataIndices: [],
         color: this.availableColor(),
       }
     },
   },
-  mounted() {
-    // Initial value set in `data` is set when dataStore is not yet available.
-    // We reset it on mount to get a better color suggestion.
-    this.resetNewGroup()
+  watch: {
+    selectedDataIndices() {
+      if (this.selectedDataIndices.length === 0) {
+        this.newGroup = null
+      } else if (!this.newGroup) {
+        this.newGroup = this.emptyGroup()
+      }
+    },
   },
 }
 </script>
@@ -109,7 +114,7 @@ export default {
       <!-- -->
       <a-col flex="0 0 188px">
         <a-input
-          placeholder="Name"
+          :placeholder="`Group ${group.id}`"
           v-model:value="group.name"
           :onBlur="updateGroups"
         />
@@ -157,13 +162,16 @@ export default {
       >
     </p>
 
-    <a-row type="flex" :gutter="4" v-if="selectedDataIndices.length !== 0">
+    <a-row type="flex" :gutter="4" v-if="newGroup">
       <a-col flex="0 0 auto">
         <ColorSelect v-model="newGroup.color" />
       </a-col>
       <!-- -->
       <a-col flex="1 1 auto">
-        <a-input v-model:value="newGroup.name" placeholder="Name" />
+        <a-input
+          v-model:value="newGroup.name"
+          :placeholder="`Group ${lastGroupId + 1}`"
+        />
       </a-col>
       <a-col flex="0 0 auto">
         <a-button type="primary" @click="onCreate">

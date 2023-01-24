@@ -54,7 +54,7 @@ import { medianRight } from '@/helpers/medianRight'
 import { zipEqual } from '@/helpers/zipEqual'
 import { sortingPayload } from '@/helpers/sorting'
 import { leafNodes } from '@/helpers/dendro'
-import { arrayRange } from '@/helpers/arrayRange'
+import { arraySlice } from '@/helpers/arraySlice'
 import { isGroup } from '@/helpers/isGroup'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
@@ -605,7 +605,7 @@ export const useDataStore = defineStore('data', {
     dragUpdate(index: number) {
       if (this.dragStartRowIndex === null) return
 
-      const draggedDataIndices = arrayRange(
+      const draggedDataIndices = arraySlice(
         this.sortedDataIndicesCollapsed,
         this.dragStartRowIndex,
         index
@@ -629,7 +629,7 @@ export const useDataStore = defineStore('data', {
       this.dragStartRowIndex = null
       this.dragIsCumulative = false
     },
-    createGroup(group: Omit<Group, 'id' | 'selectedDataIndices'>) {
+    createGroup(group: Omit<Group, 'id' | 'dataIndices'>) {
       this.groups = [
         ...this.groups,
         {

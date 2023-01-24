@@ -51,7 +51,8 @@ export default {
               .attr('height', CELL_SIZE)
               .text((data) => {
                 if (isGroup(data)) {
-                  return `${data.name || 'Group'} (${data.dataIndices.length})`
+                  const name = data.name || `Group ${data.id}`
+                  return `${name} (${data.dataIndices.length})`
                 }
                 return this.mrnaIds[data]
               }),

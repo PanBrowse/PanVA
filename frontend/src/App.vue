@@ -9,6 +9,7 @@ import HomologyInfo from '@/components/sidebar/HomologyInfo.vue'
 import HomologySelect from '@/components/sidebar/HomologySelect.vue'
 import Layout from '@/components/common/Layout.vue'
 import LocusView from '@/components/views/LocusView.vue'
+import Tips from '@/components/sidebar/Tips.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import ViewOptions from '@/components/sidebar/ViewOptions.vue'
 
@@ -23,6 +24,7 @@ export default {
     HomologySelect,
     Layout,
     LocusView,
+    Tips,
     Tooltip,
     ViewOptions,
   },
@@ -61,6 +63,7 @@ export default {
       <HomologyInfo />
       <Groups />
       <ViewOptions />
+      <Tips />
       <DebugMenu />
     </template>
 

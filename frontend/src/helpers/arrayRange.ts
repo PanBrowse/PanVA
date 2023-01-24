@@ -1,10 +1,11 @@
-export const arrayRange = <T>(
-  arr: T[],
+import { range } from 'lodash'
+
+export const arrayRange = (
   start: number,
   end: number // Inclusive
-): T[] => {
+): number[] => {
   if (start <= end) {
-    return arr.slice(start, end + 1)
+    return range(start, end + 1)
   }
-  return arr.slice(end, start + 1)
+  return range(end, start + 1)
 }
