@@ -60,6 +60,8 @@ export default {
           const start = this.lastPosition
           const end = value
 
+          // Current tick changes `v-model:value` *after* this function, so we
+          // need to make our changes after the current tick.
           this.$nextTick(() => {
             this.selectedPositions = union(
               this.selectedPositions,
@@ -73,6 +75,8 @@ export default {
           const start = this.lastPosition
           const end = value
 
+          // Current tick changes `v-model:value` *after* this function, so we
+          // need to make our changes after the current tick.
           this.$nextTick(() => {
             this.selectedPositions = difference(
               this.selectedPositions,

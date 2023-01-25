@@ -93,35 +93,16 @@ export const useDataStore = defineStore('data', {
     selectedDataIndices: [] as number[],
 
     // Position selection.
+    // Range set by GeneOverview (inclusive on both ends).
+    selectedRegion: DEFAULT_SELECTED_REGION,
     // Checkboxes above the positions.
     selectedPositions: [] as number[],
 
-    // Application options.
-    cellTheme: 'default' as CellThemeName,
-    // groups: [] as Group[],
-    // lastGroupId: 0,
-    groups: [
-      {
-        id: 1,
-        name: 'First Group',
-        isColorized: true,
-        isCollapsed: true,
-        color: '#b15928',
-        dataIndices: range(13, 21),
-      },
-      {
-        id: 2,
-        name: 'Second Group',
-        isColorized: true,
-        isCollapsed: true,
-        color: '#1f78b4',
-        dataIndices: range(40, 57),
-      },
-    ] as Group[],
-    lastGroupId: 2,
-    homologyId: defaultHomologyId,
-    referenceMrnaId: null as mRNAid | null,
-    selectedRegion: DEFAULT_SELECTED_REGION, // The range is inclusive on both ends.
+    // Grouping.
+    groups: [] as Group[],
+    lastGroupId: 0,
+
+    // Sorting.
     sorting: DEFAULT_SORTING,
     /**
      * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
@@ -136,6 +117,11 @@ export const useDataStore = defineStore('data', {
      * ]
      */
     sortedDataIndices: [] as number[],
+
+    // User options.
+    cellTheme: 'default' as CellThemeName,
+    homologyId: defaultHomologyId,
+    referenceMrnaId: null as mRNAid | null,
     transitionsEnabled: true,
   }),
   getters: {

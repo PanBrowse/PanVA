@@ -97,38 +97,31 @@ export default {
               .append('circle')
               .attr('cx', (d) => this.circleRadius + d.y)
               .attr('cy', (d) => d.x)
-              .attr('r', this.circleRadius)
-              .attr('stroke', (d) => {
-                // Leaf nodes.
-                if (d.height === 0) {
-                  const dataIndex = this.mrnaIdsLookup[d.data.name]
-                  const color = this.rowColors[dataIndex]
-                  if (color) return color
-                }
-
-                return 'rgba(192, 192, 192, 0.5)'
-              })
-              .attr('fill', function (d) {
-                if (d.height === 0 || d.depth === 0) {
-                  return '#ffffff'
-                }
-                return 'rgba(192, 192, 192, 0.5)'
-              }),
+              .attr('r', this.circleRadius),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
               .attr('cx', (d) => this.circleRadius + d.y)
-              .attr('cy', (d) => d.x)
-              .attr('fill', (d) => {
-                if (d.height === 0 || d.depth === 0) {
-                  return '#ffffff'
-                }
-                return 'rgba(192, 192, 192, 0.5)'
-              }),
-
+              .attr('cy', (d) => d.x),
           (exit) => exit.remove()
         )
+        .attr('stroke', (d) => {
+          // Leaf nodes.
+          if (d.height === 0) {
+            const dataIndex = this.mrnaIdsLookup[d.data.name]
+            const color = this.rowColors[dataIndex]
+            if (color) return color
+          }
+
+          return 'rgba(192, 192, 192, 0.5)'
+        })
+        .attr('fill', function (d) {
+          if (d.height === 0 || d.depth === 0) {
+            return '#ffffff'
+          }
+          return 'rgba(192, 192, 192, 0.5)'
+        })
     },
   },
   mounted() {
