@@ -22,13 +22,13 @@ type Cell = {
   row: number
 }
 
-type NucleotideCounts = Record<Nucleotide, number>
+type GroupCounts = Record<Nucleotide, number>
 
 type GroupAggregates = Record<
   number,
   {
     // Counts per nucleotide in this position.
-    counts: NucleotideCounts
+    counts: GroupCounts
     // String of nucleotides in this position (eg: AC-).
     nucleotides: string
   }[]
@@ -104,7 +104,7 @@ export default {
 
       this.sortedDataIndicesCollapsed.forEach((data, row) => {
         this.positions.forEach((position, column) => {
-          result.push({ data, row, position, column })
+          result.push({ data, position, column, row })
         })
       })
 
@@ -114,7 +114,7 @@ export default {
       return Object.fromEntries(
         this.groups.map(({ id, dataIndices }) => {
           const aggregates = this.positions.map((position) => {
-            const counts: NucleotideCounts = {
+            const counts: GroupCounts = {
               A: 0,
               C: 0,
               G: 0,
