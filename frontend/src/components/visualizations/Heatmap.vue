@@ -385,6 +385,19 @@ export default {
     //   this.hoverPosition = null
     //   this.hoverRowIndex = null
     // },
+
+    isDataEqual(a: DataIndexCollapsed[], b: DataIndexCollapsed[]) {
+      // Different lengths, so must have changed.
+      if (a.length !== b.length) return false
+      // We assume groups don't change internally when collapsed.
+      return a.every((aData, index) => {
+        const bData = b[index]
+        const isGroupA = isGroup(aData)
+        const isGroupB = isGroup(bData)
+        if (isGroupA || isGroupB) return isGroupA === isGroupB
+        return aData === bData
+      })
+    },
   },
   mounted() {
     // https://bl.ocks.org/1Cr18Ni9/75c29c06e02ff80671e37fd30eb8519e
@@ -431,9 +444,11 @@ export default {
     selectedRegion() {
       this.drawCells()
     },
-    sortedDataIndicesCollapsed() {
-      console.log('sortedDataIndicesCollapsed changed')
-      this.drawCells()
+    sortedDataIndicesCollapsed(newData, oldData) {
+      // Don't redraw unless data actually changed.
+      if (!this.isDataEqual(newData, oldData)) {
+        this.drawCells()
+      }
     },
   },
 }

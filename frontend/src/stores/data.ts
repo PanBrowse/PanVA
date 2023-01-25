@@ -253,10 +253,9 @@ export const useDataStore = defineStore('data', {
        * which is O(n), we can use `this.mrnaIdsLookup[mRNA_id]`, which is O(1).
        * This brings down the total computation time from O(n^2) to O(2n).
        */
-      return state.mrnaIds.reduce((acc, mrnaId, index) => {
-        acc[mrnaId] = index
-        return acc
-      }, {} as Record<string, number>)
+      return Object.fromEntries(
+        state.mrnaIds.map((mrnaId, index) => [mrnaId, index])
+      )
     },
     homology: (state) => {
       // This will return undefined if the homologies have not yet loaded.
