@@ -99,8 +99,27 @@ export const useDataStore = defineStore('data', {
     selectedPositions: [] as number[],
 
     // Grouping.
-    groups: [] as Group[],
-    lastGroupId: 0,
+    // groups: [] as Group[],
+    // lastGroupId: 0,
+    groups: [
+      {
+        id: 1,
+        name: '',
+        isColorized: true,
+        isCollapsed: true,
+        color: '#b15928',
+        dataIndices: range(13, 21),
+      },
+      {
+        id: 2,
+        name: '',
+        isColorized: true,
+        isCollapsed: true,
+        color: '#1f78b4',
+        dataIndices: range(40, 57),
+      },
+    ] as Group[],
+    lastGroupId: 2,
 
     // Sorting.
     sorting: DEFAULT_SORTING,

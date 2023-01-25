@@ -3,41 +3,54 @@ import * as d3 from 'd3'
 import { useDataStore } from '@/stores/data'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { CELL_SIZE } from '@/config'
-import isEqual from 'fast-deep-equal'
+
+import type { AlignedPosition } from '@/types'
 
 import LoadingBox from '@/components/common/LoadingBox.vue'
-import BooleanIndicator from '@/components/common/BooleanIndicator.vue'
+// import BooleanIndicator from '@/components/common/BooleanIndicator.vue'
 
-import type { AlignedPosition, Nucleotide } from '@/types'
-import { debounce, type DebouncedFunc } from 'lodash'
+import type { DataIndexCollapsed, Nucleotide } from '@/types'
+import { valueKey } from '@/helpers/valueKey'
+import { arrayRange } from '@/helpers/arrayRange'
+import { isGroup } from '@/helpers/isGroup'
+import { keys, pickBy } from 'lodash'
 
 type Cell = {
-  col: number
+  data: DataIndexCollapsed
+  position: number
+  column: number
   row: number
 }
 
-type Position = {
-  x: number
-  y: number
-}
+type NucleotideCounts = Record<Nucleotide, number>
 
-type Tooltip = {
-  position: Position
-  alignedPosition: AlignedPosition
-}
+type GroupAggregates = Record<
+  number,
+  {
+    // Counts per nucleotide in this position.
+    counts: NucleotideCounts
+    // String of nucleotides in this position (eg: AC-).
+    nucleotides: string
+  }[]
+>
+
+// type Tooltip = {
+//   position: Position
+//   alignedPosition: AlignedPosition
+// }
 
 export default {
   components: {
-    BooleanIndicator,
+    // BooleanIndicator,
     LoadingBox,
   },
   data() {
     return {
       customNode: document.createElement('custom:node'),
-      hoverPosition: null as Position | null,
+      // hoverPosition: null as Position | null,
       mutationObserver: null as MutationObserver | null,
-      tooltip: null as Tooltip | null,
-      setTooltipDebounced: null as DebouncedFunc<(cell: Cell) => any> | null,
+      // tooltip: null as Tooltip | null,
+      // setTooltipDebounced: null as DebouncedFunc<(cell: Cell) => any> | null,
     }
   },
   computed: {
@@ -45,6 +58,7 @@ export default {
       'alignedPositions',
       'cellTheme',
       'geneLength',
+      'groups',
       'homologyId',
       'mrnaIds',
       'nucleotideColor',
@@ -53,15 +67,14 @@ export default {
       'selectedRegion',
       'selectedRegionLength',
       'sequenceCount',
-      'sortedDataIndices',
-      'sortedRowPositions',
+      'sortedDataIndicesCollapsed',
       'transitionTime',
     ]),
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
       return (
         this.sequenceCount !== 0 &&
-        this.sortedDataIndices.length !== 0 &&
+        this.sortedDataIndicesCollapsed.length !== 0 &&
         this.alignedPositions.length !== 0
       )
     },
@@ -71,27 +84,76 @@ export default {
     height(): number {
       return this.sequenceCount * CELL_SIZE
     },
-    cells(): AlignedPosition[] {
+    positions(): number[] {
+      // TODO: Add position filtering (informative, etc)
       const [start, end] = this.selectedRegion
 
-      return this.alignedPositions.filter(({ position }) => {
-        return position >= start && position <= end
+      // Region is one-based, we want column indices to be zero-based.
+      return arrayRange(start, end)
+    },
+    cells(): Cell[] {
+      /**
+       * We have two arrays:
+       * - sortedDataIndicesCollapsed (DataIndexCollapsed[])
+       * - positions (number[])
+       *
+       * This functions generates an array that contains the cartesian product
+       * of these two arrays, including the accompanying index in each array.
+       */
+      const result: Cell[] = []
+
+      this.sortedDataIndicesCollapsed.forEach((data, row) => {
+        this.positions.forEach((position, column) => {
+          result.push({ data, row, position, column })
+        })
       })
+
+      return result
     },
-    hoverCellStyle() {
-      if (!this.hoverPosition) return
-      return {
-        left: this.hoverPosition.x + 'px',
-        top: this.hoverPosition.y + 'px',
-      }
+    groupAggregates(): GroupAggregates {
+      return Object.fromEntries(
+        this.groups.map(({ id, dataIndices }) => {
+          const aggregates = this.positions.map((position) => {
+            const counts: NucleotideCounts = {
+              A: 0,
+              C: 0,
+              G: 0,
+              T: 0,
+              a: 0,
+              c: 0,
+              g: 0,
+              t: 0,
+              '-': 0,
+            }
+
+            dataIndices.forEach((dataIndex) => {
+              const { nucleotide } = this.dataAtPosition(dataIndex, position)
+              counts[nucleotide]++
+            })
+
+            const nucleotides = keys(pickBy(counts)).join('')
+
+            return { counts, nucleotides }
+          })
+
+          return [id, aggregates]
+        })
+      )
     },
-    hoverRowStyle() {
-      if (this.hoverRowIndex === null) return
-      return {
-        top: this.hoverRowIndex * CELL_SIZE + 'px',
-        width: this.width + 'px',
-      }
-    },
+    // hoverCellStyle() {
+    //   if (!this.hoverPosition) return
+    //   return {
+    //     left: this.hoverPosition.x + 'px',
+    //     top: this.hoverPosition.y + 'px',
+    //   }
+    // },
+    // hoverRowStyle() {
+    //   if (this.hoverRowIndex === null) return
+    //   return {
+    //     top: this.hoverRowIndex * CELL_SIZE + 'px',
+    //     width: this.width + 'px',
+    //   }
+    // },
   },
   methods: {
     ...mapActions(useDataStore, ['dragUpdate']),
@@ -101,12 +163,44 @@ export default {
         .node()!
         .getContext('2d')
     },
-    cellX({ position }: AlignedPosition) {
-      const [start] = this.selectedRegion
-      return (position - start) * CELL_SIZE
+    dataAtPosition(dataIndex: number, position: number): AlignedPosition {
+      return this.alignedPositions[dataIndex * this.geneLength + position - 1]
     },
-    cellY({ mRNA_index }: AlignedPosition) {
-      return this.sortedRowPositions[mRNA_index] * CELL_SIZE
+    drawCells() {
+      if (!this.hasAllData) return
+
+      d3.select(this.customNode)
+        .selectAll('c')
+        .data<Cell>(
+          this.cells,
+          ({ data, column }: any) => `${valueKey(data)}:${column}`
+        )
+        .join(
+          (enter) =>
+            enter
+              // This call is the performance bottleneck.
+              .append('c')
+              .attr('x', ({ column }) => column * CELL_SIZE)
+              .attr('y', ({ row }) => row * CELL_SIZE),
+          (update) =>
+            update
+              .transition()
+              .duration(this.transitionTime)
+              .attr('x', ({ column }) => column * CELL_SIZE)
+              .attr('y', ({ row }) => row * CELL_SIZE),
+          (exit) => exit.remove()
+        )
+        .attr('nucleotides', ({ data, position, column }) => {
+          if (isGroup(data)) {
+            const { nucleotides } = this.groupAggregates[data.id][column]
+            // return nucleotides
+            return nucleotides
+          }
+
+          const { nucleotide } = this.dataAtPosition(data, position)
+          return nucleotide
+        })
+        .attr('position', ({ position }) => position)
     },
     cellColor(position: number, nucleotide: Nucleotide) {
       if (!this.referenceMrnaId) return this.nucleotideColor(nucleotide)
@@ -120,38 +214,93 @@ export default {
 
       return this.nucleotideColor(nucleotide)
     },
-    drawCells() {
-      if (!this.hasAllData) return
+    drawNucleotide(
+      ctx: CanvasRenderingContext2D,
+      nucleotides: string,
+      position: number,
+      x: number,
+      y: number
+    ) {
+      ctx.save()
 
-      console.time('Heatmap#drawCells')
+      // Single nucleotide or group with the same nucleotide at this position.
+      if (nucleotides.length === 1) {
+        ctx.fillStyle = this.cellColor(position, nucleotides as Nucleotide)
+        ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
+      } else {
+        ctx.fillStyle = '#4d4d4d'
+        ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
 
-      d3.select(this.customNode)
-        .selectAll('c')
-        .data<AlignedPosition>(
-          this.cells,
-          (d) => `${this.homologyId}:${(d as AlignedPosition).index}`
-        )
-        .join(
-          (enter) =>
-            enter
-              // This call is the performance bottleneck.
-              .append('c')
-              .attr('nucleotide', (d) => d.nucleotide)
-              .attr('position', (d) => d.position)
-              .attr('x', this.cellX)
-              .attr('y', this.cellY),
-          (update) =>
-            update
-              .transition()
-              .duration(this.transitionTime)
-              .attr('nucleotide', (d) => d.nucleotide)
-              .attr('position', (d) => d.position)
-              .attr('x', this.cellX)
-              .attr('y', this.cellY),
-          (exit) => exit.remove()
-        )
+        if (nucleotides.includes('a') || nucleotides.includes('A')) {
+          ctx.fillStyle = this.nucleotideColor('A')
+          ctx.beginPath()
+          // Top.
+          ctx.moveTo(x + 5, y + 5)
+          ctx.lineTo(x, y)
+          ctx.lineTo(x + 10, y)
+          ctx.lineTo(x + 5, y + 5)
+          ctx.closePath()
+          ctx.fill()
+        }
 
-      console.timeEnd('Heatmap#drawCells')
+        if (nucleotides.includes('c') || nucleotides.includes('C')) {
+          ctx.fillStyle = this.nucleotideColor('C')
+          ctx.beginPath()
+          // Right.
+          ctx.moveTo(x + 5, y + 5)
+          ctx.lineTo(x + 10, y)
+          ctx.lineTo(x + 10, y + 10)
+          ctx.lineTo(x + 5, y + 5)
+          ctx.closePath()
+          ctx.fill()
+        }
+
+        if (nucleotides.includes('g') || nucleotides.includes('G')) {
+          ctx.fillStyle = this.nucleotideColor('G')
+          ctx.beginPath()
+          // Bottom.
+          ctx.moveTo(x + 5, y + 5)
+          ctx.lineTo(x + 10, y + 10)
+          ctx.lineTo(x, y + 10)
+          ctx.lineTo(x + 5, y + 5)
+          ctx.closePath()
+          ctx.fill()
+        }
+
+        if (nucleotides.includes('t') || nucleotides.includes('T')) {
+          ctx.fillStyle = this.nucleotideColor('T')
+          ctx.beginPath()
+          // Left.
+          ctx.moveTo(x + 5, y + 5)
+          ctx.lineTo(x, y + 10)
+          ctx.lineTo(x, y)
+          ctx.lineTo(x + 5, y + 5)
+          ctx.closePath()
+          ctx.fill()
+        }
+
+        if (nucleotides.includes('-')) {
+          ctx.fillStyle = '#ffffff'
+          ctx.beginPath()
+          ctx.ellipse(x + 5, y + 5, 2.75, 2.75, 0, 0, 0)
+          ctx.closePath()
+          ctx.fill()
+
+          ctx.fillStyle = '#4d4d4d'
+          ctx.beginPath()
+          ctx.ellipse(x + 5, y + 5, 2.5, 2.5, 0, 0, 0)
+          ctx.closePath()
+          ctx.fill()
+
+          ctx.fillStyle = '#ffffff'
+          ctx.beginPath()
+          ctx.ellipse(x + 5, y + 5, 1.5, 1.5, 0, 0, 0)
+          ctx.closePath()
+          ctx.fill()
+        }
+      }
+
+      ctx.restore()
     },
     drawCanvas() {
       const scaleFactor = 2.0
@@ -185,57 +334,57 @@ export default {
         .each(function () {
           if (!this) return
 
-          const nucleotide = this.getAttribute('nucleotide') as Nucleotide
+          const nucleotides = this.getAttribute('nucleotides') as string
           const position = parseInt(this.getAttribute('position') as string)
           const x = parseInt(this.getAttribute('x') as string)
           const y = parseInt(this.getAttribute('y') as string)
 
-          ctx.fillStyle = that.cellColor(position, nucleotide)
+          that.drawNucleotide(ctx, nucleotides, position, x, y)
 
-          ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
+          // White border overlay.
           ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE)
         })
 
       ctx.restore()
     },
-    mouseEventToCell(event: MouseEvent): Cell {
-      const [x, y] = d3.pointer(event)
-      const col = Math.floor(x / CELL_SIZE)
-      const row = Math.floor(y / CELL_SIZE)
-      return {
-        col,
-        row,
-      }
-    },
-    cellToPosition({ row, col }: Cell): Position {
-      return {
-        x: col * CELL_SIZE,
-        y: row * CELL_SIZE,
-      }
-    },
-    onMouseMove(event: MouseEvent) {
-      if (!this.hasAllData) return
+    // mouseEventToCell(event: MouseEvent): Cell {
+    //   const [x, y] = d3.pointer(event)
+    //   const col = Math.floor(x / CELL_SIZE)
+    //   const row = Math.floor(y / CELL_SIZE)
+    //   return {
+    //     col,
+    //     row,
+    //   }
+    // },
+    // cellToPosition({ row, col }: Cell): Position {
+    //   return {
+    //     x: col * CELL_SIZE,
+    //     y: row * CELL_SIZE,
+    //   }
+    // },
+    // onMouseMove(event: MouseEvent) {
+    //   if (!this.hasAllData) return
 
-      const cell = this.mouseEventToCell(event)
-      const position = this.cellToPosition(cell)
+    //   const cell = this.mouseEventToCell(event)
+    //   const position = this.cellToPosition(cell)
 
-      if (this.hoverRowIndex !== cell.row) {
-        this.hoverRowIndex = cell.row
-        this.dragUpdate(cell.row)
-      }
+    //   if (this.hoverRowIndex !== cell.row) {
+    //     this.hoverRowIndex = cell.row
+    //     this.dragUpdate(cell.row)
+    //   }
 
-      // Only update data if values actually changed.
-      if (!isEqual(position, this.hoverPosition)) {
-        this.hoverPosition = position
-        this.setTooltipDebounced?.(cell)
-      }
-    },
-    onMouseLeave() {
-      this.setTooltipDebounced?.cancel()
-      this.tooltip = null
-      this.hoverPosition = null
-      this.hoverRowIndex = null
-    },
+    //   // Only update data if values actually changed.
+    //   if (!isEqual(position, this.hoverPosition)) {
+    //     this.hoverPosition = position
+    //     // this.setTooltipDebounced?.(cell)
+    //   }
+    // },
+    // onMouseLeave() {
+    //   // this.setTooltipDebounced?.cancel()
+    //   // this.tooltip = null
+    //   this.hoverPosition = null
+    //   this.hoverRowIndex = null
+    // },
   },
   mounted() {
     // https://bl.ocks.org/1Cr18Ni9/75c29c06e02ff80671e37fd30eb8519e
@@ -248,41 +397,42 @@ export default {
     })
     this.drawCells()
   },
-  created() {
-    this.setTooltipDebounced = debounce((cell: Cell) => {
-      const position = this.cellToPosition(cell)
-      const mRNA_index = this.sortedDataIndices[cell.row]
+  // created() {
+  //   this.setTooltipDebounced = debounce((cell: Cell) => {
+  //     const position = this.cellToPosition(cell)
+  //     const mRNA_index = this.sortedDataIndices[cell.row]
 
-      const apIndex = mRNA_index * this.selectedRegionLength + cell.col
-      const alignedPosition = this.cells[apIndex]
+  //     const apIndex = mRNA_index * this.selectedRegionLength + cell.col
+  //     const alignedPosition = this.cells[apIndex]
 
-      this.tooltip = {
-        position,
-        alignedPosition,
-      }
-    }, 200)
-  },
+  //     this.tooltip = {
+  //       position,
+  //       alignedPosition,
+  //     }
+  //   }, 200)
+  // },
   unmounted() {
-    this.setTooltipDebounced?.cancel()
+    // this.setTooltipDebounced?.cancel()
     this.mutationObserver?.disconnect()
   },
   watch: {
     alignedPositions() {
       this.drawCells()
     },
-    hasAllData() {
-      this.drawCells()
-    },
-    selectedRegion() {
-      this.drawCells()
-    },
     cellTheme() {
       this.drawCanvas()
+    },
+    hasAllData() {
+      this.drawCells()
     },
     referenceMrnaId() {
       this.drawCanvas()
     },
-    sortedRowPositions() {
+    selectedRegion() {
+      this.drawCells()
+    },
+    sortedDataIndicesCollapsed() {
+      console.log('sortedDataIndicesCollapsed changed')
       this.drawCells()
     },
   },
@@ -303,11 +453,15 @@ export default {
       :width="width"
       :height="height"
       id="heatmap"
-      @mousemove="onMouseMove"
-      @mouseleave="onMouseLeave"
     ></canvas>
     <LoadingBox v-show="!hasAllData" :height="120" />
 
+    <!--
+    @mousemove="onMouseMove"
+      @mouseleave="onMouseLeave"
+      -->
+
+    <!--
     <a-popover
       :title="tooltip.alignedPosition.mRNA_id"
       visible
@@ -352,7 +506,7 @@ export default {
       v-if="hoverRowIndex !== null && hasAllData"
       :style="hoverRowStyle"
     />
-  </div>
+  --></div>
 </template>
 
 <style lang="scss" scoped>
