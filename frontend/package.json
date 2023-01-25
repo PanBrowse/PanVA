@@ -31,7 +31,8 @@
     "mitt": "^3.0.0",
     "pinia": "^2.0.23",
     "string-natural-compare": "^3.0.1",
-    "vue": "^3.2.41"
+    "vue": "^3.2.41",
+    "vue3-runtime-template": "^1.0.2"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.1.4",

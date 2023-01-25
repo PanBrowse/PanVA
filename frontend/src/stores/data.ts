@@ -47,7 +47,6 @@ import {
   sortBy,
   times,
   union,
-  xor,
 } from 'lodash'
 import arrayFlip from '@/helpers/arrayFlip'
 import { medianRight } from '@/helpers/medianRight'
@@ -101,6 +100,25 @@ export const useDataStore = defineStore('data', {
     // Grouping.
     groups: [] as Group[],
     lastGroupId: 0,
+    // groups: [
+    //   {
+    //     id: 1,
+    //     name: '',
+    //     isColorized: true,
+    //     isCollapsed: true,
+    //     color: '#b15928',
+    //     dataIndices: range(13, 21),
+    //   },
+    //   {
+    //     id: 2,
+    //     name: '',
+    //     isColorized: true,
+    //     isCollapsed: true,
+    //     color: '#1f78b4',
+    //     dataIndices: range(40, 57),
+    //   },
+    // ] as Group[],
+    // lastGroupId: 2,
 
     // Sorting.
     sorting: DEFAULT_SORTING,
@@ -185,48 +203,6 @@ export const useDataStore = defineStore('data', {
       })
       return colors
     },
-    sortedRowPositions(): number[] {
-      /**
-       * TODO: Try to deprecate this function.
-       * Two separate approaches will make for confusing code.
-       */
-
-      /**
-       * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
-       * This function returns a mapping of `mRNA ids index` => `draw position`, which
-       * can be used when you iterate over an unsorted data array.
-       * [
-       *   0 => 3, // mRNA ids index 0 (a) is on draw position 3
-       *   1 => 1, // mRNA ids index 1 (b) is on draw position 1
-       *   2 => 4, // mRNA ids index 2 (c) is on draw position 4
-       *   3 => 2, // mRNA ids index 3 (d) is on draw position 2
-       *   4 => 0, // mRNA ids index 4 (e) is on draw position 0
-       * ]
-       */
-      return arrayFlip(this.sortedDataIndices)
-    },
-    sortedRowPositionsCollapsed(): number[] {
-      /**
-       * TODO: Try to deprecate this function.
-       * Two separate approaches will make for confusing code.
-       */
-
-      /**
-       * This returns the same mapping as `sortedRowPositions`, but with collapsed
-       * groups placed together in an array in the correct drawing position.
-       *
-       * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c],
-       * but with a group containing [b,d,c] this function returns:
-       * [
-       *   0 => 2, // mRNA ids index 0 (a) is on draw position 2
-       *   1 => 1, // mRNA ids index 1 (b) is on draw position 1
-       *   2 => 1, // mRNA ids index 2 (c) is on draw position 1
-       *   3 => 1, // mRNA ids index 3 (d) is on draw position 1
-       *   4 => 0, // mRNA ids index 4 (e) is on draw position 0
-       * ]
-       */
-      return []
-    },
     mrnaIdsLookup: (state) => {
       /**
        * We need to sort many data sets by the order as defined in `this.mrnaIds`.
@@ -234,10 +210,9 @@ export const useDataStore = defineStore('data', {
        * which is O(n), we can use `this.mrnaIdsLookup[mRNA_id]`, which is O(1).
        * This brings down the total computation time from O(n^2) to O(2n).
        */
-      return state.mrnaIds.reduce((acc, mrnaId, index) => {
-        acc[mrnaId] = index
-        return acc
-      }, {} as Record<string, number>)
+      return Object.fromEntries(
+        state.mrnaIds.map((mrnaId, index) => [mrnaId, index])
+      )
     },
     homology: (state) => {
       // This will return undefined if the homologies have not yet loaded.
@@ -357,9 +332,6 @@ export const useDataStore = defineStore('data', {
 
       // Pull out the mrna indices.
       this.sortedDataIndices = sorted.map(([index]) => index)
-    },
-    toggleSelectedIndex(index: number) {
-      this.selectedDataIndices = xor(this.selectedDataIndices, [index])
     },
     async fetchHomologyIds() {
       try {

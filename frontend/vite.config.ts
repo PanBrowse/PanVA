@@ -12,6 +12,11 @@ export default ({ mode }: any) => {
     plugins: [vue(), vueJsx()],
     resolve: {
       alias: {
+        // Needed for vue3-runtime-template
+        // See https://github.com/vitejs/vite/discussions/4158#discussioncomment-1282397
+        vue: 'vue/dist/vue.esm-bundler.js',
+
+        // Absolute imports.
         '@': fileURLToPath(new URL('./src', import.meta.url)),
 
         // We are using the environment variable `VITE_DATASET` to determine

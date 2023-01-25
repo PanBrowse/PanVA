@@ -4,7 +4,6 @@
 export type mRNAid = string
 export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
 export type Range = [number, number]
-export type Position = { x: number; y: number }
 export type DataIndexCollapsed = number | Group
 
 /**

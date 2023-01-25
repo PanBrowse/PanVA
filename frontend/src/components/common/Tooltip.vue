@@ -3,7 +3,12 @@ import { createPopper, type Instance } from '@popperjs/core'
 import { useTooltipStore } from '@/stores/tooltip'
 import { mapState } from 'pinia'
 
+import TooltipContent from '@/components/common/TooltipContent.vue'
+
 export default {
+  components: {
+    TooltipContent,
+  },
   data() {
     // https://popper.js.org/docs/v2/virtual-elements/
     const virtualElement = {
@@ -16,7 +21,14 @@ export default {
     }
   },
   computed: {
-    ...mapState(useTooltipStore, ['x', 'y', 'isEnabled', 'content', 'title']),
+    ...mapState(useTooltipStore, [
+      'isCompact',
+      'isVisible',
+      'data',
+      'target',
+      'template',
+      'title',
+    ]),
   },
   methods: {
     generateGetBoundingClientRect(x = 0, y = 0) {
@@ -31,15 +43,26 @@ export default {
     },
   },
   mounted() {
-    this.popper = createPopper(this.virtualElement, this.$el)
+    this.popper = createPopper(this.virtualElement, this.$el, {
+      placement: 'top',
+    })
+  },
+  watch: {
+    target(newTarget) {
+      if (newTarget) {
+        this.virtualElement.getBoundingClientRect = () => newTarget
+        this.popper?.update()
+      }
+    },
   },
 }
 </script>
 
 <template>
   <div
-    v-show="isEnabled"
+    v-show="isVisible"
     class="ant-popover ant-popover-placement-top"
+    :class="{ compact: isCompact }"
     id="tooltip"
   >
     <div class="ant-popover-content">
@@ -51,7 +74,11 @@ export default {
           {{ title }}
         </div>
         <div class="ant-popover-inner-content">
-          {{ content }}
+          <TooltipContent
+            v-if="isVisible && template && data"
+            :template="template"
+            :data="data"
+          />
         </div>
       </div>
     </div>
@@ -62,5 +89,9 @@ export default {
 #tooltip {
   pointer-events: none;
   max-width: 400px;
+
+  &.compact .ant-popover-inner-content {
+    padding: 0;
+  }
 }
 </style>

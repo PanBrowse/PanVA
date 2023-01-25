@@ -7,6 +7,19 @@ import type { DataIndexCollapsed, PhenoColumnCategoricalData } from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
+import { countBy, uniq } from 'lodash'
+
+type GroupCounts = Record<PhenoColumnCategoricalData, number>
+
+type GroupAggregates = Record<
+  number,
+  {
+    // Counts per value in this position.
+    counts: GroupCounts
+    // Unique values within the group in this position.
+    values: PhenoColumnCategoricalData[]
+  }
+>
 
 export default {
   props: {
@@ -21,6 +34,7 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
+      'groups',
       'rowColors',
       'phenos',
       'selectedDataIndices',
@@ -39,6 +53,20 @@ export default {
     },
     name(): string {
       return `pheno-${this.field}`
+    },
+    groupAggregates(): GroupAggregates {
+      return Object.fromEntries(
+        this.groups.map(({ id, dataIndices }) => {
+          const allValues = dataIndices.map(
+            (dataIndex) =>
+              this.phenos[dataIndex][this.field] as PhenoColumnCategoricalData
+          )
+          const counts = countBy(allValues)
+          const values = uniq(allValues)
+
+          return [id, { counts, values }]
+        })
+      )
     },
   },
   methods: {
@@ -71,7 +99,10 @@ export default {
         )
         .text((data) => {
           if (isGroup(data)) {
-            // TODO: Count unique values
+            const { values } = this.groupAggregates[data.id]
+            if (values.length === 1) {
+              return values[0]
+            }
             return 'multiple'
           }
           return this.phenos[data][this.field] as PhenoColumnCategoricalData

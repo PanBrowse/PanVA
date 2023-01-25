@@ -7,6 +7,20 @@ import type { DataIndexCollapsed, PhenoColumnBooleanData } from '@/types'
 import { eventIndex } from '@/helpers/eventIndex'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
+import { mapCountBy } from '@/helpers/mapCountBy'
+import { uniq } from 'lodash'
+
+type GroupCounts = Map<PhenoColumnBooleanData, number>
+
+type GroupAggregates = Record<
+  number,
+  {
+    // Counts per value in this position.
+    counts: GroupCounts
+    // Unique values within the group in this position.
+    values: PhenoColumnBooleanData[]
+  }
+>
 
 export default {
   props: {
@@ -22,6 +36,7 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
+      'groups',
       'phenos',
       'selectedDataIndices',
       'sequenceCount',
@@ -43,95 +58,130 @@ export default {
     width(): number {
       return this.padding * 2 + CELL_SIZE
     },
+    groupAggregates(): GroupAggregates {
+      return Object.fromEntries(
+        this.groups.map(({ id, dataIndices }) => {
+          const allValues = dataIndices.map(
+            (dataIndex) =>
+              this.phenos[dataIndex][this.field] as PhenoColumnBooleanData
+          )
+          const counts = mapCountBy(allValues)
+          const values = uniq(allValues)
+
+          return [id, { counts, values }]
+        })
+      )
+    },
   },
   methods: {
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
     svg() {
       return d3.select(`#${this.name}`)
     },
-    positionTransform(index: number) {
-      const y = index * CELL_SIZE
-      return `translate(0,${y})`
+    circleRadius(values: PhenoColumnBooleanData[]) {
+      if (values.length === 1) {
+        if (values[0] === true) return 4
+        if (values[0] === false) return 4
+        return 1
+      }
+      // Diagonal hatch.
+      return 4
+    },
+    circleStroke(values: PhenoColumnBooleanData[]) {
+      if (values.length === 1) {
+        if (values[0] === true) return 'transparent'
+        if (values[0] === false) return '#aaa'
+        return '#ccc'
+      }
+      // Diagonal hatch.
+      return '#aaa'
+    },
+    circleFill(values: PhenoColumnBooleanData[]) {
+      if (values.length === 1) {
+        if (values[0] === true) return '#666'
+        if (values[0] === false) return 'white'
+        return '#ccc'
+      }
+      // Diagonal hatch.
+      return 'url(#diagonalHatch)'
     },
     drawPheno() {
       if (!this.hasAllData) return
 
       this.svg()
-        .selectAll('g')
+        .selectAll('circle')
         .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
         .join(
-          (enter) => {
-            const g = enter
-              .append('g')
-              .attr('transform', (data, index) => this.positionTransform(index))
-
-            g.append('rect')
-              .attr('height', CELL_SIZE)
-              .attr('width', this.padding * 2 + CELL_SIZE)
-              .attr('fill', 'transparent')
-
-            g.append('circle')
+          (enter) =>
+            enter
+              .append('circle')
               .attr('cx', this.padding + 0.5 * CELL_SIZE)
-              .attr('cy', 0.5 * CELL_SIZE)
+              .attr('cy', (data, index) => (index + 0.5) * CELL_SIZE)
               .attr('r', (data) => {
                 if (isGroup(data)) {
-                  // TODO: Count unique values
-                  return 4
+                  const { values } = this.groupAggregates[data.id]
+                  return this.circleRadius(values)
                 }
 
                 const value = this.phenos[data][
                   this.field
                 ] as PhenoColumnBooleanData
-
-                if (value === true) return 4
-                if (value === false) return 4
-                return 1
+                return this.circleRadius([value])
               })
-              .attr('stroke', (data) => {
-                if (isGroup(data)) {
-                  // TODO: Count unique values
-                  return '#aaa'
-                }
 
-                const value = this.phenos[data][
-                  this.field
-                ] as PhenoColumnBooleanData
-
-                if (value === true) return 'transparent'
-                if (value === false) return '#aaa'
-                return '#ccc'
-              })
               .attr('fill', (data) => {
                 if (isGroup(data)) {
-                  // TODO: Count unique values
-                  return 'url(#diagonalHatch)'
+                  const { values } = this.groupAggregates[data.id]
+                  return this.circleFill(values)
                 }
 
                 const value = this.phenos[data][
                   this.field
                 ] as PhenoColumnBooleanData
-
-                if (value === true) return '#666'
-                if (value === false) return 'white'
-                return '#ccc'
-              })
-            return g
-          },
+                return this.circleFill([value])
+              }),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('transform', (data, index) =>
-                this.positionTransform(index)
-              ),
+              .attr('cy', (data, index) => (index + 0.5) * CELL_SIZE),
           (exit) => exit.remove()
         )
-        .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
         .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
+        .attr('stroke', (data) => {
+          if (isGroup(data)) {
+            const { values } = this.groupAggregates[data.id]
+            if (data.isColorized) return data.color
+            return this.circleStroke(values)
+          }
+
+          const value = this.phenos[data][this.field] as PhenoColumnBooleanData
+          return this.circleStroke([value])
+        })
+
+      this.svg()
+        .selectAll('rect')
+        .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
+        .join(
+          (enter) =>
+            enter
+              .append('rect')
+              .attr('y', (data, index) => index * CELL_SIZE)
+              .attr('height', CELL_SIZE)
+              .attr('width', this.padding * 2 + CELL_SIZE)
+              .attr('fill', 'transparent'),
+          (update) =>
+            update
+              .transition()
+              .duration(this.transitionTime)
+              .attr('y', (data, index) => index * CELL_SIZE),
+          (exit) => exit.remove()
+        )
+        .attr('data-index', (data, index) => index)
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
           if (index === null) return
@@ -204,14 +254,16 @@ export default {
 .pheno-boolean {
   flex: 0 0 auto;
 
-  g {
+  rect {
     cursor: crosshair;
+  }
 
-    &[data-selected='true'] circle {
+  circle {
+    &[data-selected='true'] {
       stroke: #000;
     }
 
-    &[data-hovered='true'] circle {
+    &[data-hovered='true'] {
       stroke: #1890ff;
     }
   }
