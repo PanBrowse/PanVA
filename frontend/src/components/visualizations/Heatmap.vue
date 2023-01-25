@@ -7,13 +7,19 @@ import { CELL_SIZE } from '@/config'
 import type { AlignedPosition } from '@/types'
 
 import LoadingBox from '@/components/common/LoadingBox.vue'
-// import BooleanIndicator from '@/components/common/BooleanIndicator.vue'
 
 import type { DataIndexCollapsed, Nucleotide } from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { arrayRange } from '@/helpers/arrayRange'
 import { isGroup } from '@/helpers/isGroup'
-import { keys, pickBy } from 'lodash'
+import { chain, keys, pickBy } from 'lodash'
+import { useTooltipStore } from '@/stores/tooltip'
+import { groupName } from '@/helpers/groupName'
+
+type CellCoordinate = {
+  column: number
+  row: number
+}
 
 type Cell = {
   data: DataIndexCollapsed
@@ -34,23 +40,15 @@ type GroupAggregates = Record<
   }[]
 >
 
-// type Tooltip = {
-//   position: Position
-//   alignedPosition: AlignedPosition
-// }
-
 export default {
   components: {
-    // BooleanIndicator,
     LoadingBox,
   },
   data() {
     return {
       customNode: document.createElement('custom:node'),
-      // hoverPosition: null as Position | null,
+      hoverColIndex: null as number | null,
       mutationObserver: null as MutationObserver | null,
-      // tooltip: null as Tooltip | null,
-      // setTooltipDebounced: null as DebouncedFunc<(cell: Cell) => any> | null,
     }
   },
   computed: {
@@ -140,22 +138,23 @@ export default {
         })
       )
     },
-    // hoverCellStyle() {
-    //   if (!this.hoverPosition) return
-    //   return {
-    //     left: this.hoverPosition.x + 'px',
-    //     top: this.hoverPosition.y + 'px',
-    //   }
-    // },
-    // hoverRowStyle() {
-    //   if (this.hoverRowIndex === null) return
-    //   return {
-    //     top: this.hoverRowIndex * CELL_SIZE + 'px',
-    //     width: this.width + 'px',
-    //   }
-    // },
+    hoverCellStyle() {
+      if (this.hoverColIndex === null || this.hoverRowIndex === null) return
+      return {
+        left: this.hoverColIndex * CELL_SIZE + 'px',
+        top: this.hoverRowIndex * CELL_SIZE + 'px',
+      }
+    },
+    hoverRowStyle() {
+      if (this.hoverRowIndex === null) return
+      return {
+        top: this.hoverRowIndex * CELL_SIZE + 'px',
+        width: this.width + 'px',
+      }
+    },
   },
   methods: {
+    ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     ...mapActions(useDataStore, ['dragUpdate']),
     context() {
       return d3
@@ -165,6 +164,12 @@ export default {
     },
     dataAtPosition(dataIndex: number, position: number): AlignedPosition {
       return this.alignedPositions[dataIndex * this.geneLength + position - 1]
+    },
+    renderGroupCounts(counts: GroupCounts) {
+      return chain(counts)
+        .pickBy()
+        .map((count, nucleotide) => `${nucleotide}: ${count}`)
+        .join(', ')
     },
     drawCells() {
       if (!this.hasAllData) return
@@ -347,45 +352,98 @@ export default {
 
       ctx.restore()
     },
-    // mouseEventToCell(event: MouseEvent): Cell {
-    //   const [x, y] = d3.pointer(event)
-    //   const col = Math.floor(x / CELL_SIZE)
-    //   const row = Math.floor(y / CELL_SIZE)
-    //   return {
-    //     col,
-    //     row,
-    //   }
-    // },
-    // cellToPosition({ row, col }: Cell): Position {
-    //   return {
-    //     x: col * CELL_SIZE,
-    //     y: row * CELL_SIZE,
-    //   }
-    // },
-    // onMouseMove(event: MouseEvent) {
-    //   if (!this.hasAllData) return
+    mouseEventToCell(event: MouseEvent): CellCoordinate {
+      const [x, y] = d3.pointer(event)
+      const column = Math.floor(x / CELL_SIZE)
+      const row = Math.floor(y / CELL_SIZE)
+      return {
+        column,
+        row,
+      }
+    },
+    onMouseMove(event: MouseEvent) {
+      if (!this.hasAllData) return
 
-    //   const cell = this.mouseEventToCell(event)
-    //   const position = this.cellToPosition(cell)
+      const { row, column } = this.mouseEventToCell(event)
 
-    //   if (this.hoverRowIndex !== cell.row) {
-    //     this.hoverRowIndex = cell.row
-    //     this.dragUpdate(cell.row)
-    //   }
+      if (this.hoverRowIndex !== row || this.hoverColIndex !== column) {
+        this.showTooltip({
+          element: this.$refs.hoverCell as HTMLDivElement,
+          delay: 0.3,
+          generateContent: () => {
+            const data = this.sortedDataIndicesCollapsed[row]
+            const position = this.positions[column]
 
-    //   // Only update data if values actually changed.
-    //   if (!isEqual(position, this.hoverPosition)) {
-    //     this.hoverPosition = position
-    //     // this.setTooltipDebounced?.(cell)
-    //   }
-    // },
-    // onMouseLeave() {
-    //   // this.setTooltipDebounced?.cancel()
-    //   // this.tooltip = null
-    //   this.hoverPosition = null
-    //   this.hoverRowIndex = null
-    // },
+            if (isGroup(data)) {
+              const { counts } = this.groupAggregates[data.id][column]
+              const nucleotides = this.renderGroupCounts(counts)
+              const mrnaIds = data.dataIndices
+                .map((dataIndex) => this.mrnaIds[dataIndex])
+                .join(', ')
 
+              return {
+                title: groupName(data),
+                template: `
+                  <a-descriptions size="small" layout="horizontal" :column="1" bordered>
+                    <a-descriptions-item label="Bases">
+                      {{ nucleotides }}
+                    </a-descriptions-item>
+                    <a-descriptions-item label="Position">
+                      {{ position }}
+                    </a-descriptions-item>
+                    <!--
+                    <a-descriptions-item label="mRNA ids">
+                      {{ mrnaIds }}
+                    </a-descriptions-item>
+                    -->
+                  </a-descriptions>
+                `,
+                data: {
+                  mrnaIds,
+                  nucleotides,
+                  position,
+                },
+                isCompact: true,
+              }
+            }
+
+            const alignedPosition = this.dataAtPosition(data, position)
+
+            return {
+              title: this.mrnaIds[data],
+              template: `
+                <a-descriptions size="small" layout="horizontal" :column="1" bordered>
+                  <a-descriptions-item label="Base">
+                    {{ alignedPosition.nucleotide }}
+                  </a-descriptions-item>
+                  <a-descriptions-item label="Position">
+                    {{ alignedPosition.position }}
+                  </a-descriptions-item>
+                  <a-descriptions-item label="Variable">
+                    <BooleanIndicator :value="alignedPosition.variable" />
+                  </a-descriptions-item>
+                </a-descriptions>
+              `,
+              data: {
+                alignedPosition,
+              },
+              isCompact: true,
+            }
+          },
+        })
+      }
+
+      if (this.hoverRowIndex !== row) {
+        this.hoverRowIndex = row
+        this.dragUpdate(row)
+      }
+      this.hoverColIndex = column
+    },
+    onMouseLeave() {
+      this.hideTooltip()
+      this.hoverColIndex = null
+      this.hoverRowIndex = null
+    },
     isDataEqual(a: DataIndexCollapsed[], b: DataIndexCollapsed[]) {
       // Different lengths, so must have changed.
       if (a.length !== b.length) return false
@@ -410,22 +468,7 @@ export default {
     })
     this.drawCells()
   },
-  // created() {
-  //   this.setTooltipDebounced = debounce((cell: Cell) => {
-  //     const position = this.cellToPosition(cell)
-  //     const mRNA_index = this.sortedDataIndices[cell.row]
-
-  //     const apIndex = mRNA_index * this.selectedRegionLength + cell.col
-  //     const alignedPosition = this.cells[apIndex]
-
-  //     this.tooltip = {
-  //       position,
-  //       alignedPosition,
-  //     }
-  //   }, 200)
-  // },
   unmounted() {
-    // this.setTooltipDebounced?.cancel()
     this.mutationObserver?.disconnect()
   },
   watch: {
@@ -468,51 +511,15 @@ export default {
       :width="width"
       :height="height"
       id="heatmap"
+      @mousemove="onMouseMove"
+      @mouseleave="onMouseLeave"
     ></canvas>
     <LoadingBox v-show="!hasAllData" :height="120" />
 
-    <!--
-    @mousemove="onMouseMove"
-      @mouseleave="onMouseLeave"
-      -->
-
-    <!--
-    <a-popover
-      :title="tooltip.alignedPosition.mRNA_id"
-      visible
-      v-bind:key="tooltip"
-      :mouseLeaveDelay="0"
-      :mouseEnterDelay="0"
-      v-if="tooltip && hasAllData"
-    >
-      <template #content>
-        <div class="heatmap-popover-content">
-          <a-descriptions size="small" layout="horizontal" :column="1" bordered>
-            <a-descriptions-item label="Base">
-              {{ tooltip.alignedPosition.nucleotide }}
-            </a-descriptions-item>
-            <a-descriptions-item label="Position">
-              {{ tooltip.alignedPosition.position }}
-            </a-descriptions-item>
-            <a-descriptions-item label="Variable">
-              <BooleanIndicator :value="tooltip.alignedPosition.variable" />
-            </a-descriptions-item>
-          </a-descriptions>
-        </div>
-      </template>
-
-      <div
-        class="heatmap-tooltip-virtual-element"
-        :style="{
-          left: tooltip.position.x + 'px',
-          top: tooltip.position.y + 'px',
-        }"
-      ></div>
-    </a-popover>
-
     <div
+      ref="hoverCell"
       class="heatmap-cell-hover"
-      v-if="hoverPosition && hasAllData"
+      v-show="hoverColIndex !== null && hasAllData"
       :style="hoverCellStyle"
     />
 
@@ -521,7 +528,7 @@ export default {
       v-if="hoverRowIndex !== null && hasAllData"
       :style="hoverRowStyle"
     />
-  --></div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -556,10 +563,5 @@ export default {
   /* canvas {
     image-rendering: pixelated;
   } */
-}
-
-.heatmap-popover-content {
-  /* Take back padding from .ant-popover-inner-content */
-  margin: -12px -16px -12px -16px;
 }
 </style>

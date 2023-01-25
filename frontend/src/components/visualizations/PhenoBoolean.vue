@@ -78,10 +78,6 @@ export default {
     svg() {
       return d3.select(`#${this.name}`)
     },
-    positionTransform(index: number) {
-      const y = index * CELL_SIZE
-      return `translate(0,${y})`
-    },
     circleRadius(values: PhenoColumnBooleanData[]) {
       if (values.length === 1) {
         if (values[0] === true) return 4
@@ -109,44 +105,83 @@ export default {
       // Diagonal hatch.
       return 'url(#diagonalHatch)'
     },
-
     drawPheno() {
       if (!this.hasAllData) return
 
       this.svg()
-        .selectAll('g')
+        .selectAll('circle')
         .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
         .join(
-          (enter) => {
-            const g = enter
-              .append('g')
-              .attr('transform', (data, index) => this.positionTransform(index))
-
-            g.append('rect')
-              .attr('height', CELL_SIZE)
-              .attr('width', this.padding * 2 + CELL_SIZE)
-              .attr('fill', 'transparent')
-
-            g.append('circle')
+          (enter) =>
+            enter
+              .append('circle')
               .attr('cx', this.padding + 0.5 * CELL_SIZE)
-              .attr('cy', 0.5 * CELL_SIZE)
-            return g
-          },
+              .attr('cy', (data, index) => (index + 0.5) * CELL_SIZE)
+              .attr('r', (data) => {
+                if (isGroup(data)) {
+                  const { values } = this.groupAggregates[data.id]
+                  return this.circleRadius(values)
+                }
+
+                const value = this.phenos[data][
+                  this.field
+                ] as PhenoColumnBooleanData
+                return this.circleRadius([value])
+              })
+
+              .attr('fill', (data) => {
+                if (isGroup(data)) {
+                  const { values } = this.groupAggregates[data.id]
+                  return this.circleFill(values)
+                }
+
+                const value = this.phenos[data][
+                  this.field
+                ] as PhenoColumnBooleanData
+                return this.circleFill([value])
+              }),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('transform', (data, index) =>
-                this.positionTransform(index)
-              ),
+              .attr('cy', (data, index) => (index + 0.5) * CELL_SIZE),
           (exit) => exit.remove()
         )
-        .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
         .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
+        .attr('stroke', (data) => {
+          if (isGroup(data)) {
+            const { values } = this.groupAggregates[data.id]
+            if (data.isColorized) return data.color
+            return this.circleStroke(values)
+          }
+
+          const value = this.phenos[data][this.field] as PhenoColumnBooleanData
+          return this.circleStroke([value])
+        })
+
+      this.svg()
+        .selectAll('rect')
+        .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
+        .join(
+          (enter) =>
+            enter
+              .append('rect')
+              .attr('y', (data, index) => index * CELL_SIZE)
+              .attr('height', CELL_SIZE)
+              .attr('width', this.padding * 2 + CELL_SIZE)
+              .attr('fill', 'transparent'),
+          (update) =>
+            update
+              .transition()
+              .duration(this.transitionTime)
+              .attr('y', (data, index) => index * CELL_SIZE),
+          (exit) => exit.remove()
+        )
+        .attr('data-index', (data, index) => index)
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
           if (index === null) return
@@ -170,36 +205,6 @@ export default {
         })
         .on('mouseout', () => {
           this.hoverRowIndex = null
-        })
-        .select('circle')
-        .attr('r', (data) => {
-          if (isGroup(data)) {
-            const { values } = this.groupAggregates[data.id]
-            return this.circleRadius(values)
-          }
-
-          const value = this.phenos[data][this.field] as PhenoColumnBooleanData
-          return this.circleRadius([value])
-        })
-
-        .attr('stroke', (data) => {
-          if (isGroup(data)) {
-            const { values } = this.groupAggregates[data.id]
-            if (data.isColorized) return data.color
-            return this.circleStroke(values)
-          }
-
-          const value = this.phenos[data][this.field] as PhenoColumnBooleanData
-          return this.circleStroke([value])
-        })
-        .attr('fill', (data) => {
-          if (isGroup(data)) {
-            const { values } = this.groupAggregates[data.id]
-            return this.circleFill(values)
-          }
-
-          const value = this.phenos[data][this.field] as PhenoColumnBooleanData
-          return this.circleFill([value])
         })
     },
   },
@@ -249,14 +254,16 @@ export default {
 .pheno-boolean {
   flex: 0 0 auto;
 
-  g {
+  rect {
     cursor: crosshair;
+  }
 
-    &[data-selected='true'] circle {
+  circle {
+    &[data-selected='true'] {
       stroke: #000;
     }
 
-    &[data-hovered='true'] circle {
+    &[data-hovered='true'] {
       stroke: #1890ff;
     }
   }

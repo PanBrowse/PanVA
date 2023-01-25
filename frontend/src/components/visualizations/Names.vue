@@ -7,6 +7,7 @@ import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
 import { valueKey } from '@/helpers/valueKey'
 import type { DataIndexCollapsed } from '@/types'
+import { groupName } from '@/helpers/groupName'
 
 export default {
   data() {
@@ -51,8 +52,7 @@ export default {
               .attr('height', CELL_SIZE)
               .text((data) => {
                 if (isGroup(data)) {
-                  const name = data.name || `Group ${data.id}`
-                  return `${name} (${data.dataIndices.length})`
+                  return `${groupName(data)} (${data.dataIndices.length})`
                 }
                 return this.mrnaIds[data]
               }),
