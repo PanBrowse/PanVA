@@ -2,7 +2,6 @@
 import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 
-import DebugMenu from '@/components/sidebar/DebugMenu.vue'
 import GeneOverview from '@/components/views/GeneOverview.vue'
 import Groups from '@/components/sidebar/Groups.vue'
 import HomologyInfo from '@/components/sidebar/HomologyInfo.vue'
@@ -17,7 +16,6 @@ import { title } from '@dataset'
 
 export default {
   components: {
-    DebugMenu,
     GeneOverview,
     Groups,
     HomologyInfo,
@@ -64,7 +62,6 @@ export default {
       <Groups />
       <ViewOptions />
       <Tips />
-      <DebugMenu />
     </template>
 
     <GeneOverview />
