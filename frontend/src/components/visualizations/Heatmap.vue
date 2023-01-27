@@ -12,9 +12,10 @@ import type { DataIndexCollapsed, Nucleotide } from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { arrayRange } from '@/helpers/arrayRange'
 import { isGroup } from '@/helpers/isGroup'
-import { chain, keys, pickBy } from 'lodash'
+import { keys, pickBy } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
+import { groupCounts } from '@/helpers/groupCounts'
 
 type CellCoordinate = {
   column: number
@@ -164,12 +165,6 @@ export default {
     },
     dataAtPosition(dataIndex: number, position: number): AlignedPosition {
       return this.alignedPositions[dataIndex * this.geneLength + position - 1]
-    },
-    renderGroupCounts(counts: GroupCounts) {
-      return chain(counts)
-        .pickBy()
-        .map((count, nucleotide) => `${nucleotide}: ${count}`)
-        .join(', ')
     },
     drawCells() {
       if (!this.hasAllData) return
@@ -366,24 +361,29 @@ export default {
 
       const { row, column } = this.mouseEventToCell(event)
 
-      if (this.hoverRowIndex !== row || this.hoverColIndex !== column) {
-        this.showTooltip({
-          element: this.$refs.hoverCell as HTMLDivElement,
-          delay: 0.3,
-          generateContent: () => {
-            const data = this.sortedDataIndicesCollapsed[row]
-            const position = this.positions[column]
+      if (this.hoverRowIndex !== row) {
+        this.hoverRowIndex = row
+        this.dragUpdate(row)
+      }
+      this.hoverColIndex = column
 
-            if (isGroup(data)) {
-              const { counts } = this.groupAggregates[data.id][column]
-              const nucleotides = this.renderGroupCounts(counts)
-              const mrnaIds = data.dataIndices
-                .map((dataIndex) => this.mrnaIds[dataIndex])
-                .join(', ')
+      this.showTooltip({
+        key: `heatmap-${row}-${column}`,
+        element: this.$refs.hoverCell as HTMLDivElement,
+        generateContent: () => {
+          const data = this.sortedDataIndicesCollapsed[row]
+          const position = this.positions[column]
 
-              return {
-                title: groupName(data),
-                template: `
+          if (isGroup(data)) {
+            const { counts } = this.groupAggregates[data.id][column]
+            const nucleotides = groupCounts(counts)
+            const mrnaIds = data.dataIndices
+              .map((dataIndex) => this.mrnaIds[dataIndex])
+              .join(', ')
+
+            return {
+              title: groupName(data),
+              template: `
                   <a-descriptions size="small" layout="horizontal" :column="1" bordered>
                     <a-descriptions-item label="Bases">
                       {{ nucleotides }}
@@ -391,27 +391,22 @@ export default {
                     <a-descriptions-item label="Position">
                       {{ position }}
                     </a-descriptions-item>
-                    <!--
-                    <a-descriptions-item label="mRNA ids">
-                      {{ mrnaIds }}
-                    </a-descriptions-item>
-                    -->
                   </a-descriptions>
                 `,
-                data: {
-                  mrnaIds,
-                  nucleotides,
-                  position,
-                },
-                isCompact: true,
-              }
+              data: {
+                mrnaIds,
+                nucleotides,
+                position,
+              },
+              isCompact: true,
             }
+          }
 
-            const alignedPosition = this.dataAtPosition(data, position)
+          const alignedPosition = this.dataAtPosition(data, position)
 
-            return {
-              title: this.mrnaIds[data],
-              template: `
+          return {
+            title: this.mrnaIds[data],
+            template: `
                 <a-descriptions size="small" layout="horizontal" :column="1" bordered>
                   <a-descriptions-item label="Base">
                     {{ alignedPosition.nucleotide }}
@@ -424,20 +419,13 @@ export default {
                   </a-descriptions-item>
                 </a-descriptions>
               `,
-              data: {
-                alignedPosition,
-              },
-              isCompact: true,
-            }
-          },
-        })
-      }
-
-      if (this.hoverRowIndex !== row) {
-        this.hoverRowIndex = row
-        this.dragUpdate(row)
-      }
-      this.hoverColIndex = column
+            data: {
+              alignedPosition,
+            },
+            isCompact: true,
+          }
+        },
+      })
     },
     onMouseLeave() {
       this.hideTooltip()

@@ -22,9 +22,10 @@ export default {
   },
   computed: {
     ...mapState(useTooltipStore, [
+      'content',
+      'data',
       'isCompact',
       'isVisible',
-      'data',
       'target',
       'template',
       'title',
@@ -45,6 +46,14 @@ export default {
   mounted() {
     this.popper = createPopper(this.virtualElement, this.$el, {
       placement: 'top',
+      modifiers: [
+        {
+          name: 'offset',
+          options: {
+            offset: [0, 0],
+          },
+        },
+      ],
     })
   },
   watch: {
@@ -59,29 +68,25 @@ export default {
 </script>
 
 <template>
-  <div
-    v-show="isVisible"
-    class="ant-popover ant-popover-placement-top"
-    :class="{ compact: isCompact }"
-    id="tooltip"
-  >
-    <div class="ant-popover-content">
-      <div class="ant-popover-arrow">
-        <span class="ant-popover-arrow-content"></span>
-      </div>
-      <div class="ant-popover-inner" role="tooltip">
-        <div class="ant-popover-title" v-if="title">
-          {{ title }}
-        </div>
-        <div class="ant-popover-inner-content">
-          <TooltipContent
-            v-if="isVisible && template && data"
-            :template="template"
-            :data="data"
-          />
-        </div>
-      </div>
-    </div>
+  <div v-show="isVisible" id="tooltip" :class="{ compact: isCompact }">
+    <a-popover
+      v-model:visible="isVisible"
+      :title="title"
+      :mouseEnterDelay="0"
+      :mouseLeaveDelay="0"
+      :getPopupContainer="(node: HTMLElement) => node"
+      :align="{ offset: [0, 18] }"
+      placement="top"
+    >
+      <template #content>
+        <TooltipContent
+          v-if="isVisible && template && data && !content"
+          :template="template"
+          :data="data"
+        />
+        <div v-if="content">{{ content }}</div>
+      </template>
+    </a-popover>
   </div>
 </template>
 

@@ -3,12 +3,19 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/config'
-import type { DataIndexCollapsed, PhenoColumnBooleanData } from '@/types'
+import type {
+  DataIndexCollapsed,
+  PhenoColumnBoolean,
+  PhenoColumnBooleanData,
+} from '@/types'
 import { eventIndex } from '@/helpers/eventIndex'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { mapCountBy } from '@/helpers/mapCountBy'
 import { uniq } from 'lodash'
+import { useTooltipStore } from '@/stores/tooltip'
+import { groupName } from '@/helpers/groupName'
+import type { PropType } from 'vue'
 
 type GroupCounts = Map<PhenoColumnBooleanData, number>
 
@@ -28,6 +35,10 @@ export default {
       type: String,
       required: true,
     },
+    labels: {
+      type: Object as PropType<PhenoColumnBoolean['labels']>,
+      required: true,
+    },
   },
   data() {
     return {
@@ -37,6 +48,7 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'groups',
+      'mrnaIds',
       'phenos',
       'selectedDataIndices',
       'sequenceCount',
@@ -61,10 +73,7 @@ export default {
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
         this.groups.map(({ id, dataIndices }) => {
-          const allValues = dataIndices.map(
-            (dataIndex) =>
-              this.phenos[dataIndex][this.field] as PhenoColumnBooleanData
-          )
+          const allValues = dataIndices.map(this.valueAtDataIndex)
           const counts = mapCountBy(allValues)
           const values = uniq(allValues)
 
@@ -74,9 +83,16 @@ export default {
     },
   },
   methods: {
+    ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
     svg() {
       return d3.select(`#${this.name}`)
+    },
+    valueAtDataIndex(dataIndex: number): PhenoColumnBooleanData {
+      return this.phenos[dataIndex][this.field] as PhenoColumnBooleanData
+    },
+    labelForValue(value: PhenoColumnBooleanData) {
+      return this.labels[`${value}`]
     },
     circleRadius(values: PhenoColumnBooleanData[]) {
       if (values.length === 1) {
@@ -123,9 +139,7 @@ export default {
                   return this.circleRadius(values)
                 }
 
-                const value = this.phenos[data][
-                  this.field
-                ] as PhenoColumnBooleanData
+                const value = this.valueAtDataIndex(data)
                 return this.circleRadius([value])
               })
 
@@ -135,9 +149,7 @@ export default {
                   return this.circleFill(values)
                 }
 
-                const value = this.phenos[data][
-                  this.field
-                ] as PhenoColumnBooleanData
+                const value = this.valueAtDataIndex(data)
                 return this.circleFill([value])
               }),
           (update) =>
@@ -159,10 +171,12 @@ export default {
             return this.circleStroke(values)
           }
 
-          const value = this.phenos[data][this.field] as PhenoColumnBooleanData
+          const value = this.valueAtDataIndex(data)
           return this.circleStroke([value])
         })
 
+      // We want to have interactivity on the whole cell, so we draw a rect on
+      // top of the actual graphics to receive mouse events on a larger area.
       this.svg()
         .selectAll('rect')
         .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
@@ -196,6 +210,45 @@ export default {
             this.hoverRowIndex = index
             this.dragUpdate(index)
           }
+
+          this.showTooltip({
+            key: `pheno-${this.field}-${index}`,
+            element: event.target,
+            generateContent: () => {
+              const data = this.sortedDataIndicesCollapsed[index]
+
+              if (isGroup(data)) {
+                const { counts } = this.groupAggregates[data.id]
+                const labeledCounts = Object.fromEntries(
+                  Array.from(counts).map(([value, count]) => [
+                    this.labelForValue(value),
+                    count,
+                  ])
+                )
+
+                return {
+                  title: groupName(data),
+                  template: `
+                  <a-descriptions size="small" layout="horizontal" :column="1" bordered>
+                    <a-descriptions-item v-for="(count, label) in labeledCounts" :label="label">
+                      {{ count }}
+                    </a-descriptions-item>
+                  </a-descriptions>
+                `,
+                  data: {
+                    labeledCounts,
+                  },
+                  isCompact: true,
+                }
+              }
+
+              const value = this.valueAtDataIndex(data)
+
+              return {
+                content: this.labelForValue(value),
+              }
+            },
+          })
         })
         .on('mouseup', (event) => {
           const index = eventIndex(event)
@@ -205,6 +258,7 @@ export default {
         })
         .on('mouseout', () => {
           this.hoverRowIndex = null
+          this.hideTooltip()
         })
     },
   },

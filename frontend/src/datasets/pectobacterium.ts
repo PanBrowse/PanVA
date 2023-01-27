@@ -14,6 +14,11 @@ export const phenoColumns: PhenoColumn[] = [
       if (value === 'avirulent') return false
       return null
     },
+    labels: {
+      null: 'Unknown',
+      false: 'Avirulent',
+      true: 'Virulent',
+    },
   },
   {
     type: 'categorical',

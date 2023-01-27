@@ -299,8 +299,9 @@ export default {
   }
 
   .exons {
-    fill: #ddd;
-    stroke: #888;
+    fill: #f0f2f5;
+    stroke: #89899a;
+    stroke-width: 0.5;
   }
 
   .brush-labels {

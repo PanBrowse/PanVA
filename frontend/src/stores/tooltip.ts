@@ -3,60 +3,74 @@ import { defineStore } from 'pinia'
 
 type ContentFn = () => {
   title?: string
-  template: string
+  content?: string
+  template?: string
   data?: Record<string, any>
   isCompact?: boolean
-  // components?: Record<string, Component>
 }
 
 type TooltipParams = {
+  key: string
   generateContent: ContentFn
-  delay: number
+  delay?: number
   element: HTMLElement | SVGElement
 }
 
 export const useTooltipStore = defineStore('tooltip', {
   state: () => ({
-    title: '',
-    template: '',
+    content: '',
     data: undefined as any,
-    target: null as DOMRect | null,
     delayTimer: null as ReturnType<typeof setTimeout> | null,
-    isVisible: false,
     isCompact: false,
+    isVisible: false,
+    key: '',
+    target: null as DOMRect | null,
+    template: '',
+    title: '',
   }),
   actions: {
-    showTooltip({ generateContent, delay, element }: TooltipParams) {
+    showTooltip({ key, generateContent, delay = 0.3, element }: TooltipParams) {
+      // Ignore subsequent calls for the same tooltip.
+      if (this.key === key) return
+
+      // New tooltip, reset any possibly running timers for old content.
       if (this.delayTimer !== null) {
         clearTimeout(this.delayTimer)
       }
 
+      // Delay showing the tooltip. Besides improved UX, this also allows us to
+      // delay generating the tooltip content which could be computationally heavy.
       const delayTimer = setTimeout(() => {
         if (!element) return
         const {
-          template,
-          title = '',
+          content,
           data = {},
           isCompact = false,
+          template,
+          title = '',
         } = generateContent()
         this.$patch({
+          content,
+          data,
           delayTimer: null,
+          isCompact,
           isVisible: true,
           target: element.getBoundingClientRect(),
           template,
           title,
-          data,
-          isCompact,
         })
       }, delay * 1000)
 
+      // Already clear any old content.
       this.$patch({
-        title: '',
-        template: '',
+        content: '',
         data: undefined,
-        target: null,
         delayTimer,
         isVisible: false,
+        key: key,
+        target: null,
+        template: '',
+        title: '',
       })
     },
     hideTooltip() {
@@ -65,9 +79,10 @@ export const useTooltipStore = defineStore('tooltip', {
       }
 
       this.$patch({
-        target: null,
         delayTimer: null,
         isVisible: false,
+        key: '',
+        target: null,
       })
     },
   },

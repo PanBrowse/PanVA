@@ -8,6 +8,9 @@ import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
 import { countBy, uniq } from 'lodash'
+import { useTooltipStore } from '@/stores/tooltip'
+import { groupName } from '@/helpers/groupName'
+import { groupCounts } from '@/helpers/groupCounts'
 
 type GroupCounts = Record<PhenoColumnCategoricalData, number>
 
@@ -70,6 +73,7 @@ export default {
     },
   },
   methods: {
+    ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
     svg() {
       return d3.select(`#${this.name}`)
@@ -134,6 +138,22 @@ export default {
             this.hoverRowIndex = index
             this.dragUpdate(index)
           }
+
+          const data = this.sortedDataIndicesCollapsed[index]
+          if (isGroup(data)) {
+            this.showTooltip({
+              key: `pheno-${this.field}-${index}`,
+              element: event.target,
+              generateContent: () => {
+                const { counts } = this.groupAggregates[data.id]
+
+                return {
+                  title: groupName(data),
+                  content: groupCounts(counts),
+                }
+              },
+            })
+          }
         })
         .on('mouseup', (event) => {
           const index = eventIndex(event)
@@ -143,6 +163,7 @@ export default {
         })
         .on('mouseout', () => {
           this.hoverRowIndex = null
+          this.hideTooltip()
         })
     },
   },

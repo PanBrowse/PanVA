@@ -80,6 +80,7 @@ export default {
           <PhenoBoolean
             v-bind:key="column.field"
             :field="column.field"
+            :labels="column.labels"
             v-if="column.type === 'boolean'"
           />
           <PhenoCategorical

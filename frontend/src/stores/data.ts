@@ -514,13 +514,18 @@ export const useDataStore = defineStore('data', {
     },
     async fetchHomology() {
       this.$patch({
+        // Reset data
         alignedPositions: [],
         dendroCustom: null,
         dendroDefault: null,
         phenos: [],
-        selectedDataIndices: [],
         sequences: [],
         varPosCount: [],
+
+        // Reset groups and selections that contain references to data.
+        groups: [],
+        lastGroupId: 0,
+        selectedDataIndices: [],
       })
 
       // Fetch new data for now selected homology id.

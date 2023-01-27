@@ -106,6 +106,11 @@ export type PhenoColumnBooleanData = boolean | null
 export type PhenoColumnBoolean = PhenoColumnBase & {
   type: 'boolean'
   parser: PhenoColumnCSVParser<PhenoColumnBooleanData>
+  labels: {
+    null: string
+    false: string
+    true: string
+  }
 }
 
 export type PhenoColumnCategoricalData = string
