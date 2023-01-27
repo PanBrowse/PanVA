@@ -149,17 +149,18 @@ export default {
     <!-- Height should match form height. -->
     <p style="margin-bottom: 10px">
       <span v-if="selectedDataIndices.length === 0">
-        Please make a selection to create a new group.
+        Select sequences to create a new group.
       </span>
       <span v-if="selectedDataIndices.length === 1">
-        There is 1 sequence selected &ndash;
+        There is 1 sequence selected
       </span>
       <span v-if="selectedDataIndices.length > 1">
-        There are {{ selectedDataIndices.length }} sequences selected &ndash;
+        There are {{ selectedDataIndices.length }} sequences selected
       </span>
-      <a v-if="selectedDataIndices.length !== 0" @click="clearSelection"
-        >Clear selection</a
-      >
+      <span v-if="selectedDataIndices.length !== 0">
+        &ndash;
+        <a @click="clearSelection">Clear selection</a>
+      </span>
     </p>
 
     <a-row type="flex" :gutter="4" v-if="newGroup">

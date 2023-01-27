@@ -5,7 +5,7 @@ import Bipartite from '@/components/visualizations/Bipartite.vue'
 import Dendrogram from '@/components/visualizations/Dendrogram.vue'
 import Heatmap from '@/components/visualizations/Heatmap.vue'
 import HeatmapHeader from '@/components/visualizations/HeatmapHeader.vue'
-import LocusOptions from '@/components/visualizations/LocusOptions.vue'
+import DendroLabels from '@/components/visualizations/DendroLabels.vue'
 import Names from '@/components/visualizations/Names.vue'
 import PhenoBoolean from '@/components/visualizations/PhenoBoolean.vue'
 import PhenoCategorical from '@/components/visualizations/PhenoCategorical.vue'
@@ -20,7 +20,7 @@ export default {
     Dendrogram,
     Heatmap,
     HeatmapHeader,
-    LocusOptions,
+    DendroLabels,
     Names,
     PhenoBoolean,
     PhenoCategorical,
@@ -51,9 +51,7 @@ export default {
 <template>
   <a-card class="locus-view" title="Locus view" :bordered="false" size="small">
     <div class="header">
-      <div style="flex: 0 0 500px; align-self: flex-start">
-        <LocusOptions />
-      </div>
+      <DendroLabels />
       <scroll-sync
         horizontal
         style="overflow: auto hidden; min-width: 120px"

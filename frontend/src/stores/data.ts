@@ -51,13 +51,15 @@ import {
 import arrayFlip from '@/helpers/arrayFlip'
 import { medianRight } from '@/helpers/medianRight'
 import { zipEqual } from '@/helpers/zipEqual'
-import { sortingPayload } from '@/helpers/sorting'
+import { naturalSort, sortingPayload } from '@/helpers/sorting'
 import { leafNodes } from '@/helpers/dendro'
 import { arraySlice } from '@/helpers/arraySlice'
 import { isGroup } from '@/helpers/isGroup'
+import { toRaw } from 'vue'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
+type DendroOption = 'default' | 'custom'
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -96,6 +98,9 @@ export const useDataStore = defineStore('data', {
     selectedRegion: DEFAULT_SELECTED_REGION,
     // Checkboxes above the positions.
     selectedPositions: [] as number[],
+    // When a custom dendrogram is generated, we store the selection it was generated for.
+    // This way, we know when to display the "Update custom dendrogram" button.
+    dendroCustomForSelectedPositions: [] as number[],
 
     // Grouping.
     groups: [] as Group[],
@@ -138,6 +143,7 @@ export const useDataStore = defineStore('data', {
 
     // User options.
     cellTheme: 'default' as CellThemeName,
+    dendro: 'default' as DendroOption,
     homologyId: defaultHomologyId,
     referenceMrnaId: null as mRNAid | null,
     transitionsEnabled: true,
@@ -211,7 +217,7 @@ export const useDataStore = defineStore('data', {
        * This brings down the total computation time from O(n^2) to O(2n).
        */
       return Object.fromEntries(
-        state.mrnaIds.map((mrnaId, index) => [mrnaId, index])
+        state.mrnaIds.map((mrnaId, dataIndex) => [mrnaId, dataIndex])
       )
     },
     homology: (state) => {
@@ -228,7 +234,7 @@ export const useDataStore = defineStore('data', {
       return this.mrnaIds.length
     },
     geneLength(): number {
-      if (this.sequences) {
+      if (this.sequences.length !== 0) {
         return this.sequences[0].nuc_trimmed_seq.length
       }
       return 0
@@ -275,13 +281,29 @@ export const useDataStore = defineStore('data', {
       }
 
       // Sorting by dendrogram is the default sorting, so we reset everything.
-      if (sorting.field === 'dendro') {
+      if (sorting.field === 'dendroDefault') {
         this.resetSorting()
         return
       }
 
       // First we update the sorting field to a new value.
       this.sorting = sorting
+
+      // Sorting by mrna id does not take current sorting into account.
+      if (sorting.field === 'dendroCustom' && this.dendroCustom) {
+        this.sortedDataIndices = leafNodes(this.dendroCustom).map(
+          (mrnaId) => this.mrnaIdsLookup[mrnaId]
+        )
+        return
+      }
+
+      // Sorting by mrna id does not take current sorting into account.
+      if (sorting.field === 'mrnaId') {
+        this.sortedDataIndices = naturalSort(this.mrnaIds).map(
+          (mrnaId) => this.mrnaIdsLookup[mrnaId]
+        )
+        return
+      }
 
       // Get the array of values in the currently sorted order.
       const values = (() => {
@@ -414,15 +436,16 @@ export const useDataStore = defineStore('data', {
         throw err
       }
     },
-    async fetchDendrogramCustom(positions: number[]) {
+    async fetchDendrogramCustom() {
       try {
         const response = await axios.post<Dendro>(
           `${API_URL}/${this.homologyId}/d3dendro`,
           {
-            positions,
+            positions: toRaw(this.selectedPositions),
           }
         )
         this.dendroCustom = response.data
+        this.dendroCustomForSelectedPositions = this.selectedPositions
       } catch (err) {
         this.hasError = true
         throw err
@@ -523,6 +546,8 @@ export const useDataStore = defineStore('data', {
         varPosCount: [],
 
         // Reset groups and selections that contain references to data.
+        dendro: 'default',
+        dendroCustomForSelectedPositions: [],
         groups: [],
         lastGroupId: 0,
         selectedDataIndices: [],

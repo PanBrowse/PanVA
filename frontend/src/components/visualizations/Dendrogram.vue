@@ -16,6 +16,7 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'coreSNP',
+      'dendro',
       'dendroCustom',
       'dendroDefault',
       'mrnaIdsLookup',
@@ -27,6 +28,9 @@ export default {
       return this.dendroDefault !== null && this.sequenceCount !== 0
     },
     dendroData(): Dendro | null {
+      if (this.dendro === 'custom' && this.dendroCustom) {
+        return this.dendroCustom
+      }
       return this.dendroDefault
     },
     hierarchy(): HierarchyNode<Dendro> {

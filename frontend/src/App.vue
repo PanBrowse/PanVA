@@ -2,6 +2,7 @@
 import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 
+import Dendrogram from '@/components/sidebar/Dendrogram.vue'
 import GeneOverview from '@/components/views/GeneOverview.vue'
 import Groups from '@/components/sidebar/Groups.vue'
 import HomologyInfo from '@/components/sidebar/HomologyInfo.vue'
@@ -16,6 +17,7 @@ import { title } from '@dataset'
 
 export default {
   components: {
+    Dendrogram,
     GeneOverview,
     Groups,
     HomologyInfo,
@@ -61,6 +63,7 @@ export default {
       <HomologyInfo />
       <Groups />
       <ViewOptions />
+      <Dendrogram />
       <Tips />
     </template>
 

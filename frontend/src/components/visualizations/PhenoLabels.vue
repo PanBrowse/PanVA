@@ -79,6 +79,7 @@ export default {
           (update) => update,
           (exit) => exit.remove()
         )
+        .select('div')
         .attr('class', (d) => (this.sortingPheno === d.field ? 'sorted' : ''))
     },
   },
@@ -99,25 +100,23 @@ export default {
 
 <style lang="scss">
 #pheno-labels {
-  foreignObject {
-    div {
-      display: inline-block;
-      position: absolute;
-      user-select: none;
-      color: darkgrey;
-      font-size: 10px;
-      line-height: 10px;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      cursor: pointer;
+  foreignObject div {
+    display: inline-block;
+    position: absolute;
+    user-select: none;
+    color: darkgrey;
+    font-size: 10px;
+    line-height: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: pointer;
 
-      &:hover {
-        color: #1890ff;
-      }
+    &:hover {
+      color: #1890ff;
     }
 
-    &.sorted div {
+    &.sorted {
       color: black;
     }
   }

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { CELL_SIZE } from '@/config'
 import { useDataStore } from '@/stores/data'
-import { difference, intersection, range, union } from 'lodash'
+import { difference, range, union } from 'lodash'
 import { mapState, mapWritableState } from 'pinia'
 import type { CheckboxOptionType } from 'ant-design-vue'
 import type { CheckboxChangeEvent } from 'ant-design-vue/lib/checkbox/interface'
@@ -21,15 +21,6 @@ export default {
       'transitionTime',
     ]),
     ...mapWritableState(useDataStore, ['selectedPositions']),
-    isAllChecked(): boolean {
-      return (
-        this.selectedPositions.length !== 0 &&
-        this.selectedPositions.length === this.selectedRegionLength
-      )
-    },
-    isIndeterminate(): boolean {
-      return this.selectedPositions.length !== 0 && !this.isAllChecked
-    },
     regionRange(): number[] {
       const [start, end] = this.selectedRegion
       return range(start, end + 1)
@@ -45,10 +36,6 @@ export default {
     },
   },
   methods: {
-    onCheckAll() {
-      const [start, end] = this.selectedRegion
-      this.selectedPositions = this.isAllChecked ? [] : range(start, end + 1)
-    },
     onCheckboxChange(event: CheckboxChangeEvent) {
       const { value, checked } = event.target
       const { shiftKey } = event.nativeEvent
@@ -90,15 +77,6 @@ export default {
       this.lastChecked = checked
     },
   },
-  watch: {
-    selectedRegion() {
-      // Remove selected positions that no longer fall inside the selectedRegion.
-      this.selectedPositions = intersection(
-        this.selectedPositions,
-        this.regionRange
-      )
-    },
-  },
 }
 </script>
 
@@ -110,15 +88,6 @@ export default {
       transitionDuration: transitionTime + 'ms',
     }"
   >
-    <a-checkbox
-      v-model:checked="isAllChecked"
-      :indeterminate="isIndeterminate"
-      @change="onCheckAll"
-      class="checkall"
-    >
-      (de)select all
-    </a-checkbox>
-
     <a-checkbox-group v-model:value="selectedPositions" :options="options" />
   </div>
 </template>
@@ -128,17 +97,6 @@ export default {
   line-height: 10px;
   transition-property: width;
   transition-timing-function: linear;
-
-  .checkall {
-    align-items: center;
-    font-size: 9px;
-    color: #666;
-
-    .ant-checkbox + span {
-      padding-left: 2px;
-      padding-right: 0;
-    }
-  }
 
   .ant-checkbox-group {
     line-height: 10px;

@@ -10,7 +10,7 @@ export type DataIndexCollapsed = number | Group
  * Sorting.
  */
 type SortingCommon = {
-  field: 'dendro'
+  field: 'dendroDefault' | 'dendroCustom' | 'mrnaId'
 }
 
 type SortingPheno = {
