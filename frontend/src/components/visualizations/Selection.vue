@@ -1,7 +1,7 @@
 <script lang="ts">
 import { CELL_SIZE } from '@/config'
 import { useDataStore } from '@/stores/data'
-import { difference, range, union } from 'lodash'
+import { difference, intersection, range, union } from 'lodash'
 import { mapState, mapWritableState } from 'pinia'
 import type { CheckboxOptionType } from 'ant-design-vue'
 import type { CheckboxChangeEvent } from 'ant-design-vue/lib/checkbox/interface'
@@ -88,6 +88,15 @@ export default {
 
       this.lastPosition = value
       this.lastChecked = checked
+    },
+  },
+  watch: {
+    selectedRegion() {
+      // Remove selected positions that no longer fall inside the selectedRegion.
+      this.selectedPositions = intersection(
+        this.selectedPositions,
+        this.regionRange
+      )
     },
   },
 }
