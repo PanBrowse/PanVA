@@ -110,15 +110,14 @@ export default {
       transitionDuration: transitionTime + 'ms',
     }"
   >
-    <!--
     <a-checkbox
       v-model:checked="isAllChecked"
       :indeterminate="isIndeterminate"
       @change="onCheckAll"
+      class="checkall"
     >
-      select all
+      (de)select all
     </a-checkbox>
-    -->
 
     <a-checkbox-group v-model:value="selectedPositions" :options="options" />
   </div>
@@ -129,6 +128,17 @@ export default {
   line-height: 10px;
   transition-property: width;
   transition-timing-function: linear;
+
+  .checkall {
+    align-items: center;
+    font-size: 9px;
+    color: #666;
+
+    .ant-checkbox + span {
+      padding-left: 2px;
+      padding-right: 0;
+    }
+  }
 
   .ant-checkbox-group {
     line-height: 10px;

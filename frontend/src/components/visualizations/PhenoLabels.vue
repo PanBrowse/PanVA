@@ -99,25 +99,26 @@ export default {
 
 <style lang="scss">
 #pheno-labels {
-  foreignObject div {
-    display: inline-block;
-    position: absolute;
-    user-select: none;
-    color: darkgrey;
-    font-size: 10px;
-    line-height: 10px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    font-weight: 500;
-    cursor: pointer;
+  foreignObject {
+    div {
+      display: inline-block;
+      position: absolute;
+      user-select: none;
+      color: darkgrey;
+      font-size: 10px;
+      line-height: 10px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      cursor: pointer;
 
-    &.sorted {
-      color: black;
+      &:hover {
+        color: #1890ff;
+      }
     }
 
-    &:hover {
-      color: #1890ff;
+    &.sorted div {
+      color: black;
     }
   }
 
