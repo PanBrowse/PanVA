@@ -86,13 +86,16 @@ export default {
       }
     },
     async updateCustomDendro() {
-      this.isFetchingCustomDendro = true
-      await this.fetchDendrogramCustom()
-      this.isFetchingCustomDendro = false
+      try {
+        this.isFetchingCustomDendro = true
+        await this.fetchDendrogramCustom()
 
-      // Automatically switch to the custom dendrogram.
-      this.tree = 'dendroCustom'
-      this.changeSorting({ field: 'dendroCustom' })
+        // Automatically switch to the custom dendrogram.
+        this.tree = 'dendroCustom'
+        this.changeSorting({ field: 'dendroCustom' })
+      } finally {
+        this.isFetchingCustomDendro = false
+      }
     },
   },
 }

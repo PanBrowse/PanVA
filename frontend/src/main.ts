@@ -5,15 +5,21 @@ import Antd from 'ant-design-vue'
 
 import App from './App.vue'
 
+import { registerErrorHandlers } from './errors'
 import './assets/main.css'
 
-const app = createApp(App)
-app.use(createPinia())
-app.use(Antd)
-
+const pinia = createPinia()
 const head = createHead()
-// Add options API support.
+
+const app = createApp(App)
+registerErrorHandlers(app)
+
+// Add options API support for `head`.
 app.mixin(VueHeadMixin)
+
+// Register plugins.
+app.use(pinia)
+app.use(Antd)
 app.use(head)
 
 app.mount('#app')

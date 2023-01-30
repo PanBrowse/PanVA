@@ -13,26 +13,26 @@ export default {
 </script>
 
 <template>
-  <svg id="tree-labels" width="500" height="60">
+  <svg id="tree-labels" width="500" height="72">
     <foreignObject
       width="200"
-      height="60"
-      transform="translate(0,50) rotate(-45)"
+      height="72"
+      transform="translate(0,62) rotate(-45)"
     >
       <div
         :class="{ sorted: sorting.field === tree }"
         @click="changeSorting({ field: tree })"
       >
         <span v-if="tree === 'dendroDefault'">Dendrogram</span>
-        <span v-if="tree === 'dendroCustom'">Custom dendro</span>
+        <span v-if="tree === 'dendroCustom'">Custom dendrogram</span>
         <span v-if="tree === 'coreSnp'">CoreSNP</span>
       </div>
     </foreignObject>
 
     <foreignObject
       width="200"
-      height="60"
-      transform="translate(320,50) rotate(-45)"
+      height="72"
+      transform="translate(320,62) rotate(-45)"
     >
       <div
         :class="{ sorted: sorting.field === 'mrnaId' }"

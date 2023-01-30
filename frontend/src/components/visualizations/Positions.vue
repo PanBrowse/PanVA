@@ -21,7 +21,7 @@ export default {
       return this.selectedRegionLength * CELL_SIZE
     },
     height(): number {
-      return 24
+      return 30
     },
     sortingPosition(): number | null {
       if (this.sorting.field === 'position') {

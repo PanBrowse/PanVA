@@ -36,6 +36,7 @@ import type {
   Sorting,
   VarPosCount,
   VarPosCountCSVColumns,
+  AppError,
 } from '@/types'
 import {
   chain,
@@ -79,7 +80,7 @@ export const useDataStore = defineStore('data', {
     mrnaIds: [] as mRNAid[],
 
     // API fetching state.
-    hasError: false,
+    error: null as AppError | null,
 
     // What row index is being hovered over.
     hoverRowIndex: null as number | null,
@@ -365,7 +366,10 @@ export const useDataStore = defineStore('data', {
         const response = await axios.get<Homology[]>(`${API_URL}/homology_ids`)
         this.homologies = sortBy(response.data, 'name')
       } catch (err) {
-        this.hasError = true
+        this.setError({
+          message: 'Unable to fetch or parse homology ids from API.',
+          isFatal: true,
+        })
         throw err
       }
     },
@@ -374,7 +378,10 @@ export const useDataStore = defineStore('data', {
         const response = await axios.get<string>(`${API_URL}/core_snp`)
         this.coreSNP = parse_newick(response.data)
       } catch (err) {
-        this.hasError = true
+        this.setError({
+          message: 'Unable to fetch or parse coreSNP from API.',
+          isFatal: true,
+        })
         throw err
       }
     },
@@ -421,7 +428,10 @@ export const useDataStore = defineStore('data', {
           }))
           .value()
       } catch (err) {
-        this.hasError = true
+        this.setError({
+          message: 'Unable to fetch or parse aligned positions from API.',
+          isFatal: true,
+        })
         throw err
       }
     },
@@ -430,14 +440,16 @@ export const useDataStore = defineStore('data', {
         const data = await d3.json<TreeNode>(
           `${API_URL}/${this.homologyId}/d3dendro`
         )
-        if (data) {
-          this.dendroDefault = data
-          this.mrnaIds = leafNodes(data)
-        } else {
-          this.hasError = true
+        if (!data) {
+          throw new Error('Empty dendrogram default data.')
         }
+        this.dendroDefault = data
+        this.mrnaIds = leafNodes(data)
       } catch (err) {
-        this.hasError = true
+        this.setError({
+          message: 'Unable to fetch or parse default dendrogram from API.',
+          isFatal: true,
+        })
         throw err
       }
     },
@@ -452,7 +464,10 @@ export const useDataStore = defineStore('data', {
         this.dendroCustom = response.data
         this.dendroCustomForSelectedPositions = this.selectedPositions
       } catch (err) {
-        this.hasError = true
+        this.setError({
+          message: 'Unable to fetch or parse custom dendrogram from API.',
+          isFatal: false,
+        })
         throw err
       }
     },
@@ -485,7 +500,10 @@ export const useDataStore = defineStore('data', {
           .map((pheno, index) => ({ ...pheno, index }))
           .value()
       } catch (err) {
-        this.hasError = true
+        this.setError({
+          message: 'Unable to fetch or parse phenotypes from API.',
+          isFatal: true,
+        })
         throw err
       }
     },
@@ -514,7 +532,10 @@ export const useDataStore = defineStore('data', {
           ({ mRNA_id }) => this.mrnaIdsLookup[mRNA_id]
         )
       } catch (err) {
-        this.hasError = true
+        this.setError({
+          message: 'Unable to fetch or parse sequences from API.',
+          isFatal: true,
+        })
         throw err
       }
     },
@@ -536,7 +557,11 @@ export const useDataStore = defineStore('data', {
             } as VarPosCount)
         )
       } catch (err) {
-        this.hasError = true
+        this.setError({
+          message:
+            'Unable to fetch or parse variable position counts from API.',
+          isFatal: true,
+        })
         throw err
       }
     },
@@ -631,6 +656,18 @@ export const useDataStore = defineStore('data', {
           id: ++this.lastGroupId,
         },
       ]
+    },
+    setError(error: AppError | null) {
+      // We have an old and new error.
+      if (this.error && error) {
+        // Don't update, unless the severity increases.
+        if (!this.error.isFatal && error.isFatal) {
+          this.error = error
+        }
+        return
+      }
+
+      this.error = error
     },
   },
 })
