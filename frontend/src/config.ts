@@ -14,14 +14,14 @@ export const TRANSITION_TIME = 2000
 
 // When there are more groups, the colors will be cycled.
 export const GROUP_COLORS = [
+  '#38c7a6',
+  '#766aaf',
+  '#ff7f00',
+  '#226F54',
+  '#fb9a99',
+  '#1f78b4',
   '#b15928',
   '#fbdb5a',
-  '#1f78b4',
-  '#38c7a6',
-  '#fb9a99',
-  '#ff7f00',
-  '#766aaf',
-  '#226F54',
 ]
 
 // Different themes for coloring the nucleotide cells.

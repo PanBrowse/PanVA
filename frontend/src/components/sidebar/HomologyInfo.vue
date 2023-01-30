@@ -17,7 +17,7 @@ export default {
 </script>
 
 <template>
-  <SidebarItem v-if="homology" title="Homology info">
+  <SidebarItem v-if="homology" title="Homology info" isDefaultCollapsed>
     <a-descriptions size="small" layout="horizontal" :column="1" bordered>
       <a-descriptions-item label="ID">
         {{ homology.homology_id }}

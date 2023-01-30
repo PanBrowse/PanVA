@@ -347,10 +347,15 @@ export default {
 
       ctx.restore()
     },
-    mouseEventToCell(event: MouseEvent): CellCoordinate {
+    mouseEventToCell(event: MouseEvent): CellCoordinate | undefined {
       const [x, y] = d3.pointer(event)
       const column = Math.floor(x / CELL_SIZE)
       const row = Math.floor(y / CELL_SIZE)
+
+      // Some rows are collapsed into groups. The empty space at the
+      // bottom of the canvas should no longer return a valid cell.
+      if (row >= this.sortedDataIndicesCollapsed.length) return
+
       return {
         column,
         row,
@@ -359,7 +364,15 @@ export default {
     onMouseMove(event: MouseEvent) {
       if (!this.hasAllData) return
 
-      const { row, column } = this.mouseEventToCell(event)
+      const cell = this.mouseEventToCell(event)
+
+      // We are on the canvas, but at a point where there are no cells.
+      if (!cell) {
+        this.onMouseLeave()
+        return
+      }
+
+      const { row, column } = cell
 
       if (this.hoverRowIndex !== row) {
         this.hoverRowIndex = row
