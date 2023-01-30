@@ -1,62 +1,64 @@
 # PanVA data format
 
-This file provides an input specification for the PanVA application. 
+This file provides a specification for the data format as used by the PanVA application. 
 
-We recommend to run PanTools (<https://pantools.readthedocs.io/en/stable/>) to construct a pangenome database and run functionality to obtain homology groups, sequence alignments, annotations and metadata. We support this format and are currently working on a pipeline to preprocess the PanTools data such that is is formatted correctly for PanVA. More information about this pipeline will be released soon. However, it may be possible to obtain the analysis data using other software if the output can be transformed to the format required for PanVA.
+We recommend to run PanTools (<https://pantools.readthedocs.io/en/stable/>) to construct a pangenome database and run functionality to obtain homology groups, sequence alignments, annotations and metadata. We support this format and are currently working on a pipeline to preprocess the PanTools data such that it is formatted correctly for PanVA. More information about this pipeline will be released soon. However, it may be possible to obtain the analysis data using other software if the output can be transformed to the format required for PanVA.
 
 Below we describe the data directory structure and the file names, formats, and data features of the files inside those directories.
 
 ## Data directory structure 
-All homology groups are subfolders of the root data folder. Each homology group subfolder has a unique `homology_id`, corresponding to the identifiers in `data_homology_ids.json`
+
+The root data directory contains files containing data regarding the full dataset.
+
+Each homology group is a subdirectory of the root data directory and has a unique name, corresponding to the `homology_id` identifier in `data_homology_ids.json`, and contains the files belonging to that homology group.
 
 ```
 /
-│   data_homology_ids.json
-│   core_snp.txt
-│ 
-│└───/<homology_id>
-│   │   al_pos.csv
-│   │   linkage_matrix.npy
-│   │   nuc_structure.scv
-│   │   phenos.csv
-│   │   sequence_info.csv
-│   │   sequences.csv    
-│   │   var_pos_count.csv
+|-- data_homology_ids.json
+|-- core_snp.txt
+|
++-- <homology_id>/
+    |-- al_pos.csv
+    |-- linkage_matrix.npy
+    |-- nuc_structure.csv
+    |-- phenos.csv
+    |-- sequence_info.csv
+    |-- sequences.csv    
+    |-- var_pos_count.csv
 ```
 
 
-## Root level files
+## Root dataset files
 
 ### `data_homology_ids.json`
 
 A list of objects representing all homology ids of the selected set. Homology id objects have the following properties:
 
-*  `homology_id`: unique id for the homology group
-* `name`: name of the gene
-*  `members`: number of sequences 
-*  `class`: homology classification 
-*  `variable_sites_nuc`: boolean indicating presence of any variable positions in nucleotide alignment 
-*  `informative_sites_nuc`: boolean indicating presence of any informative positions in nucleotide alignment 
-*  `variable_sites_prot`: boolean indicating presence of any informative positions in protein alignment
-*  `informative_sites_prot`: boolean indicating presence of any informative positions in protein alignment
-*  `pheno_specific_changes_nuc`: boolean indicating presence of any phenotype specific positions in nucleotide alignment for a predefined phenotype
-*  `pheno_specific_changes_prot`: boolean indicating presence of any phenotype specific positions in protein alignment for a predefined phenotype
+* `homology_id`: Unique id for the homology group (_integer_).
+* `name`: Name of the gene (_string_).
+* `members`: Number of sequences (_integer_).
+* `class`: Homology classification (_string_).
+* `variable_sites_nuc`: Presence of any variable positions in nucleotide alignment (_boolean_).
+* `variable_sites_prot`: Presence of any informative positions in protein alignment (_boolean_).
+* `informative_sites_nuc`: Presence of any informative positions in nucleotide alignment (_boolean_).
+* `informative_sites_prot`: Presence of any informative positions in protein alignment (_boolean_).
+* `pheno_specific_changes_nuc`: Presence of any phenotype specific positions in nucleotide alignment for a predefined phenotype (_boolean_).
+* `pheno_specific_changes_prot`: Presence of any phenotype specific positions in protein alignment for a predefined phenotype (_boolean_).
 
 An example object in the array:
-```
-
+```json
 [
     {
         "homology_id": 13773385,
         "members": 197,
         "class": "single copy core",
         "variable_sites_nuc": true,
-        "informative_sites_nuc": true,
         "variable_sites_prot": true,
+        "informative_sites_nuc": true,
         "informative_sites_prot": true,
         "pheno_specific_changes_nuc": true,
         "pheno_specific_changes_prot": true
-    },
+    }
 ]
 ```
 
@@ -66,7 +68,7 @@ An example object in the array:
 A Maximum likelihood (ML) or Neighbour-Joining (NJ) phylogeny from SNPs identified from single copy orthologous genes. The tree output is in Newick format. 
 
 
-## Homology subfolder files
+## Homology group files
 
 #### `al_pos.csv`
 
@@ -74,52 +76,55 @@ This is a matrix of the aligned gene sequences and position specific attributes.
 
 | `mRNA_id`                | `genome_nr` | `position` | `nucleotide` | `variable` | `informative` | `pheno_specific` |
 |--------------------------|-------------|------------|--------------|------------|---------------|------------------|
-| 97_1_FEDMPDKE_03607_mRNA | 97          | 1          | A            | TRUE       | FALSE         | FALSE            |
-| 97_1_FEDMPDKE_03607_mRNA | 97          | 2          | T            | FALSE      |               |                  |
+| 97_1_FEDMPDKE_03607_mRNA | 97          | 1          | A            | True       | False         | False            |
+| 97_1_FEDMPDKE_03607_mRNA | 97          | 2          | T            | False      |               |                  |
 
-* `mRNA_id`: a unique identifier for each sequence in the homology group
-* `genome_nr`: is a unique ID for each genome sequence
-* `position`: the position in the alignment
-* `nucleotide`: the nucleotide value (A, C, G, T, -)
-* `variable`: boolean indicating TRUE if position is **variable** in nucleotide alignment else FALSE
-* `informative`: boolean indicating TRUE if position is **informative** in nucleotide alignment, if not it is FALSE or empty 
-* `pheno_specific`: boolean indicating TRUE if position is phenotype specific (for a predefined phenotype) in nucleotide alignment, if not it is FALSE or empty 
+* `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
+* `genome_nr`: A unique ID for each genome sequence (_integer_).
+* `position`: The position in the alignment (_integer_).
+* `nucleotide`: The nucleotide value (_`A|C|G|T|-`_).
+* `variable`: Is position **variable** in nucleotide alignment (_boolean_).
+* `informative`: Is position **informative** in nucleotide alignment (_boolean_).
+* `pheno_specific`: Is position phenotype specific (for a predefined phenotype) in nucleotide alignment (_boolean_).
+
 
 ### `linkage_matrix.npy`
 
-The linkage matrix for generating the initial clustering dendrogram, stored as NumPy file. This file is generated by running `generate_matrices.py` from the API folder and should be done before starting the frontend application. 
-
+The linkage matrix for generating the initial clustering dendrogram, stored as NumPy file. This file is generated by running `generate_matrices.py` from the API directory and should be done before starting the frontend application. 
 
 
 ### `nuc_structure.csv`
 
 This file is only used for Eukaryotic pangenomes. It specifies the gene models matched to each gene sequences of reference genomes (for which GFF files are available). Attributes such as `variable` are also linked for filerting purposes in PanVA. For example:
 
-| `mRNA_id`                           | `position`      | `feature`       | `genome_nr` | `nucleotide` | `variable` | `informative` |
-| ----------------------------------- | --------------- | --------------- | ----------- | ------------ | ---------- | ------------- | 
-| 5_1_ATERI-1G45130.1 | 1             | 1               | cds             | 1           | A            | FALSE      |               | 
-| 5_1_ATERI-1G45130.1 | 1             | 1               | cds             | 1           | A            | FALSE      |               | 1256          |             
+| `mRNA_id`           | `position` | `feature` | `genome_nr` | `nucleotide` | `variable` | `informative` |
+|---------------------|------------|-----------|-------------|--------------|------------|---------------|
+| 5_1_ATERI-1G45130.1 | 1          | cds       | 1           | A            | False      |               |
+| 5_1_ATERI-1G45130.2 | 1          | cds       | 1           | A            | False      |               |
 
-* `mRNA_id`: a unique identifier for each sequence in the homology group
-* `position`: the position in the alignment
-* `feature`: boolean indicating which positions are in the coding regions (cds) or not (noncoding)
-* `genome_nr`: is a unique ID for each genome sequence
-* `nucleotide`: the nucleotide value (A, C, G, T, -)
-* `variable`: boolean indicating TRUE if position is **variable** in nucleotide alignment else FALSE
-* `informative`: boolean indicating TRUE if position is **informative** in nucleotide alignment, if not it is FALSE or empty 
+* `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
+* `position`: The position in the alignment (_integer_).
+* `feature`: Is position in the coding regions (cds) (_boolean_).
+* `genome_nr`: A unique ID for each genome sequence (_integer_).
+* `nucleotide`: The nucleotide value (_`A|C|G|T|-`_).
+* `variable`: Is position **variable** in nucleotide alignment (_boolean_).
+* `informative`: Is position **informative** in nucleotide alignment (_boolean_).
+
 
 ### `phenos.csv`
 
 A CSV file containing the phenotypes for each genome indicated by `genome_nr` that should be included in the analysis. For example: 
 
-| `genome_nr` | `<virulence>` | `<species>`   |
-|-------------|---------------|---------------|
-| 1           | avirulent     | P.brasiliens  |
-| 2           | ?             | P.brasiliense |
+| `genome_nr` | `mRNA_id`                | `<virulence>` | `<species>`   |
+|-------------|--------------------------|---------------|---------------|
+| 1           | 97_1_FEDMPDKE_03607_mRNA | avirulent     | P.brasiliens  |
+| 2           | 87_1_JABOGBIO_03490_mRNA | ?             | P.brasiliense |
 
-* `genome_nr`:  a unique ID for each genome sequence
-* `virulence`: an example binary phenotupe, in this case virulence
-* `species`: an example categorical phenotupe, in this case the species name
+* `genome_nr`: A unique ID for each genome sequence (_integer_).
+* `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
+* `virulence`: An example binary phenotype, in this case virulence (_boolean_).
+* `species`: An example categorical phenotype, in this case the species name (_string_).
+
 
 ### `sequences.csv`
 
@@ -130,23 +135,24 @@ The sequences extracted from the multiple sequence alignment. For example:
 | 97_1_FEDMPDKE_03607_mRNA | ATGAGTTTTGATAATTCCCCACAATCACGCCTGATCCTAACCATGATGGGAGCC... |
 | 87_1_JABOGBIO_03490_mRNA | ATGAGTTTTGATAATTCCCCACAATCACGCCTGATCCTAACCATGATGGGAGCC... |
 
-* `mRNA_id`: a unique identifier for each sequence in the homology group
-* `nuc_trimmed_seq`: the nucleotide sequences, trimmed in PanTools  
+* `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
+* `nuc_trimmed_seq`: The nucleotide sequences, trimmed in PanTools (_string_).
 
 
 
 ### `var_pos_count.csv`
+
 Summary of all variable positions in the alignment and their value counts. This data is used for calculation of the conservation score at each aligned position. For example:
 
 | `position` | `informative` | `A` | `C` | `G` | `T` | `gap` |
 |------------|---------------|-----|-----|-----|-----|-------|
-| 1          | TRUE          | 0   | 30  | 70  | 0   | 0     |
-| 9          | FALSE         | 1   | 0   | 70  | 99  | 0     |
+| 1          | True          | 0   | 30  | 70  | 0   | 0     |
+| 9          | False         | 1   | 0   | 70  | 99  | 0     |
 
-* `position`: the position in the alignment
-* `informative`: boolean indicating TRUE if position is **informative** in nucleotide alignment, if not it is FALSE or empty 
-* `A`: number of sequences containing nucleotide A
-* `C`: number of sequences containing nucleotide C
-* `G`: number of sequences containing nucleotide G
-* `T`: number of sequences containing nucleotide T
-* `gap`: number of sequences containing a gap (-)
+* `position`: The position in the alignment (_integer_).
+* `informative`: Is position **informative** in nucleotide alignment (_boolean_).
+* `A`: Number of sequences containing nucleotide A (_integer_).
+* `C`: Number of sequences containing nucleotide C (_integer_).
+* `G`: Number of sequences containing nucleotide G (_integer_).
+* `T`: Number of sequences containing nucleotide T (_integer_).
+* `gap`: Number of sequences containing a gap (-) (_integer_).
