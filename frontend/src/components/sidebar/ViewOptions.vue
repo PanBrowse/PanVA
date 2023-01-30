@@ -8,9 +8,12 @@ import { phenoColumns } from '@dataset'
 import SidebarItem from '@/components/common/SidebarItem.vue'
 
 type SortOption = {
-  value: string
   label: string
-  disabled?: boolean
+  isDisabled?: boolean
+  // Groups should have a unique value too.
+  value: string
+  // Having options means this is a group.
+  options?: Omit<SortOption, 'options'>[]
 }
 
 export default {
@@ -26,9 +29,9 @@ export default {
     ]),
     ...mapWritableState(useDataStore, [
       'cellTheme',
-      'dendro',
-      'transitionsEnabled',
       'referenceMrnaId',
+      'transitionsEnabled',
+      'tree',
     ]),
     referenceMrnaIdOptions(): string[] {
       return naturalSort(this.mrnaIds)
@@ -45,23 +48,39 @@ export default {
       const sortPosition =
         this.sorting.field === 'position' ? this.sorting.position : start
 
-      const options = [
-        { value: 'dendroDefault', label: 'Dendrogram' },
+      const options: SortOption[] = [
         {
-          value: 'dendroCustom',
-          label: 'Custom dendrogram',
-          disabled: !this.dendroCustom,
+          label: 'Tree',
+          value: 'tree',
+          options: [
+            { value: 'dendroDefault', label: 'Dendrogram' },
+            {
+              value: 'dendroCustom',
+              label: 'Custom dendrogram',
+              isDisabled: !this.dendroCustom,
+            },
+            { value: 'coreSnp', label: 'CoreSNP', isDisabled: true },
+          ],
         },
         { value: 'mrnaId', label: 'mRNA id' },
         { value: 'position', label: `Nucleotide (pos ${sortPosition})` },
       ]
 
+      const phenoSortOptions: SortOption[] = []
       phenoColumns.forEach(({ field, label }) => {
-        options.push({
+        phenoSortOptions.push({
           value: field,
           label,
         })
       })
+
+      if (phenoSortOptions.length) {
+        options.push({
+          value: 'phenotypes',
+          label: 'Phenotypes',
+          options: phenoSortOptions,
+        })
+      }
 
       return options
     },
@@ -112,21 +131,32 @@ export default {
           v-model:value="sortValue"
           @change="changeSort"
         >
-          <a-select-option
-            v-for="option in sortOptions"
-            :value="option.value"
-            :disabled="option.disabled"
-            v-bind:key="option.value"
-          >
-            {{ option.label }}
-          </a-select-option>
+          <template v-for="option in sortOptions" v-bind:key="option.value">
+            <a-select-opt-group :label="option.label" v-if="option.options">
+              <a-select-option
+                v-for="suboption in option.options"
+                :value="suboption.value"
+                :disabled="suboption.isDisabled"
+                v-bind:key="suboption.value"
+              >
+                {{ suboption.label }}
+              </a-select-option>
+            </a-select-opt-group>
+            <a-select-option
+              v-else
+              :value="option.value"
+              :disabled="option.isDisabled"
+            >
+              {{ option.label }}
+            </a-select-option>
+          </template>
         </a-select>
       </a-form-item>
 
       <a-form-item label="Tree">
-        <a-select :dropdownMatchSelectWidth="false" v-model:value="dendro">
-          <a-select-option value="default">Dendrogram</a-select-option>
-          <a-select-option value="custom" :disabled="!dendroCustom">
+        <a-select :dropdownMatchSelectWidth="false" v-model:value="tree">
+          <a-select-option value="dendroDefault">Dendrogram</a-select-option>
+          <a-select-option value="dendroCustom" :disabled="!dendroCustom">
             Custom dendrogram
           </a-select-option>
           <a-select-option value="coreSnp" disabled>CoreSNP</a-select-option>

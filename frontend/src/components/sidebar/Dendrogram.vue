@@ -22,7 +22,7 @@ export default {
       'selectedRegionLength',
       'transitionTime',
     ]),
-    ...mapWritableState(useDataStore, ['dendro', 'selectedPositions']),
+    ...mapWritableState(useDataStore, ['tree', 'selectedPositions']),
     isRegionChecked(): boolean {
       return this.selectedInsideRangeCount === this.selectedRegionLength
     },
@@ -91,7 +91,7 @@ export default {
       this.isFetchingCustomDendro = false
 
       // Automatically switch to the custom dendrogram.
-      this.dendro = 'custom'
+      this.tree = 'dendroCustom'
       this.changeSorting({ field: 'dendroCustom' })
     },
   },

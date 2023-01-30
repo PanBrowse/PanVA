@@ -2,10 +2,10 @@
 import { phenoColumns } from '@dataset'
 
 import Bipartite from '@/components/visualizations/Bipartite.vue'
-import Dendrogram from '@/components/visualizations/Dendrogram.vue'
+import Tree from '@/components/visualizations/Tree.vue'
 import Heatmap from '@/components/visualizations/Heatmap.vue'
 import HeatmapHeader from '@/components/visualizations/HeatmapHeader.vue'
-import DendroLabels from '@/components/visualizations/DendroLabels.vue'
+import TreeLabels from '@/components/visualizations/TreeLabels.vue'
 import Names from '@/components/visualizations/Names.vue'
 import PhenoBoolean from '@/components/visualizations/PhenoBoolean.vue'
 import PhenoCategorical from '@/components/visualizations/PhenoCategorical.vue'
@@ -17,15 +17,15 @@ import { useDataStore } from '@/stores/data'
 export default {
   components: {
     Bipartite,
-    Dendrogram,
     Heatmap,
     HeatmapHeader,
-    DendroLabels,
     Names,
     PhenoBoolean,
     PhenoCategorical,
     PhenoLabels,
     ScrollSync,
+    Tree,
+    TreeLabels,
   },
   computed: {
     phenoColumns() {
@@ -51,7 +51,7 @@ export default {
 <template>
   <a-card class="locus-view" title="Locus view" :bordered="false" size="small">
     <div class="header">
-      <DendroLabels />
+      <TreeLabels />
       <scroll-sync
         horizontal
         style="overflow: auto hidden; min-width: 120px"
@@ -64,7 +64,7 @@ export default {
 
     <div class="content-wrapper">
       <div class="content">
-        <Dendrogram />
+        <Tree />
         <Bipartite />
         <Names />
         <scroll-sync

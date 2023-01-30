@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
-import { parse_newick, type TreeNode } from 'biojs-io-newick'
+import { parse_newick } from 'biojs-io-newick'
 import * as d3 from 'd3'
 
 import {
@@ -21,7 +21,7 @@ import type {
   AlignedPosition,
   AlignedPositionsCSVColumns,
   DataIndexCollapsed,
-  Dendro,
+  TreeNode,
   Group,
   Homology,
   mRNAid,
@@ -52,14 +52,14 @@ import arrayFlip from '@/helpers/arrayFlip'
 import { medianRight } from '@/helpers/medianRight'
 import { zipEqual } from '@/helpers/zipEqual'
 import { naturalSort, sortingPayload } from '@/helpers/sorting'
-import { leafNodes } from '@/helpers/dendro'
+import { leafNodes } from '@/helpers/tree'
 import { arraySlice } from '@/helpers/arraySlice'
 import { isGroup } from '@/helpers/isGroup'
 import { toRaw } from 'vue'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
-type DendroOption = 'default' | 'custom'
+type TreeOption = 'dendroDefault' | 'dendroCustom' | 'coreSnp'
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -70,8 +70,8 @@ export const useDataStore = defineStore('data', {
     // Data that is fetched from the API using `homologyId`.
     // We don't keep data for previous homology ids because of memory consumption.
     alignedPositions: [] as AlignedPosition[],
-    dendroCustom: null as Dendro | null,
-    dendroDefault: null as Dendro | null,
+    dendroCustom: null as TreeNode | null,
+    dendroDefault: null as TreeNode | null,
     phenos: [] as Pheno[],
     sequences: [] as Sequence[],
     varPosCount: [] as VarPosCount[],
@@ -143,7 +143,7 @@ export const useDataStore = defineStore('data', {
 
     // User options.
     cellTheme: 'default' as CellThemeName,
-    dendro: 'default' as DendroOption,
+    tree: 'dendroDefault' as TreeOption,
     homologyId: defaultHomologyId,
     referenceMrnaId: null as mRNAid | null,
     transitionsEnabled: true,
@@ -276,7 +276,12 @@ export const useDataStore = defineStore('data', {
         sortingPayload(sorting) === sortingPayload(this.sorting)
       ) {
         // Same field and parameter, so we reverse the current sorting.
-        this.sortedDataIndices = reverse(this.sortedDataIndices)
+        // But we don't do this for the tree, that is static.
+        if (
+          !['dendroDefault', 'dendroCustom', 'coreSnp'].includes(sorting.field)
+        ) {
+          this.sortedDataIndices = reverse(this.sortedDataIndices)
+        }
         return
       }
 
@@ -422,7 +427,7 @@ export const useDataStore = defineStore('data', {
     },
     async fetchDendrogramDefault() {
       try {
-        const data = await d3.json<Dendro>(
+        const data = await d3.json<TreeNode>(
           `${API_URL}/${this.homologyId}/d3dendro`
         )
         if (data) {
@@ -438,7 +443,7 @@ export const useDataStore = defineStore('data', {
     },
     async fetchDendrogramCustom() {
       try {
-        const response = await axios.post<Dendro>(
+        const response = await axios.post<TreeNode>(
           `${API_URL}/${this.homologyId}/d3dendro`,
           {
             positions: toRaw(this.selectedPositions),
@@ -546,7 +551,7 @@ export const useDataStore = defineStore('data', {
         varPosCount: [],
 
         // Reset groups and selections that contain references to data.
-        dendro: 'default',
+        tree: 'dendroDefault',
         dendroCustomForSelectedPositions: [],
         groups: [],
         lastGroupId: 0,

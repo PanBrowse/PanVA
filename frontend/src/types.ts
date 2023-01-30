@@ -10,7 +10,7 @@ export type DataIndexCollapsed = number | Group
  * Sorting.
  */
 type SortingCommon = {
-  field: 'dendroDefault' | 'dendroCustom' | 'mrnaId'
+  field: 'dendroDefault' | 'dendroCustom' | 'coreSnp' | 'mrnaId'
 }
 
 type SortingPheno = {
@@ -87,9 +87,11 @@ export type Sequence = {
   prot_seq: string
 }
 
-export type Dendro = {
+export type TreeNode = {
   name: string
-  children?: Dendro[]
+  children?: TreeNode[]
+  // Not used in Dendrogram, but used in coreSNP.
+  branch_length?: number
 }
 
 /**
