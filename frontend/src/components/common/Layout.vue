@@ -26,7 +26,7 @@ export default {
   <a-layout hasSider>
     <a-layout-content>
       <a-button
-        type="text"
+        :type="collapsed ? 'primary' : 'default'"
         class="collapse-trigger"
         shape="circle"
         @click="() => (collapsed = !collapsed)"
@@ -66,9 +66,7 @@ export default {
 
 .ant-layout-content {
   background: none;
-  position: relative;
   padding: 16px;
-  padding-top: 58px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -81,7 +79,8 @@ export default {
 
 .collapse-trigger {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 12px;
+  right: 12px;
+  z-index: 200;
 }
 </style>
