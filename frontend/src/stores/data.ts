@@ -687,7 +687,13 @@ export const useDataStore = defineStore('data', {
         this.sortedDataIndicesCollapsed,
         this.dragStartRowIndex,
         index
-      ).filter((data): data is number => !isGroup(data))
+      ).filter((data): data is number => {
+        // We can't select groups.
+        if (isGroup(data)) return false
+        // We can't select rows that are already part of a group.
+        if (this.rowColors[data]) return false
+        return true
+      })
 
       if (this.dragIsCumulative) {
         this.selectedDataIndices = union(
