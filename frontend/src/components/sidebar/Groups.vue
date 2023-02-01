@@ -13,7 +13,6 @@ import { useDataStore } from '@/stores/data'
 import type { Group } from '@/types'
 import { GROUP_COLORS } from '@/constants'
 import { chain, cloneDeep, difference, map } from 'lodash'
-import { arraySplice } from '@/helpers/arraySplice'
 
 type FormGroup = Omit<Group, 'id' | 'dataIndices'>
 
@@ -36,7 +35,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(useDataStore, ['createGroup']),
+    ...mapActions(useDataStore, ['createGroup', 'deleteGroup']),
     onCreate() {
       if (!this.newGroup) return
 
@@ -44,11 +43,11 @@ export default {
       this.clearSelection()
       this.newGroup = null
     },
+    onDelete(id: number) {
+      this.deleteGroup(id)
+    },
     clearSelection() {
       this.selectedDataIndices = []
-    },
-    deleteGroup(index: number) {
-      this.groups = arraySplice(this.groups, index, 1)
     },
     updateGroups() {
       this.groups = cloneDeep(this.groups)
@@ -105,8 +104,8 @@ export default {
       type="flex"
       :gutter="4"
       style="margin-bottom: 8px"
-      v-for="(group, index) in groups"
-      v-bind:key="index"
+      v-for="group in groups"
+      v-bind:key="group.id"
     >
       <a-col flex="0 0 auto">
         <ColorSelect v-model="group.color" @change="updateGroups()" />
@@ -138,7 +137,7 @@ export default {
         </a-button>
       </a-col>
       <a-col flex="0 0 auto">
-        <a-button type="text" @click="deleteGroup(index)">
+        <a-button type="text" @click="onDelete(group.id)">
           <template #icon><DeleteOutlined /></template>
         </a-button>
       </a-col>

@@ -12,6 +12,17 @@ export type FilterPosition =
   | 'informative'
   | 'pheno_specific'
 
+export type GroupReference = {
+  type: 'group'
+  id: number
+}
+export type DataReference = {
+  type: 'data'
+  dataIndex: number
+}
+
+export type Reference = GroupReference | DataReference
+
 export type AppError = {
   message: string
   isFatal?: boolean

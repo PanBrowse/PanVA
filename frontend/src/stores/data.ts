@@ -39,6 +39,9 @@ import type {
   AppError,
   FilterPosition,
   TreeOption,
+  Reference,
+  GroupReference,
+  DataReference,
 } from '@/types'
 import {
   chain,
@@ -60,6 +63,7 @@ import { arraySlice } from '@/helpers/arraySlice'
 import { isGroup } from '@/helpers/isGroup'
 import { toRaw } from 'vue'
 import { useConfigStore } from './config'
+import { sortNucleotideString } from '@/helpers/nucleotide'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -151,7 +155,7 @@ export const useDataStore = defineStore('data', {
     cellTheme: 'default' as CellThemeName,
     tree: 'dendroDefault' as TreeOption,
     homologyId: null as number | null,
-    referenceMrnaId: null as mRNAid | null,
+    reference: null as Reference | null,
     transitionsEnabled: true,
   }),
   getters: {
@@ -269,20 +273,46 @@ export const useDataStore = defineStore('data', {
     transitionTime(): number {
       return this.transitionsEnabled ? TRANSITION_TIME : 0
     },
-    referenceMrnaNucleotideAtPosition() {
-      if (!this.referenceMrnaId) {
-        throw new Error(
-          'Should only be called if there is a referenceMrnaId set.'
-        )
+    referenceNucleotides(): string[] | null {
+      /**
+       * [
+       *    'AC', // Nucleotide string at position 1.
+       *    'A',  // Nucleotide string at position 2.
+       *    ...
+       * ],
+       */
+      if (!this.reference) return null
+
+      if (this.reference.type === 'group') {
+        const { id } = this.reference as GroupReference
+
+        const { dataIndices } = this.groups.find(
+          (group) => group.id === id
+        ) as Group
+
+        return this.filteredPositions.map((position) => {
+          const nucleotides: Record<string, boolean> = {}
+
+          dataIndices.forEach((dataIndex) => {
+            const { nucleotide } =
+              this.alignedPositions[dataIndex * this.geneLength + position - 1]
+            nucleotides[nucleotide] = true
+          })
+
+          return sortNucleotideString(Object.keys(nucleotides).join(''))
+        })
       }
 
-      const mrnaIndex = this.mrnaIds.indexOf(this.referenceMrnaId)
+      if (this.reference.type === 'data') {
+        return this.filteredPositions.map((position) => {
+          const { dataIndex } = this.reference as DataReference
 
-      return (position: number) => {
-        const { nucleotide } =
-          this.alignedPositions[mrnaIndex * this.geneLength + position - 1]
-        return nucleotide
+          const { nucleotide } =
+            this.alignedPositions[dataIndex * this.geneLength + position - 1]
+          return nucleotide
+        })
       }
+      return null
     },
     mrnaIdsSorted(): mRNAid[] {
       return this.sortedDataIndices.map((index) => this.mrnaIds[index])
@@ -686,6 +716,14 @@ export const useDataStore = defineStore('data', {
           id: ++this.lastGroupId,
         },
       ]
+    },
+    deleteGroup(id: number) {
+      // Reset reference it is is set to the group we are deleting.
+      if (this.reference?.type === 'group' && this.reference.id === id) {
+        this.reference = null
+      }
+
+      this.groups = this.groups.filter((group) => group.id !== id)
     },
     setError(error: AppError | null) {
       // We have an old and new error.

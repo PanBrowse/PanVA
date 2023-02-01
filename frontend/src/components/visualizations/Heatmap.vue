@@ -15,6 +15,8 @@ import { keys, pickBy } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import { groupCounts } from '@/helpers/groupCounts'
+import { drawNucleotide } from '@/helpers/nucleotide'
+import type { StyleValue } from 'vue'
 
 type CellCoordinate = {
   column: number
@@ -62,8 +64,8 @@ export default {
       'homologyId',
       'mrnaIds',
       'nucleotideColor',
-      'referenceMrnaId',
-      'referenceMrnaNucleotideAtPosition',
+      'reference',
+      'referenceNucleotides',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
       'transitionTime',
@@ -131,15 +133,15 @@ export default {
         })
       )
     },
-    hoverCellStyle() {
-      if (this.hoverColIndex === null || this.hoverRowIndex === null) return
+    hoverCellStyle(): StyleValue {
+      if (this.hoverColIndex === null || this.hoverRowIndex === null) return {}
       return {
         left: this.hoverColIndex * CELL_SIZE + 'px',
         top: this.hoverRowIndex * CELL_SIZE + 'px',
       }
     },
-    hoverRowStyle() {
-      if (this.hoverRowIndex === null) return
+    hoverRowStyle(): StyleValue {
+      if (this.hoverRowIndex === null) return {}
       return {
         top: this.hoverRowIndex * CELL_SIZE + 'px',
         width: this.width + 'px',
@@ -158,7 +160,20 @@ export default {
     dataAtPosition(dataIndex: number, position: number): AlignedPosition {
       return this.alignedPositions[dataIndex * this.geneLength + position - 1]
     },
-    drawCells() {
+    isReference(data: DataIndexCollapsed): boolean {
+      if (!this.reference) return false
+
+      if (this.reference.type === 'group') {
+        return isGroup(data) && this.reference.id === data.id
+      }
+
+      if (this.reference.type === 'data') {
+        return this.reference.dataIndex === data
+      }
+
+      return false
+    },
+    drawDomCells() {
       if (!this.hasAllData) return
 
       d3.select(this.customNode)
@@ -192,107 +207,27 @@ export default {
           const { nucleotide } = this.dataAtPosition(data, position)
           return nucleotide
         })
-        .attr('position', ({ position }) => position)
     },
-    cellColor(position: number, nucleotide: Nucleotide) {
-      if (!this.referenceMrnaId) return this.nucleotideColor(nucleotide)
-
-      const referenceNucleotide =
-        this.referenceMrnaNucleotideAtPosition(position)
-
-      if (referenceNucleotide === nucleotide) {
-        return '#e9ecef'
-      }
-
-      return this.nucleotideColor(nucleotide)
-    },
-    drawNucleotide(
+    drawCanvasCell(
       ctx: CanvasRenderingContext2D,
       nucleotides: string,
-      position: number,
+      column: number,
       x: number,
-      y: number
+      y: number,
+      isReference: boolean
     ) {
-      ctx.save()
+      const matchesReference =
+        this.referenceNucleotides &&
+        !isReference &&
+        this.referenceNucleotides[column] === nucleotides
 
-      // Single nucleotide or group with the same nucleotide at this position.
-      if (nucleotides.length === 1) {
-        ctx.fillStyle = this.cellColor(position, nucleotides as Nucleotide)
-        ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
-      } else {
-        ctx.fillStyle = '#4d4d4d'
-        ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
-
-        if (nucleotides.includes('a') || nucleotides.includes('A')) {
-          ctx.fillStyle = this.nucleotideColor('A')
-          ctx.beginPath()
-          // Top.
-          ctx.moveTo(x + 5, y + 5)
-          ctx.lineTo(x, y)
-          ctx.lineTo(x + 10, y)
-          ctx.lineTo(x + 5, y + 5)
-          ctx.closePath()
-          ctx.fill()
-        }
-
-        if (nucleotides.includes('c') || nucleotides.includes('C')) {
-          ctx.fillStyle = this.nucleotideColor('C')
-          ctx.beginPath()
-          // Right.
-          ctx.moveTo(x + 5, y + 5)
-          ctx.lineTo(x + 10, y)
-          ctx.lineTo(x + 10, y + 10)
-          ctx.lineTo(x + 5, y + 5)
-          ctx.closePath()
-          ctx.fill()
-        }
-
-        if (nucleotides.includes('g') || nucleotides.includes('G')) {
-          ctx.fillStyle = this.nucleotideColor('G')
-          ctx.beginPath()
-          // Bottom.
-          ctx.moveTo(x + 5, y + 5)
-          ctx.lineTo(x + 10, y + 10)
-          ctx.lineTo(x, y + 10)
-          ctx.lineTo(x + 5, y + 5)
-          ctx.closePath()
-          ctx.fill()
-        }
-
-        if (nucleotides.includes('t') || nucleotides.includes('T')) {
-          ctx.fillStyle = this.nucleotideColor('T')
-          ctx.beginPath()
-          // Left.
-          ctx.moveTo(x + 5, y + 5)
-          ctx.lineTo(x, y + 10)
-          ctx.lineTo(x, y)
-          ctx.lineTo(x + 5, y + 5)
-          ctx.closePath()
-          ctx.fill()
-        }
-
-        if (nucleotides.includes('-')) {
-          ctx.fillStyle = '#ffffff'
-          ctx.beginPath()
-          ctx.ellipse(x + 5, y + 5, 2.75, 2.75, 0, 0, 0)
-          ctx.closePath()
-          ctx.fill()
-
-          ctx.fillStyle = '#4d4d4d'
-          ctx.beginPath()
-          ctx.ellipse(x + 5, y + 5, 2.5, 2.5, 0, 0, 0)
-          ctx.closePath()
-          ctx.fill()
-
-          ctx.fillStyle = '#ffffff'
-          ctx.beginPath()
-          ctx.ellipse(x + 5, y + 5, 1.5, 1.5, 0, 0, 0)
-          ctx.closePath()
-          ctx.fill()
-        }
-      }
-
-      ctx.restore()
+      drawNucleotide({
+        ctx,
+        nucleotides: matchesReference ? '' : nucleotides,
+        x,
+        y,
+        colorFn: this.nucleotideColor,
+      })
     },
     drawCanvas() {
       const scaleFactor = 2.0
@@ -315,26 +250,25 @@ export default {
       ctx.save()
       ctx.clearRect(0, 0, this.width, this.height)
 
-      // Setup default drawing style.
-      ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 0.5
-
       const that = this
 
       d3.select(this.customNode)
         .selectAll<HTMLElement, any>('c')
-        .each(function () {
+        .each(function ({ data, column }) {
           if (!this) return
 
           const nucleotides = this.getAttribute('nucleotides') as string
-          const position = parseInt(this.getAttribute('position') as string)
           const x = parseInt(this.getAttribute('x') as string)
           const y = parseInt(this.getAttribute('y') as string)
 
-          that.drawNucleotide(ctx, nucleotides, position, x, y)
-
-          // White border overlay.
-          ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE)
+          that.drawCanvasCell(
+            ctx,
+            nucleotides,
+            column,
+            x,
+            y,
+            that.isReference(data)
+          )
         })
 
       ctx.restore()
@@ -459,31 +393,31 @@ export default {
       childList: true,
       subtree: true,
     })
-    this.drawCells()
+    this.drawDomCells()
   },
   unmounted() {
     this.mutationObserver?.disconnect()
   },
   watch: {
     alignedPositions() {
-      this.drawCells()
+      this.drawDomCells()
     },
     cellTheme() {
       this.drawCanvas()
     },
     hasAllData() {
-      this.drawCells()
+      this.drawDomCells()
     },
-    referenceMrnaId() {
+    reference() {
       this.drawCanvas()
     },
     filteredPositions() {
-      this.drawCells()
+      this.drawDomCells()
     },
     sortedDataIndicesCollapsed(newData, oldData) {
       // Don't redraw unless data actually changed.
       if (!this.isDataEqual(newData, oldData)) {
-        this.drawCells()
+        this.drawDomCells()
       }
     },
   },

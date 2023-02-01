@@ -7,6 +7,9 @@ import { CELL_THEMES } from '@/constants'
 import SidebarItem from '@/components/common/SidebarItem.vue'
 import { useConfigStore } from '@/stores/config'
 
+import { groupName } from '@/helpers/groupName'
+import type { mRNAid, Reference } from '@/types'
+
 type SortOption = {
   label: string
   isDisabled?: boolean
@@ -24,19 +27,38 @@ export default {
     ...mapState(useConfigStore, ['phenoColumns']),
     ...mapState(useDataStore, [
       'dendroCustom',
-      'mrnaIds',
       'filteredPositions',
+      'groups',
+      'mrnaIds',
+      'mrnaIdsLookup',
+      'reference',
       'sorting',
     ]),
     ...mapWritableState(useDataStore, [
       'cellTheme',
       'filterPositions',
-      'referenceMrnaId',
+      'reference',
       'transitionsEnabled',
       'tree',
     ]),
-    referenceMrnaIdOptions(): string[] {
-      return naturalSort(this.mrnaIds)
+    referenceValue(): string {
+      if (!this.reference) return ''
+
+      if (this.reference.type === 'group') {
+        return `group:${this.reference.id}`
+      }
+
+      if (this.reference.type === 'data') {
+        return `data:${this.reference.dataIndex}`
+      }
+
+      return ''
+    },
+    referenceMrnaIdOptions(): [mRNAid, number][] {
+      return naturalSort(this.mrnaIds).map((mrnaId) => [
+        mrnaId,
+        this.mrnaIdsLookup[mrnaId],
+      ])
     },
     sortValue(): string {
       if (this.sorting.field === 'pheno') {
@@ -94,7 +116,29 @@ export default {
   },
   methods: {
     ...mapActions(useDataStore, ['changeSorting']),
-    changeSort(value: string) {
+    groupName,
+    onReferenceChange(value?: string) {
+      if (value) {
+        const [type, indexString] = value.split(':')
+        const index = parseInt(indexString)
+
+        if (type === 'group') {
+          this.reference = {
+            type: 'group',
+            id: index,
+          } as Reference
+        }
+        if (type === 'data') {
+          this.reference = {
+            type: 'data',
+            dataIndex: index,
+          } as Reference
+        }
+      } else {
+        this.reference = null
+      }
+    },
+    onSortChange(value: string) {
       if (value === 'dendroDefault') {
         this.changeSorting({
           field: 'dendroDefault',
@@ -145,7 +189,7 @@ export default {
         <a-select
           :dropdownMatchSelectWidth="false"
           v-model:value="sortValue"
-          @change="changeSort"
+          @change="onSortChange"
         >
           <template v-for="option in sortOptions" v-bind:key="option.value">
             <a-select-opt-group :label="option.label" v-if="option.options">
@@ -183,16 +227,27 @@ export default {
         <a-select
           show-search
           :dropdownMatchSelectWidth="false"
-          v-model:value="referenceMrnaId"
+          v-model:value="referenceValue"
+          @change="onReferenceChange"
           placeholder="None"
           allowClear
         >
+          <a-select-opt-group label="Groups" v-if="groups.length !== 0">
+            <a-select-option
+              v-for="group in groups"
+              :value="`group:${group.id}`"
+              v-bind:key="group.id"
+            >
+              {{ groupName(group) }}
+            </a-select-option>
+          </a-select-opt-group>
+
           <a-select-option
-            v-for="id in referenceMrnaIdOptions"
-            :value="id"
-            v-bind:key="id"
+            v-for="[mrnaId, dataIndex] in referenceMrnaIdOptions"
+            :value="`data:${dataIndex}`"
+            v-bind:key="dataIndex"
           >
-            {{ id }}
+            {{ mrnaId }}
           </a-select-option>
         </a-select>
       </a-form-item>

@@ -69,7 +69,7 @@ export default {
     isDatasetIndeterminate(): boolean {
       return this.selectedInDataset.length !== 0 && !this.isDatasetChecked
     },
-    customDendroButtonDisabled() {
+    customDendroButtonDisabled(): boolean {
       return (
         // Already fetching a custom dendro.
         this.isFetchingCustomDendro ||

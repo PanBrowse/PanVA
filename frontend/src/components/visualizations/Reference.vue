@@ -3,6 +3,7 @@ import * as d3 from 'd3'
 import { useDataStore } from '@/stores/data'
 import { mapState } from 'pinia'
 import { CELL_SIZE } from '@/constants'
+import { drawNucleotide } from '@/helpers/nucleotide'
 
 export default {
   computed: {
@@ -14,8 +15,8 @@ export default {
       'geneLength',
       'mrnaIds',
       'nucleotideColor',
-      'referenceMrnaId',
-      'referenceMrnaNucleotideAtPosition',
+      'reference',
+      'referenceNucleotides',
       'transitionTime',
     ]),
     hasAllData(): boolean {
@@ -29,37 +30,50 @@ export default {
     },
   },
   methods: {
-    svg() {
-      return d3.select('#reference')
-    },
-    cellColor(position: number) {
-      if (!this.referenceMrnaId) return '#e9ecef'
-      return this.nucleotideColor(
-        this.referenceMrnaNucleotideAtPosition(position)
-      )
+    context() {
+      return d3
+        .select<HTMLCanvasElement, any>('#reference')
+        .node()!
+        .getContext('2d')
     },
     drawCells() {
-      if (!this.hasAllData && this.referenceMrnaId) return
+      if (!this.hasAllData) return
 
-      this.svg()
-        .selectAll('rect')
-        .data(this.filteredPositions, (d) => d as number)
-        .join(
-          (enter) =>
-            enter
-              .append('rect')
-              .attr('fill', (position) => this.cellColor(position))
-              .attr('x', (position, index) => index * CELL_SIZE)
-              .attr('width', CELL_SIZE)
-              .attr('height', CELL_SIZE)
-              .attr('stroke', 'white')
-              .attr('stroke-width', 0.5),
-          (update) =>
-            update
-              .attr('fill', this.cellColor)
-              .attr('x', (position, index) => index * CELL_SIZE),
-          (exit) => exit.remove()
-        )
+      const scaleFactor = 2.0
+
+      const canvas = d3
+        .select<HTMLCanvasElement, any>('#reference')
+        .attr('width', this.width * scaleFactor)
+        .attr('height', this.height * scaleFactor)
+        .style('width', this.width + 'px')
+        .style('height', this.height + 'px')
+
+      const ctx = canvas.node()?.getContext('2d')
+
+      if (!ctx) return
+
+      // Render everything at 2x for improved graphics on higher DPI screens.
+      ctx.scale(scaleFactor, scaleFactor)
+
+      // Clear the screen.
+      ctx.save()
+      ctx.clearRect(0, 0, this.width, this.height)
+
+      this.filteredPositions.forEach((position, index) => {
+        const nucleotides = this.referenceNucleotides
+          ? this.referenceNucleotides[index]
+          : ''
+
+        drawNucleotide({
+          ctx,
+          nucleotides,
+          x: index * CELL_SIZE,
+          y: 0,
+          colorFn: this.nucleotideColor,
+        })
+      })
+
+      ctx.restore()
     },
   },
   mounted() {
@@ -72,7 +86,7 @@ export default {
     filteredPositions() {
       this.drawCells()
     },
-    referenceMrnaId() {
+    reference() {
       this.drawCells()
     },
     cellTheme() {
@@ -91,7 +105,7 @@ export default {
       transitionDuration: transitionTime + 'ms',
     }"
   >
-    <svg :width="width" :height="height" id="reference"></svg>
+    <canvas :width="width" :height="height" id="reference"></canvas>
   </div>
 </template>
 
@@ -101,7 +115,8 @@ export default {
   overflow: hidden;
   transition-property: width;
   transition-timing-function: linear;
-  svg {
+
+  canvas {
     vertical-align: top;
   }
 }

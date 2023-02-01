@@ -49,13 +49,7 @@ export default {
               .attr('x', 3)
               .attr('y', (data, index) => index * CELL_SIZE)
               .attr('width', this.width - 3)
-              .attr('height', CELL_SIZE)
-              .text((data) => {
-                if (isGroup(data)) {
-                  return `${groupName(data)} (${data.dataIndices.length})`
-                }
-                return this.mrnaIds[data]
-              }),
+              .attr('height', CELL_SIZE),
           (update) =>
             update
               .transition()
@@ -64,6 +58,12 @@ export default {
 
           (exit) => exit.remove()
         )
+        .text((data) => {
+          if (isGroup(data)) {
+            return `${groupName(data)} (${data.dataIndices.length})`
+          }
+          return this.mrnaIds[data]
+        })
         .style('color', (data) => {
           if (isGroup(data)) {
             if (data.isColorized) return data.color
