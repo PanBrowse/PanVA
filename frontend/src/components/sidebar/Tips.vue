@@ -15,8 +15,8 @@ export default {
       range.
     </p>
     <p>
-      When selecting sequences, hold <kbd>ctrl</kbd> to add to the current
-      selection.
+      When selecting sequences, hold <kbd>ctrl</kbd> or <kbd>alt</kbd> to add to
+      the current selection.
     </p>
   </SidebarItem>
 </template>

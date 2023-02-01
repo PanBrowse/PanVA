@@ -210,7 +210,7 @@ export default {
           const index = eventIndex(event)
           if (index === null) return
 
-          this.dragStart(index, event.ctrlKey)
+          this.dragStart(index, event.ctrlKey || event.altKey)
         })
         .on('mouseover', (event) => {
           const index = eventIndex(event)
