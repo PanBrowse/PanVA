@@ -26,21 +26,22 @@ Each column should be configured as a JSON object with the following options:
 | `label` | string                                         | Shown above the column.                                                |
 | `field` | string                                         | CSV column in [`phenos.csv`](../../api/docs/data-format.md#phenoscsv). |
 
+Based on the value of `type` these options are extended with the options as defined below.
 
 Note: A column from [`phenos.csv`](../../api/docs/data-format.md#phenoscsv) can be used multiple times in different columns.
 
 
 ### Boolean
 
-| Field          | Type   | Required           | Notes                              |
-|----------------|--------|--------------------|------------------------------------|
-| `labels`       | object | :heavy_check_mark: |                                    |
-| `labels.true`  | string | :heavy_check_mark: | Displayed in tooltip.              |
-| `labels.false` | string | :heavy_check_mark: | Displayed in tooltip.              |
-| `labels.null`  | string | :heavy_check_mark: | Displayed in tooltip.              |
-| `values`       | object |                    |                                    |
-| `values.true`  | string | :heavy_check_mark: | Consider this value to be `true`.  |
-| `values.false` | string | :heavy_check_mark: | Consider this value to be `false`. |
+| Field          | Type   | Required           | Notes                                  |
+|----------------|--------|--------------------|----------------------------------------|
+| `labels`       | object | :heavy_check_mark: | Displayed in tooltip over column.      |
+| `labels.true`  | string | :heavy_check_mark: |                                        |
+| `labels.false` | string | :heavy_check_mark: |                                        |
+| `labels.null`  | string | :heavy_check_mark: |                                        |
+| `values`       | object |                    |                                        |
+| `values.true`  | string | :heavy_check_mark: | Consider this CSV value to be `true`.  |
+| `values.false` | string | :heavy_check_mark: | Consider this CSV value to be `false`. |
 
 When `values` is omitted, the value will be matched (case-insensitive) against `"true" | "t" | "yes" | "y"` for `true` and `"false" | "f" | "no" | "n"` for `false`. All other values will be considered to be unknown (`null`).
 
