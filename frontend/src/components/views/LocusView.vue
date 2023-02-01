@@ -1,6 +1,4 @@
 <script lang="ts">
-import { phenoColumns } from '@dataset'
-
 import Bipartite from '@/components/visualizations/Bipartite.vue'
 import Tree from '@/components/visualizations/Tree.vue'
 import Heatmap from '@/components/visualizations/Heatmap.vue'
@@ -11,8 +9,9 @@ import PhenoBoolean from '@/components/visualizations/PhenoBoolean.vue'
 import PhenoCategorical from '@/components/visualizations/PhenoCategorical.vue'
 import PhenoLabels from '@/components/visualizations/PhenoLabels.vue'
 import ScrollSync from '@/components/common/ScrollSync.vue'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
+import { useConfigStore } from '@/stores/config'
 
 export default {
   components: {
@@ -28,9 +27,7 @@ export default {
     TreeLabels,
   },
   computed: {
-    phenoColumns() {
-      return phenoColumns
-    },
+    ...mapState(useConfigStore, ['phenoColumns']),
   },
   methods: {
     ...mapActions(useDataStore, ['dragEnd']),
@@ -74,15 +71,17 @@ export default {
         >
           <Heatmap />
         </scroll-sync>
-        <template v-for="column in phenoColumns">
+        <template v-for="(column, index) in phenoColumns">
           <PhenoBoolean
             v-bind:key="column.field"
+            :id="index"
             :field="column.field"
             :labels="column.labels"
             v-if="column.type === 'boolean'"
           />
           <PhenoCategorical
             v-bind:key="column.field"
+            :id="index"
             :field="column.field"
             :width="column.width"
             v-if="column.type === 'categorical'"

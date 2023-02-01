@@ -1,5 +1,5 @@
 <script lang="ts">
-import { mapActions, mapState } from 'pinia'
+import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 
 import CustomDendrogram from '@/components/sidebar/CustomDendrogram.vue'
@@ -13,8 +13,9 @@ import LocusView from '@/components/views/LocusView.vue'
 import Tips from '@/components/sidebar/Tips.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import ViewOptions from '@/components/sidebar/ViewOptions.vue'
+import { useConfigStore } from '@/stores/config'
 
-import { title } from '@dataset'
+import { DEFAULT_TITLE } from '@/constants'
 
 export default {
   components: {
@@ -30,10 +31,13 @@ export default {
     Tooltip,
     ViewOptions,
   },
-  head: {
-    title,
+  head() {
+    return {
+      title: this.title || DEFAULT_TITLE,
+    }
   },
   methods: {
+    ...mapActions(useConfigStore, ['loadConfig']),
     ...mapActions(useDataStore, [
       'fetchHomologyIds',
       'fetchCoreSNP',
@@ -41,14 +45,19 @@ export default {
     ]),
   },
   computed: {
-    ...mapState(useDataStore, ['homologyId']),
+    ...mapState(useConfigStore, ['defaultHomologyId', 'title']),
+    ...mapState(useDataStore, ['homologies']),
+    ...mapWritableState(useDataStore, ['homologyId']),
   },
-  created() {
-    Promise.all([
-      this.fetchHomologyIds(),
-      this.fetchCoreSNP(),
-      this.fetchHomology(),
-    ])
+  async created() {
+    if (await this.loadConfig()) {
+      await this.fetchHomologyIds()
+
+      // Use the configured defaultHomologyId or default to the first homology from `homologies`.
+      this.homologyId = this.defaultHomologyId || this.homologies[0].homology_id
+
+      Promise.all([this.fetchCoreSNP(), this.fetchHomology()])
+    }
   },
   watch: {
     homologyId() {

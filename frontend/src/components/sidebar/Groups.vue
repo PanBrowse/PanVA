@@ -11,7 +11,7 @@ import SidebarItem from '@/components/common/SidebarItem.vue'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import type { Group } from '@/types'
-import { GROUP_COLORS } from '@/config'
+import { GROUP_COLORS } from '@/constants'
 import { chain, cloneDeep, difference, map } from 'lodash'
 import { arraySplice } from '@/helpers/arraySplice'
 

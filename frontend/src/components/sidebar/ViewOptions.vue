@@ -2,10 +2,10 @@
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { naturalSort } from '@/helpers/sorting'
-import { CELL_THEMES } from '@/config'
-import { phenoColumns } from '@dataset'
+import { CELL_THEMES } from '@/constants'
 
 import SidebarItem from '@/components/common/SidebarItem.vue'
+import { useConfigStore } from '@/stores/config'
 
 type SortOption = {
   label: string
@@ -21,6 +21,7 @@ export default {
     SidebarItem,
   },
   computed: {
+    ...mapState(useConfigStore, ['phenoColumns']),
     ...mapState(useDataStore, [
       'dendroCustom',
       'mrnaIds',
@@ -66,13 +67,12 @@ export default {
         { value: 'position', label: `Nucleotide (pos ${sortPosition})` },
       ]
 
-      const phenoSortOptions: SortOption[] = []
-      phenoColumns.forEach(({ field, label }) => {
-        phenoSortOptions.push({
+      const phenoSortOptions: SortOption[] = this.phenoColumns.map(
+        ({ field, label }) => ({
           value: field,
           label,
         })
-      })
+      )
 
       if (phenoSortOptions.length) {
         options.push({

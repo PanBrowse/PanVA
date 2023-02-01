@@ -112,11 +112,14 @@ type PhenoColumnBase = {
 export type PhenoColumnBooleanData = boolean | null
 export type PhenoColumnBoolean = PhenoColumnBase & {
   type: 'boolean'
-  parser: PhenoColumnCSVParser<PhenoColumnBooleanData>
-  labels: {
-    null: string
-    false: string
+  values?: {
     true: string
+    false: string
+  }
+  labels: {
+    true: string
+    false: string
+    null: string
   }
 }
 
@@ -124,13 +127,13 @@ export type PhenoColumnCategoricalData = string
 export type PhenoColumnCategorical = PhenoColumnBase & {
   type: 'categorical'
   width: number
-  parser: PhenoColumnCSVParser<PhenoColumnCategoricalData>
 }
 
 export type PhenoColumnQuantitativeData = number | null
 export type PhenoColumnQuantitative = PhenoColumnBase & {
   type: 'quantitative'
-  parser: PhenoColumnCSVParser<PhenoColumnQuantitativeData>
+  maxValue?: number
+  width: number
 }
 
 export type PhenoColumn =
@@ -139,7 +142,10 @@ export type PhenoColumn =
   | PhenoColumnQuantitative
 
 export type PhenoColumnType = PhenoColumn['type']
-export type PhenoColumnData = ReturnType<PhenoColumn['parser']>
+export type PhenoColumnData =
+  | PhenoColumnBooleanData
+  | PhenoColumnCategoricalData
+  | PhenoColumnQuantitativeData
 
 export type Pheno = Record<string, PhenoColumnData> & {
   index: number
@@ -195,4 +201,17 @@ export type CellTheme = {
     string,
     string
   ]
+}
+
+/**
+ * Configuration.
+ *
+ * When making changes, be sure to update the config validator by running:
+ *   npm run generate:config-validator
+ */
+export type Config = {
+  title?: string // Default constants.DEFAULT_TITLE
+  apiUrl?: string // Default: '/'
+  defaultHomologyId?: number // Default: First homology in homologies.
+  phenoColumns?: PhenoColumn[] // Default: []
 }

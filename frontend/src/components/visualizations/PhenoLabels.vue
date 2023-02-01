@@ -1,26 +1,27 @@
 <script lang="ts">
 import * as d3 from 'd3'
-import { CELL_SIZE } from '@/config'
-import { phenoColumns } from '@dataset'
+import { CELL_SIZE } from '@/constants'
 import { mapState, mapActions } from 'pinia'
 import { sum } from 'lodash'
 import type { PhenoColumn } from '@/types'
 import { useDataStore } from '@/stores/data'
+import { useConfigStore } from '@/stores/config'
 
 export default {
   computed: {
+    ...mapState(useConfigStore, ['phenoColumns']),
     ...mapState(useDataStore, ['sorting']),
     height(): number {
       return 60
     },
     width(): number {
-      return sum(phenoColumns.map(this.columnWidth))
+      return sum(this.phenoColumns.map(this.columnWidth))
     },
     xPositions(): number[] {
       const result: number[] = []
       let total = 0
 
-      phenoColumns.forEach((column) => {
+      this.phenoColumns.forEach((column) => {
         const width = this.columnWidth(column)
 
         // We move over the boolean label slightly, to align with the circles.
@@ -56,7 +57,7 @@ export default {
     drawLabels() {
       this.svg()
         .selectAll('foreignObject')
-        .data(phenoColumns, (d) => (d as PhenoColumn).label)
+        .data(this.phenoColumns, (d) => (d as PhenoColumn).label)
         .join(
           (enter) =>
             enter
@@ -88,6 +89,9 @@ export default {
   },
   watch: {
     sortingPheno() {
+      this.drawLabels()
+    },
+    phenoColumns() {
       this.drawLabels()
     },
   },

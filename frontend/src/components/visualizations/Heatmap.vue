@@ -2,7 +2,7 @@
 import * as d3 from 'd3'
 import { useDataStore } from '@/stores/data'
 import { mapActions, mapState, mapWritableState } from 'pinia'
-import { CELL_SIZE } from '@/config'
+import { CELL_SIZE } from '@/constants'
 
 import type { AlignedPosition } from '@/types'
 

@@ -18,12 +18,6 @@ export default ({ mode }: any) => {
 
         // Absolute imports.
         '@': fileURLToPath(new URL('./src', import.meta.url)),
-
-        // We are using the environment variable `VITE_DATASET` to determine
-        // which dataset should be used at build time.
-        '@dataset': fileURLToPath(
-          new URL(`./src/datasets/${process.env.VITE_DATASET}`, import.meta.url)
-        ),
       },
     },
   })

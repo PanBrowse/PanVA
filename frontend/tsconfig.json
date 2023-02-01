@@ -6,6 +6,7 @@
       "@/*": ["./src/*"],
     },
     "composite": true,
+    "resolveJsonModule": true,
     "types": [
       "node"
     ],

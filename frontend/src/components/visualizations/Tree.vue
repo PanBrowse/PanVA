@@ -2,7 +2,7 @@
 import * as d3 from 'd3'
 import { mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
-import { CELL_SIZE } from '@/config'
+import { CELL_SIZE } from '@/constants'
 import type { TreeNode } from '@/types'
 import type { HierarchyNode, HierarchyPointLink, HierarchyPointNode } from 'd3'
 

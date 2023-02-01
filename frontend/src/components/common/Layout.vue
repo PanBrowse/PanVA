@@ -1,6 +1,8 @@
 <script lang="ts">
+import { DEFAULT_TITLE } from '@/constants'
+import { useConfigStore } from '@/stores/config'
 import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons-vue'
-import { title } from '@dataset'
+import { mapState } from 'pinia'
 
 export default {
   slots: ['sidebar'],
@@ -11,8 +13,11 @@ export default {
   data() {
     return {
       collapsed: false,
-      title,
+      defaultTitle: DEFAULT_TITLE,
     }
+  },
+  computed: {
+    ...mapState(useConfigStore, ['title']),
   },
 }
 </script>
@@ -43,7 +48,7 @@ export default {
       :width="360"
     >
       <a-card
-        :title="title"
+        :title="title || defaultTitle"
         :bordered="false"
         style="min-height: 100%"
         :bodyStyle="{ padding: 0 }"

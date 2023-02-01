@@ -1,5 +1,5 @@
 <script lang="ts">
-import { CELL_SIZE } from '@/config'
+import { CELL_SIZE } from '@/constants'
 import { useDataStore } from '@/stores/data'
 import { difference, range, union } from 'lodash'
 import { mapState, mapWritableState } from 'pinia'
@@ -12,6 +12,15 @@ export default {
     return {
       lastPosition: null as number | null,
       lastChecked: null as boolean | null,
+      /**
+       * We use a proxy for the checkbox-group v-model, because we would lose
+       * the selection outside the current range when a checkbox is changed.
+       * We change `selectedPositions` manually in `onCheckboxChange`, and
+       * the watcher on `selectedPositions` overwrites the value of the proxy.
+       * Because this happens right after the checkbox-group v-model:update
+       * event is emitted, we don't lose any data.
+       */
+      selectionProxy: [] as number[],
     }
   },
   computed: {
@@ -47,14 +56,10 @@ export default {
           const start = this.lastPosition
           const end = value
 
-          // Current tick changes `v-model:value` *after* this function, so we
-          // need to make our changes after the current tick.
-          this.$nextTick(() => {
-            this.selectedPositions = union(
-              this.selectedPositions,
-              arrayRange(start, end)
-            )
-          })
+          this.selectedPositions = union(
+            this.selectedPositions,
+            arrayRange(start, end)
+          )
         }
         // Previous and current action is that the checkbox is being *unchecked*.
         // Therefore, we also uncheck everything between the two positions.
@@ -62,19 +67,26 @@ export default {
           const start = this.lastPosition
           const end = value
 
-          // Current tick changes `v-model:value` *after* this function, so we
-          // need to make our changes after the current tick.
-          this.$nextTick(() => {
-            this.selectedPositions = difference(
-              this.selectedPositions,
-              arrayRange(start, end)
-            )
-          })
+          this.selectedPositions = difference(
+            this.selectedPositions,
+            arrayRange(start, end)
+          )
+        }
+      } else {
+        if (checked) {
+          this.selectedPositions = union(this.selectedPositions, [value])
+        } else {
+          this.selectedPositions = difference(this.selectedPositions, [value])
         }
       }
 
       this.lastPosition = value
       this.lastChecked = checked
+    },
+  },
+  watch: {
+    selectedPositions(value) {
+      this.selectionProxy = value
     },
   },
 }
@@ -88,7 +100,7 @@ export default {
       transitionDuration: transitionTime + 'ms',
     }"
   >
-    <a-checkbox-group v-model:value="selectedPositions" :options="options" />
+    <a-checkbox-group v-model:value="selectionProxy" :options="options" />
   </div>
 </template>
 
@@ -104,6 +116,7 @@ export default {
   }
 
   .ant-checkbox-group-item {
+    overflow: hidden;
     white-space: nowrap;
     padding: 0;
     margin: 0;

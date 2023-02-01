@@ -4,17 +4,17 @@ import { parse_newick } from 'biojs-io-newick'
 import * as d3 from 'd3'
 
 import {
-  API_URL,
   CELL_THEMES,
   DEFAULT_SORTING,
   DEFAULT_SELECTED_REGION,
   TRANSITION_TIME,
-} from '@/config'
-import { defaultHomologyId, phenoColumns } from '@dataset'
+} from '@/constants'
 import {
   parseBool,
   parseNumber,
   parseOptionalBool,
+  parsePhenoBoolean,
+  parsePhenoCategorical,
   parseString,
 } from '@/helpers/parse'
 import type {
@@ -57,6 +57,7 @@ import { leafNodes } from '@/helpers/tree'
 import { arraySlice } from '@/helpers/arraySlice'
 import { isGroup } from '@/helpers/isGroup'
 import { toRaw } from 'vue'
+import { useConfigStore } from './config'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -145,11 +146,15 @@ export const useDataStore = defineStore('data', {
     // User options.
     cellTheme: 'default' as CellThemeName,
     tree: 'dendroDefault' as TreeOption,
-    homologyId: defaultHomologyId,
+    homologyId: null as number | null,
     referenceMrnaId: null as mRNAid | null,
     transitionsEnabled: true,
   }),
   getters: {
+    apiUrl(): string {
+      const config = useConfigStore()
+      return config.apiUrl
+    },
     sortedDataIndicesCollapsed(): DataIndexCollapsed[] {
       /**
        * This returns the same mapping as `sortedDataIndices`, but with collapsed
@@ -363,7 +368,9 @@ export const useDataStore = defineStore('data', {
     },
     async fetchHomologyIds() {
       try {
-        const response = await axios.get<Homology[]>(`${API_URL}/homology_ids`)
+        const response = await axios.get<Homology[]>(
+          `${this.apiUrl}/homology_ids`
+        )
         this.homologies = sortBy(response.data, 'name')
       } catch (err) {
         this.setError({
@@ -375,7 +382,7 @@ export const useDataStore = defineStore('data', {
     },
     async fetchCoreSNP() {
       try {
-        const response = await axios.get<string>(`${API_URL}/core_snp`)
+        const response = await axios.get<string>(`${this.apiUrl}/core_snp`)
         this.coreSNP = parse_newick(response.data)
       } catch (err) {
         this.setError({
@@ -394,7 +401,7 @@ export const useDataStore = defineStore('data', {
 
       try {
         const data = await d3.csv<AlignedPosition, AlignedPositionsCSVColumns>(
-          `${API_URL}/${this.homologyId}/al_pos`,
+          `${this.apiUrl}/${this.homologyId}/al_pos`,
           ({
             genome_nr,
             informative,
@@ -438,7 +445,7 @@ export const useDataStore = defineStore('data', {
     async fetchDendrogramDefault() {
       try {
         const data = await d3.json<TreeNode>(
-          `${API_URL}/${this.homologyId}/d3dendro`
+          `${this.apiUrl}/${this.homologyId}/d3dendro`
         )
         if (!data) {
           throw new Error('Empty dendrogram default data.')
@@ -456,7 +463,7 @@ export const useDataStore = defineStore('data', {
     async fetchDendrogramCustom() {
       try {
         const response = await axios.post<TreeNode>(
-          `${API_URL}/${this.homologyId}/d3dendro`,
+          `${this.apiUrl}/${this.homologyId}/d3dendro`,
           {
             positions: toRaw(this.selectedPositions),
           }
@@ -472,9 +479,11 @@ export const useDataStore = defineStore('data', {
       }
     },
     async fetchPhenos() {
+      const config = useConfigStore()
+
       try {
         const data = await d3.csv<Pheno, PhenoCSVColumns | string>(
-          `${API_URL}/${this.homologyId}/phenos`,
+          `${this.apiUrl}/${this.homologyId}/phenos`,
           ({ mRNA_id, genome_nr, ...rest }) => {
             // Common fields.
             const data: Pheno = {
@@ -484,9 +493,16 @@ export const useDataStore = defineStore('data', {
             }
 
             // Dataset specific fields.
-            phenoColumns.forEach((column) => {
-              const { field, parser } = column as PhenoColumn
-              data[field] = parser(rest[field])
+            config.phenoColumns.forEach((column: PhenoColumn) => {
+              const { field, type } = column
+
+              if (type === 'categorical') {
+                data[field] = parsePhenoCategorical(rest[field], column)
+              }
+
+              if (type === 'boolean') {
+                data[field] = parsePhenoBoolean(rest[field], column)
+              }
             })
 
             return data
@@ -510,7 +526,7 @@ export const useDataStore = defineStore('data', {
     async fetchSequences() {
       try {
         const data = await d3.csv<Sequence, SequenceCSVColumns>(
-          `${API_URL}/${this.homologyId}/sequences`,
+          `${this.apiUrl}/${this.homologyId}/sequences`,
           ({
             mRNA_id,
             nuc_trimmed_seq,
@@ -542,7 +558,7 @@ export const useDataStore = defineStore('data', {
     async fetchVarPosCount() {
       try {
         this.varPosCount = await d3.csv<VarPosCount, VarPosCountCSVColumns>(
-          `${API_URL}/${this.homologyId}/var_pos_count`,
+          `${this.apiUrl}/${this.homologyId}/var_pos_count`,
           ({ A, C, conservation, G, gap, informative, other, position, T }) =>
             ({
               position: parseNumber(position),

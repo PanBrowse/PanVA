@@ -1,0 +1,33 @@
+{
+  "title": "PanVA: Pectobacterium",
+  "apiUrl": "http://localhost:5001/",
+  "defaultHomologyId": 13803671,
+  "phenoColumns": [
+    {
+      "type": "boolean",
+      "field": "virulence",
+      "label": "Virulence",
+      "values": {
+        "true": "virulent",
+        "false": "avirulent"
+      },
+      "labels": {
+        "true": "Virulent",
+        "false": "Avirulent",
+        "null": "Unknown"
+      }
+    },
+    {
+      "type": "categorical",
+      "field": "species",
+      "label": "Species",
+      "width": 80
+    },
+    {
+      "type": "categorical",
+      "field": "strain_name",
+      "label": "Strain",
+      "width": 120
+    }
+  ]
+}

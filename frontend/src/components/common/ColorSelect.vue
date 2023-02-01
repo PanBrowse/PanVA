@@ -1,5 +1,5 @@
 <script lang="ts">
-import { GROUP_COLORS } from '@/config'
+import { GROUP_COLORS } from '@/constants'
 import { CheckOutlined } from '@ant-design/icons-vue'
 
 export default {

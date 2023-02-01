@@ -1,0 +1,123 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "additionalProperties": false,
+    "definitions": {
+        "PhenoColumn": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/PhenoColumnBoolean"
+                },
+                {
+                    "$ref": "#/definitions/PhenoColumnCategorical"
+                },
+                {
+                    "$ref": "#/definitions/PhenoColumnQuantitative"
+                }
+            ]
+        },
+        "PhenoColumnBoolean": {
+            "additionalProperties": false,
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "labels": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "false": {
+                            "type": "string"
+                        },
+                        "null": {
+                            "type": "string"
+                        },
+                        "true": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
+                "type": {
+                    "enum": [
+                        "boolean"
+                    ],
+                    "type": "string"
+                },
+                "values": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "false": {
+                            "type": "string"
+                        },
+                        "true": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PhenoColumnCategorical": {
+            "additionalProperties": false,
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "categorical"
+                    ],
+                    "type": "string"
+                },
+                "width": {
+                    "type": "number"
+                }
+            },
+            "type": "object"
+        },
+        "PhenoColumnQuantitative": {
+            "additionalProperties": false,
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "quantitative"
+                    ],
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        }
+    },
+    "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate:config-validator",
+    "properties": {
+        "apiUrl": {
+            "type": "string"
+        },
+        "defaultHomologyId": {
+            "type": "number"
+        },
+        "phenoColumns": {
+            "items": {
+                "$ref": "#/definitions/PhenoColumn"
+            },
+            "type": "array"
+        },
+        "title": {
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+

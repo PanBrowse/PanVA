@@ -1,5 +1,5 @@
 <script lang="ts">
-import { CELL_SIZE } from '@/config'
+import { CELL_SIZE } from '@/constants'
 import { useDataStore } from '@/stores/data'
 import * as d3 from 'd3'
 import { range } from 'lodash'

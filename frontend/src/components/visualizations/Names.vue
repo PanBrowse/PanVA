@@ -2,7 +2,7 @@
 import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
-import { CELL_SIZE } from '@/config'
+import { CELL_SIZE } from '@/constants'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
 import { valueKey } from '@/helpers/valueKey'

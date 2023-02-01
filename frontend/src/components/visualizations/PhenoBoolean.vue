@@ -2,7 +2,7 @@
 import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
-import { CELL_SIZE } from '@/config'
+import { CELL_SIZE } from '@/constants'
 import type {
   DataIndexCollapsed,
   PhenoColumnBoolean,
@@ -31,6 +31,16 @@ type GroupAggregates = Record<
 
 export default {
   props: {
+    /**
+     * Since a field can be reused in multiple columns, for different
+     * visualizations of the same data, we use the index in the
+     * `phenoColumns` configuration option in the unique identifier
+     * for this component.
+     */
+    id: {
+      type: Number,
+      required: true,
+    },
     field: {
       type: String,
       required: true,
@@ -65,7 +75,7 @@ export default {
       return this.sequenceCount * CELL_SIZE
     },
     name(): string {
-      return `pheno-${this.field}`
+      return `pheno-${this.id}-${this.field}`
     },
     width(): number {
       return this.padding * 2 + CELL_SIZE

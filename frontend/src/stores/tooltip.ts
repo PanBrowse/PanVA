@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-// import type { Component } from 'vue'
 
 type ContentFn = () => {
   title?: string
