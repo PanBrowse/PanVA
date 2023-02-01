@@ -2,23 +2,18 @@
 import { CELL_SIZE } from '@/constants'
 import { useDataStore } from '@/stores/data'
 import * as d3 from 'd3'
-import { range } from 'lodash'
 import { mapState, mapActions } from 'pinia'
 
 export default {
   computed: {
     ...mapState(useDataStore, [
-      'selectedRegion',
-      'selectedRegionLength',
+      'filteredPositions',
+      'filteredPositionsCount',
       'sorting',
       'transitionTime',
     ]),
-    regionRange(): number[] {
-      const [start, end] = this.selectedRegion
-      return range(start, end + 1)
-    },
     width(): number {
-      return this.selectedRegionLength * CELL_SIZE
+      return this.filteredPositionsCount * CELL_SIZE
     },
     height(): number {
       return 30
@@ -43,22 +38,24 @@ export default {
     drawPositions() {
       this.svg()
         .selectAll('foreignObject')
-        .data(this.regionRange, (d) => d as number)
+        .data(this.filteredPositions, (position) => position as number)
         .join(
           (enter) =>
             enter
               .append('foreignObject')
               .attr('width', this.height)
               .attr('height', CELL_SIZE)
-              .attr('transform', (d, index) => this.positionTransform(index))
-              .on('click', (event, d) => {
+              .attr('transform', (position, index) =>
+                this.positionTransform(index)
+              )
+              .on('click', (event, position) => {
                 this.changeSorting({
                   field: 'position',
-                  position: d,
+                  position,
                 })
               })
               .append('xhtml:div')
-              .text((d) => d),
+              .text((position) => position),
           (update) =>
             update.attr('transform', (d, index) =>
               this.positionTransform(index)
@@ -76,7 +73,7 @@ export default {
     sortingPosition() {
       this.drawPositions()
     },
-    regionRange() {
+    filteredPositions() {
       this.drawPositions()
     },
   },

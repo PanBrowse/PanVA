@@ -37,6 +37,8 @@ import type {
   VarPosCount,
   VarPosCountCSVColumns,
   AppError,
+  FilterPosition,
+  TreeOption,
 } from '@/types'
 import {
   chain,
@@ -61,7 +63,6 @@ import { useConfigStore } from './config'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
-type TreeOption = 'dendroDefault' | 'dendroCustom' | 'coreSnp'
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -97,12 +98,15 @@ export const useDataStore = defineStore('data', {
 
     // Position selection.
     // Range set by GeneOverview (inclusive on both ends).
-    selectedRegion: DEFAULT_SELECTED_REGION,
+    positionRegion: DEFAULT_SELECTED_REGION,
     // Checkboxes above the positions.
     selectedPositions: [] as number[],
     // When a custom dendrogram is generated, we store the selection it was generated for.
     // This way, we know when to display the "Update custom dendrogram" button.
     dendroCustomForSelectedPositions: [] as number[],
+
+    // Filter positions based on position metadata.
+    filterPositions: 'all' as FilterPosition,
 
     // Grouping.
     groups: [] as Group[],
@@ -232,9 +236,19 @@ export const useDataStore = defineStore('data', {
         ({ homology_id }) => homology_id === state.homologyId
       )
     },
-    selectedRegionLength(): number {
-      const [start, end] = this.selectedRegion
-      return end - start + 1
+    filteredPositions(): number[] {
+      const [start, end] = this.positionRegion
+      const positions = range(start, end + 1)
+
+      if (this.filterPositions !== 'all') {
+        const field = this.filterPositions as Exclude<FilterPosition, 'all'>
+        return positions.filter((pos) => this.alignedPositions[pos - 1][field])
+      }
+
+      return positions
+    },
+    filteredPositionsCount(): number {
+      return this.filteredPositions.length
     },
     sequenceCount(): number {
       return this.mrnaIds.length
@@ -607,7 +621,7 @@ export const useDataStore = defineStore('data', {
       await this.fetchSequences()
 
       this.resetSorting()
-      this.resetSelectedRegion()
+      this.resetPositionRegion()
 
       // The remaining requests are performed concurrently to speed up loading.
       await Promise.all([
@@ -616,9 +630,9 @@ export const useDataStore = defineStore('data', {
         this.fetchVarPosCount(),
       ])
     },
-    resetSelectedRegion() {
+    resetPositionRegion() {
       // Reset to default selection, clamped to gene length.
-      this.selectedRegion = DEFAULT_SELECTED_REGION.map((val) =>
+      this.positionRegion = DEFAULT_SELECTED_REGION.map((val) =>
         clamp(val, this.geneLength)
       ) as Range
     },

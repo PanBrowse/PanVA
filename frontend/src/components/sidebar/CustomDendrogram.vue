@@ -3,6 +3,7 @@ import { useDataStore } from '@/stores/data'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import SidebarItem from '@/components/common/SidebarItem.vue'
 import { difference, intersection, isEqual, range, sortBy, union } from 'lodash'
+import type { FilterPosition } from '@/types'
 
 export default {
   components: {
@@ -15,39 +16,58 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
+      'alignedPositions',
       'dendroCustom',
       'dendroCustomForSelectedPositions',
       'geneLength',
-      'selectedRegion',
-      'selectedRegionLength',
+      'positionRegion',
+      'filterPositions',
+      'filteredPositions',
+      'filteredPositionsCount',
       'transitionTime',
     ]),
     ...mapWritableState(useDataStore, ['tree', 'selectedPositions']),
-    isRegionChecked(): boolean {
-      return this.selectedInsideRangeCount === this.selectedRegionLength
+    positionsLabel(): string {
+      if (this.filterPositions === 'variable') return 'variable positions'
+      if (this.filterPositions === 'informative') return 'informative positions'
+      if (this.filterPositions === 'pheno_specific')
+        return 'phenotype specific positions'
+      return 'positions'
     },
-    isRegionIndeterminate(): boolean {
-      return this.selectedInsideRangeCount !== 0 && !this.isRegionChecked
+    // Same as filteredPositions, but for the entire gene.
+    allFilteredPositions(): number[] {
+      const positions = range(1, this.geneLength + 1)
+      if (this.filterPositions !== 'all') {
+        const field = this.filterPositions as Exclude<FilterPosition, 'all'>
+        return positions.filter((pos) => this.alignedPositions[pos - 1][field])
+      }
+
+      return positions
     },
-    isDatasetChecked(): boolean {
-      return this.selectedCount === this.geneLength
+    // Same as filteredPositionsCount, but for the entire gene.
+    allFilteredPositionsCount(): number {
+      return this.allFilteredPositions.length
     },
-    isDatasetIndeterminate(): boolean {
-      return this.selectedCount !== 0 && !this.isDatasetChecked
-    },
-    selectedRegionRange(): number[] {
-      const [start, end] = this.selectedRegion
-      return range(start, end + 1)
-    },
-    selectedCount() {
+    selectedCount(): number {
       return this.selectedPositions.length
     },
-    selectedInsideRangeCount() {
-      return intersection(this.selectedPositions, this.selectedRegionRange)
-        .length
+    selectedInRegion(): number[] {
+      return intersection(this.selectedPositions, this.filteredPositions)
     },
-    selectedOutsideRangeCount() {
-      return this.selectedCount - this.selectedInsideRangeCount
+    selectedInDataset(): number[] {
+      return intersection(this.selectedPositions, this.allFilteredPositions)
+    },
+    isRegionChecked(): boolean {
+      return this.selectedInRegion.length === this.filteredPositionsCount
+    },
+    isRegionIndeterminate(): boolean {
+      return this.selectedInRegion.length !== 0 && !this.isRegionChecked
+    },
+    isDatasetChecked(): boolean {
+      return this.selectedInDataset.length === this.allFilteredPositionsCount
+    },
+    isDatasetIndeterminate(): boolean {
+      return this.selectedInDataset.length !== 0 && !this.isDatasetChecked
     },
     customDendroButtonDisabled() {
       return (
@@ -65,24 +85,33 @@ export default {
   },
   methods: {
     ...mapActions(useDataStore, ['changeSorting', 'fetchDendrogramCustom']),
+    clearSelection() {
+      this.selectedPositions = []
+    },
     onCheckRegion() {
       if (this.isRegionChecked) {
         this.selectedPositions = difference(
           this.selectedPositions,
-          this.selectedRegionRange
+          this.filteredPositions
         )
       } else {
         this.selectedPositions = union(
           this.selectedPositions,
-          this.selectedRegionRange
+          this.filteredPositions
         )
       }
     },
     onCheckDataset() {
       if (this.isDatasetChecked) {
-        this.selectedPositions = []
+        this.selectedPositions = difference(
+          this.selectedPositions,
+          this.allFilteredPositions
+        )
       } else {
-        this.selectedPositions = range(1, this.geneLength + 1)
+        this.selectedPositions = union(
+          this.selectedPositions,
+          this.allFilteredPositions
+        )
       }
     },
     async updateCustomDendro() {
@@ -105,19 +134,13 @@ export default {
   <SidebarItem title="Custom dendrogram">
     <p>
       <span v-if="selectedCount === 0">There are no positions selected.</span>
-      <span v-if="selectedCount === 1 && selectedOutsideRangeCount === 0">
-        There is 1 position selected in the current region.
+      <span v-if="selectedCount === 1"> There is 1 position selected</span>
+      <span v-if="selectedCount > 1">
+        There are {{ selectedCount }} positions selected
       </span>
-      <span v-if="selectedCount === 1 && selectedOutsideRangeCount !== 0">
-        There is 1 position selected outside the current region.
-      </span>
-      <span v-if="selectedCount > 1 && selectedOutsideRangeCount === 0">
-        There are {{ selectedCount }} positions selected in the current region.
-      </span>
-      <span v-if="selectedCount > 1 && selectedOutsideRangeCount !== 0">
-        There are {{ selectedCount }} positions selected;
-        {{ selectedInsideRangeCount }} inside and
-        {{ selectedOutsideRangeCount }} outside the current region.
+      <span v-if="selectedCount !== 0">
+        &ndash;
+        <a @click="clearSelection">Clear selection</a>
       </span>
     </p>
 
@@ -128,7 +151,9 @@ export default {
           :indeterminate="isRegionIndeterminate"
           @change="onCheckRegion"
         >
-          Select all in region {{ selectedRegion[0] }} - {{ selectedRegion[1] }}
+          Select all {{ filteredPositionsCount }} {{ positionsLabel }} in
+          {{ positionRegion[0] }} -
+          {{ positionRegion[1] }}
         </a-checkbox>
       </a-form-item>
       <a-form-item>
@@ -137,7 +162,8 @@ export default {
           :indeterminate="isDatasetIndeterminate"
           @change="onCheckDataset"
         >
-          Select all in dataset
+          Select all {{ allFilteredPositionsCount }} {{ positionsLabel }} in
+          dataset
         </a-checkbox>
       </a-form-item>
 

@@ -10,7 +10,6 @@ import LoadingBox from '@/components/common/LoadingBox.vue'
 
 import type { DataIndexCollapsed, Nucleotide } from '@/types'
 import { valueKey } from '@/helpers/valueKey'
-import { arrayRange } from '@/helpers/arrayRange'
 import { isGroup } from '@/helpers/isGroup'
 import { keys, pickBy } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
@@ -56,6 +55,8 @@ export default {
     ...mapState(useDataStore, [
       'alignedPositions',
       'cellTheme',
+      'filteredPositions',
+      'filteredPositionsCount',
       'geneLength',
       'groups',
       'homologyId',
@@ -63,8 +64,6 @@ export default {
       'nucleotideColor',
       'referenceMrnaId',
       'referenceMrnaNucleotideAtPosition',
-      'selectedRegion',
-      'selectedRegionLength',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
       'transitionTime',
@@ -78,17 +77,10 @@ export default {
       )
     },
     width(): number {
-      return this.selectedRegionLength * CELL_SIZE
+      return this.filteredPositionsCount * CELL_SIZE
     },
     height(): number {
       return this.sequenceCount * CELL_SIZE
-    },
-    positions(): number[] {
-      // TODO: Add position filtering (informative, etc)
-      const [start, end] = this.selectedRegion
-
-      // Region is one-based, we want column indices to be zero-based.
-      return arrayRange(start, end)
     },
     cells(): Cell[] {
       /**
@@ -102,7 +94,7 @@ export default {
       const result: Cell[] = []
 
       this.sortedDataIndicesCollapsed.forEach((data, row) => {
-        this.positions.forEach((position, column) => {
+        this.filteredPositions.forEach((position, column) => {
           result.push({ data, position, column, row })
         })
       })
@@ -112,7 +104,7 @@ export default {
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
         this.groups.map(({ id, dataIndices }) => {
-          const aggregates = this.positions.map((position) => {
+          const aggregates = this.filteredPositions.map((position) => {
             const counts: GroupCounts = {
               A: 0,
               C: 0,
@@ -385,7 +377,7 @@ export default {
         element: this.$refs.hoverCell as HTMLDivElement,
         generateContent: () => {
           const data = this.sortedDataIndicesCollapsed[row]
-          const position = this.positions[column]
+          const position = this.filteredPositions[column]
 
           if (isGroup(data)) {
             const { counts } = this.groupAggregates[data.id][column]
@@ -485,7 +477,7 @@ export default {
     referenceMrnaId() {
       this.drawCanvas()
     },
-    selectedRegion() {
+    filteredPositions() {
       this.drawCells()
     },
     sortedDataIndicesCollapsed(newData, oldData) {

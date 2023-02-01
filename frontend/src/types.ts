@@ -5,6 +5,12 @@ export type mRNAid = string
 export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
 export type Range = [number, number]
 export type DataIndexCollapsed = number | Group
+export type TreeOption = 'dendroDefault' | 'dendroCustom' | 'coreSnp'
+export type FilterPosition =
+  | 'all'
+  | 'variable'
+  | 'informative'
+  | 'pheno_specific'
 
 export type AppError = {
   message: string

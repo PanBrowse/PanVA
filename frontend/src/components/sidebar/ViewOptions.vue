@@ -25,11 +25,12 @@ export default {
     ...mapState(useDataStore, [
       'dendroCustom',
       'mrnaIds',
-      'selectedRegion',
+      'filteredPositions',
       'sorting',
     ]),
     ...mapWritableState(useDataStore, [
       'cellTheme',
+      'filterPositions',
       'referenceMrnaId',
       'transitionsEnabled',
       'tree',
@@ -43,11 +44,14 @@ export default {
       }
       return this.sorting.field
     },
+    defaultSortPosition(): number {
+      return this.filteredPositions[0] || 1
+    },
     sortOptions(): SortOption[] {
-      // Determine number for position sorting.
-      const [start] = this.selectedRegion
       const sortPosition =
-        this.sorting.field === 'position' ? this.sorting.position : start
+        this.sorting.field === 'position'
+          ? this.sorting.position
+          : this.defaultSortPosition
 
       const options: SortOption[] = [
         {
@@ -100,11 +104,9 @@ export default {
           field: 'dendroCustom',
         })
       } else if (value === 'position') {
-        // Sort by first position in selected region.
-        const [start] = this.selectedRegion
         this.changeSorting({
           field: 'position',
-          position: start,
+          position: this.defaultSortPosition,
         })
       } else {
         this.changeSorting({
@@ -125,6 +127,20 @@ export default {
       :wrapperCol="{ span: 16 }"
       class="view-options"
     >
+      <a-form-item label="Filter positions">
+        <a-select
+          :dropdownMatchSelectWidth="false"
+          v-model:value="filterPositions"
+        >
+          <a-select-option value="all">All</a-select-option>
+          <a-select-option value="variable">Variable</a-select-option>
+          <a-select-option value="informative">Informative</a-select-option>
+          <a-select-option value="pheno_specific">
+            Phenotype specific
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+
       <a-form-item label="Sorting">
         <a-select
           :dropdownMatchSelectWidth="false"

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { CELL_SIZE } from '@/constants'
 import { useDataStore } from '@/stores/data'
-import { difference, range, union } from 'lodash'
+import { difference, union } from 'lodash'
 import { mapState, mapWritableState } from 'pinia'
 import type { CheckboxOptionType } from 'ant-design-vue'
 import type { CheckboxChangeEvent } from 'ant-design-vue/lib/checkbox/interface'
@@ -25,23 +25,19 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
-      'selectedRegion',
-      'selectedRegionLength',
+      'filteredPositions',
+      'filteredPositionsCount',
       'transitionTime',
     ]),
     ...mapWritableState(useDataStore, ['selectedPositions']),
-    regionRange(): number[] {
-      const [start, end] = this.selectedRegion
-      return range(start, end + 1)
-    },
     options(): CheckboxOptionType[] {
-      return this.regionRange.map((position) => ({
+      return this.filteredPositions.map((position) => ({
         value: position,
         onChange: this.onCheckboxChange,
       }))
     },
     width(): number {
-      return this.selectedRegionLength * CELL_SIZE
+      return this.filteredPositionsCount * CELL_SIZE
     },
   },
   methods: {

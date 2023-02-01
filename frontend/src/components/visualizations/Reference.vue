@@ -4,31 +4,25 @@ import { useDataStore } from '@/stores/data'
 import { mapState } from 'pinia'
 import { CELL_SIZE } from '@/constants'
 
-import { range } from 'lodash'
-
 export default {
   computed: {
     ...mapState(useDataStore, [
       'alignedPositions',
       'cellTheme',
-      'mrnaIds',
+      'filteredPositions',
+      'filteredPositionsCount',
       'geneLength',
+      'mrnaIds',
       'nucleotideColor',
       'referenceMrnaId',
       'referenceMrnaNucleotideAtPosition',
-      'selectedRegion',
-      'selectedRegionLength',
       'transitionTime',
     ]),
-    regionRange(): number[] {
-      const [start, end] = this.selectedRegion
-      return range(start, end + 1)
-    },
     hasAllData(): boolean {
       return this.alignedPositions.length !== 0
     },
     width(): number {
-      return this.selectedRegionLength * CELL_SIZE
+      return this.filteredPositionsCount * CELL_SIZE
     },
     height(): number {
       return CELL_SIZE
@@ -37,10 +31,6 @@ export default {
   methods: {
     svg() {
       return d3.select('#reference')
-    },
-    cellX(position: number) {
-      const [start] = this.selectedRegion
-      return (position - start) * CELL_SIZE
     },
     cellColor(position: number) {
       if (!this.referenceMrnaId) return '#e9ecef'
@@ -53,18 +43,21 @@ export default {
 
       this.svg()
         .selectAll('rect')
-        .data(this.regionRange, (d) => d as number)
+        .data(this.filteredPositions, (d) => d as number)
         .join(
           (enter) =>
             enter
               .append('rect')
-              .attr('fill', this.cellColor)
-              .attr('x', this.cellX)
+              .attr('fill', (position) => this.cellColor(position))
+              .attr('x', (position, index) => index * CELL_SIZE)
               .attr('width', CELL_SIZE)
               .attr('height', CELL_SIZE)
               .attr('stroke', 'white')
               .attr('stroke-width', 0.5),
-          (update) => update.attr('fill', this.cellColor).attr('x', this.cellX),
+          (update) =>
+            update
+              .attr('fill', this.cellColor)
+              .attr('x', (position, index) => index * CELL_SIZE),
           (exit) => exit.remove()
         )
     },
@@ -76,7 +69,7 @@ export default {
     hasAllData() {
       this.drawCells()
     },
-    selectedRegion() {
+    filteredPositions() {
       this.drawCells()
     },
     referenceMrnaId() {

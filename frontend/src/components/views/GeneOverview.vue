@@ -49,7 +49,7 @@ export default {
       'sequenceCount',
       'varPosCount',
     ]),
-    ...mapWritableState(useDataStore, ['selectedRegion']),
+    ...mapWritableState(useDataStore, ['positionRegion']),
     hasAllData(): boolean {
       return (
         this.varPosCount.length !== 0 &&
@@ -126,14 +126,14 @@ export default {
         // We determine the clicked x position ourselves.
         const [xPos] = d3.pointer(event, this.svg().node())
         const x0 = Math.round(this.xScale.invert(xPos))
-        this.selectedRegion = [x0, x0]
+        this.positionRegion = [x0, x0]
         return
       }
 
       const [x0, x1] = (selection as [number, number])
         .map(this.xScale.invert)
         .map(Math.round)
-      this.selectedRegion = [x0, x1]
+      this.positionRegion = [x0, x1]
     },
     updateBrushLabels(x0: number, x1: number) {
       if (x0 === x1) {
@@ -205,9 +205,9 @@ export default {
 
       brushGroup
         .call(brush)
-        .call(brush.move, this.selectedRegion.map(this.xScale))
+        .call(brush.move, this.positionRegion.map(this.xScale))
 
-      this.updateBrushLabels(this.selectedRegion[0], this.selectedRegion[1])
+      this.updateBrushLabels(this.positionRegion[0], this.positionRegion[1])
 
       brush.on('end', this.onBrushEnd)
       brush.on('start brush', this.onBrush)
@@ -266,7 +266,7 @@ export default {
     hasAllData() {
       this.drawSvg()
     },
-    selectedRegion() {
+    positionRegion() {
       this.drawSvg()
     },
   },
