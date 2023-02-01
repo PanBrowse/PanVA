@@ -41,8 +41,8 @@ export default {
       'transitionsEnabled',
       'tree',
     ]),
-    referenceValue(): string {
-      if (!this.reference) return ''
+    referenceValue(): string | undefined {
+      if (!this.reference) return undefined
 
       if (this.reference.type === 'group') {
         return `group:${this.reference.id}`
@@ -52,7 +52,7 @@ export default {
         return `data:${this.reference.dataIndex}`
       }
 
-      return ''
+      return undefined
     },
     referenceMrnaIdOptions(): [mRNAid, number][] {
       return naturalSort(this.mrnaIds).map((mrnaId) => [
