@@ -1,12 +1,15 @@
 <script lang="ts">
 import { createPopper, type Instance } from '@popperjs/core'
 import { useTooltipStore } from '@/stores/tooltip'
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
+
+import { PushpinOutlined } from '@ant-design/icons-vue'
 
 import TooltipContent from '@/components/common/TooltipContent.vue'
 
 export default {
   components: {
+    PushpinOutlined,
     TooltipContent,
   },
   data() {
@@ -25,6 +28,8 @@ export default {
       'content',
       'data',
       'isCompact',
+      'isPinned',
+      'isPinnable',
       'isVisible',
       'target',
       'template',
@@ -32,6 +37,7 @@ export default {
     ]),
   },
   methods: {
+    ...mapActions(useTooltipStore, ['togglePinned']),
     generateGetBoundingClientRect(x = 0, y = 0) {
       return () => ({
         width: 0,
@@ -68,16 +74,32 @@ export default {
 </script>
 
 <template>
-  <div v-show="isVisible" id="tooltip" :class="{ compact: isCompact }">
+  <div
+    v-show="isVisible"
+    id="tooltip"
+    :class="{ compact: isCompact, pinned: isPinned }"
+  >
     <a-popover
       v-model:visible="isVisible"
-      :title="title"
       :mouseEnterDelay="0"
       :mouseLeaveDelay="0"
       :getPopupContainer="(node: HTMLElement) => node"
       :align="{ offset: [0, 18] }"
       placement="top"
     >
+      <template #title>
+        <a-button
+          :type="isPinned ? 'primary' : 'default'"
+          shape="circle"
+          size="small"
+          class="pushpin"
+          v-if="isPinnable"
+          @click="togglePinned"
+        >
+          <template #icon><PushpinOutlined /></template>
+        </a-button>
+        {{ title }}
+      </template>
       <template #content>
         <TooltipContent
           v-if="isVisible && template && data && !content"
@@ -93,7 +115,31 @@ export default {
 <style lang="scss">
 #tooltip {
   pointer-events: none;
-  max-width: 400px;
+
+  .pushpin {
+    position: relative;
+    left: -8px;
+    margin-right: -8px;
+  }
+
+  .ant-popover {
+    max-width: 400px;
+  }
+
+  .ant-popover-title {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  &.pinned {
+    pointer-events: all;
+  }
+
+  .ant-popover-inner-content {
+    max-height: 400px;
+    overflow: auto;
+  }
 
   &.compact .ant-popover-inner-content {
     padding: 0;

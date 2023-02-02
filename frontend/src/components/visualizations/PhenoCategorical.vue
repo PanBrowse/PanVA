@@ -160,6 +160,7 @@ export default {
                 return {
                   title: groupName(data),
                   content: groupCounts(counts),
+                  isPinnable: true,
                 }
               },
             })

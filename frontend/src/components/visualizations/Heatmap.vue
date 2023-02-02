@@ -338,6 +338,7 @@ export default {
                 position,
               },
               isCompact: true,
+              isPinnable: true,
             }
           }
 
@@ -362,6 +363,7 @@ export default {
               alignedPosition,
             },
             isCompact: true,
+            isPinnable: true,
           }
         },
       })

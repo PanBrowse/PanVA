@@ -12,6 +12,7 @@ import ScrollSync from '@/components/common/ScrollSync.vue'
 import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { useConfigStore } from '@/stores/config'
+import { useTooltipStore } from '@/stores/tooltip'
 
 export default {
   components: {
@@ -31,16 +32,24 @@ export default {
   },
   methods: {
     ...mapActions(useDataStore, ['dragEnd']),
+    ...mapActions(useTooltipStore, ['togglePinned']),
     onMouseUp() {
       // We should be able to release the mouse anywhere and have the selection drag end.
       this.dragEnd()
     },
+    onKeyPress(event: KeyboardEvent) {
+      if (event.code === 'KeyT') {
+        this.togglePinned()
+      }
+    },
   },
   mounted() {
     document.body.addEventListener('mouseup', this.onMouseUp)
+    document.body.addEventListener('keyup', this.onKeyPress)
   },
   unmounted() {
     document.body.removeEventListener('mouseup', this.onMouseUp)
+    document.body.removeEventListener('keyup', this.onKeyPress)
   },
 }
 </script>

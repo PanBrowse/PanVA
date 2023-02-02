@@ -6,6 +6,7 @@ type ContentFn = () => {
   template?: string
   data?: Record<string, any>
   isCompact?: boolean
+  isPinnable?: boolean
 }
 
 type TooltipParams = {
@@ -21,6 +22,8 @@ export const useTooltipStore = defineStore('tooltip', {
     data: undefined as any,
     delayTimer: null as ReturnType<typeof setTimeout> | null,
     isCompact: false,
+    isPinnable: false,
+    isPinned: false,
     isVisible: false,
     key: '',
     target: null as DOMRect | null,
@@ -31,6 +34,9 @@ export const useTooltipStore = defineStore('tooltip', {
     showTooltip({ key, generateContent, delay = 0.3, element }: TooltipParams) {
       // Ignore subsequent calls for the same tooltip.
       if (this.key === key) return
+
+      // Ignore new tooltips if they are pinned.
+      if (this.isPinned) return
 
       // New tooltip, reset any possibly running timers for old content.
       if (this.delayTimer !== null) {
@@ -45,6 +51,7 @@ export const useTooltipStore = defineStore('tooltip', {
           content,
           data = {},
           isCompact = false,
+          isPinnable = false,
           template,
           title = '',
         } = generateContent()
@@ -53,6 +60,7 @@ export const useTooltipStore = defineStore('tooltip', {
           data,
           delayTimer: null,
           isCompact,
+          isPinnable,
           isVisible: true,
           target: element.getBoundingClientRect(),
           template,
@@ -65,6 +73,8 @@ export const useTooltipStore = defineStore('tooltip', {
         content: '',
         data: undefined,
         delayTimer,
+        isPinnable: false,
+        isPinned: false,
         isVisible: false,
         key: key,
         target: null,
@@ -73,16 +83,32 @@ export const useTooltipStore = defineStore('tooltip', {
       })
     },
     hideTooltip() {
+      // Keep showing pinned tooltip.
+      if (this.isPinned) return
+
       if (this.delayTimer !== null) {
         clearTimeout(this.delayTimer)
       }
 
       this.$patch({
         delayTimer: null,
+        isCompact: false,
+        isPinnable: false,
+        isPinned: false,
         isVisible: false,
         key: '',
         target: null,
       })
+    },
+    togglePinned() {
+      if (this.isPinnable) {
+        this.isPinned = !this.isPinned
+
+        // No longer pinning, hide the tooltip.
+        if (!this.isPinned) {
+          this.hideTooltip()
+        }
+      }
     },
   },
 })
