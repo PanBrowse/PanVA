@@ -56,7 +56,6 @@ export default {
       ctx.scale(scaleFactor, scaleFactor)
 
       // Clear the screen.
-      ctx.save()
       ctx.clearRect(0, 0, this.width, this.height)
 
       this.filteredPositions.forEach((position, index) => {
@@ -72,8 +71,6 @@ export default {
           colorFn: this.nucleotideColor,
         })
       })
-
-      ctx.restore()
     },
   },
   mounted() {
@@ -105,7 +102,7 @@ export default {
       transitionDuration: transitionTime + 'ms',
     }"
   >
-    <canvas :width="width" :height="height" id="reference"></canvas>
+    <canvas id="reference"></canvas>
   </div>
 </template>
 

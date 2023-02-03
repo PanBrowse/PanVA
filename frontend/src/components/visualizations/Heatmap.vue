@@ -249,7 +249,6 @@ export default {
       ctx.scale(scaleFactor, scaleFactor)
 
       // Clear the screen.
-      ctx.save()
       ctx.clearRect(0, 0, this.width, this.height)
 
       const that = this
@@ -272,8 +271,6 @@ export default {
             that.isReference(data)
           )
         })
-
-      ctx.restore()
     },
     mouseEventToCell(event: MouseEvent): CellCoordinate | undefined {
       const [x, y] = d3.pointer(event)
@@ -439,8 +436,6 @@ export default {
   >
     <canvas
       v-show="hasAllData"
-      :width="width"
-      :height="height"
       id="heatmap"
       @mousemove="onMouseMove"
       @mouseleave="onMouseLeave"
