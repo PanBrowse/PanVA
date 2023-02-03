@@ -56,7 +56,12 @@ export default {
         {
           name: 'offset',
           options: {
-            offset: [0, 0],
+            offset: ({ placement }: any) => {
+              if (placement === 'top') {
+                return [0, -16]
+              }
+              return [0, 0]
+            },
           },
         },
       ],
@@ -84,8 +89,6 @@ export default {
       :mouseEnterDelay="0"
       :mouseLeaveDelay="0"
       :getPopupContainer="(node: HTMLElement) => node"
-      :align="{ offset: [0, 18] }"
-      placement="top"
     >
       <template #title>
         <a-button
