@@ -5,6 +5,8 @@ import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
 import { isGroup } from '@/helpers/isGroup'
 import { flatten } from 'lodash'
+import type { TreeNode, TreeOption } from '@/types'
+import { leafNodes } from '@/helpers/tree'
 
 type Link = {
   sourceIndex: number
@@ -20,30 +22,65 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
+      'coreSNP',
+      'dendroCustom',
+      'dendroDefault',
       'hoverRowIndex',
+      'mrnaIds',
+      'phenos',
       'rowColors',
-      'sequenceCount',
       'sortedDataIndicesCollapsed',
       'transitionTime',
+      'tree',
     ]),
     hasAllData(): boolean {
-      return this.sortedDataIndicesCollapsed.length !== 0
+      return (
+        this.treeData !== null && this.sortedDataIndicesCollapsed.length !== 0
+      )
     },
     height(): number {
-      return this.sequenceCount * CELL_SIZE
+      if (this.treeData === null) return 0
+      return leafNodes(this.treeData).length * CELL_SIZE
+    },
+    treeSource(): TreeOption {
+      if (this.tree === 'coreSNP' && this.coreSNP) {
+        return 'coreSNP'
+      }
+
+      if (this.tree === 'dendroCustom' && this.dendroCustom) {
+        return 'dendroCustom'
+      }
+
+      return 'dendroDefault'
+    },
+    treeData(): TreeNode | null {
+      if (this.treeSource === 'coreSNP') return this.coreSNP
+      if (this.treeSource === 'dendroCustom') return this.dendroCustom
+      return this.dendroDefault
+    },
+    leafNodes(): string[] {
+      if (this.treeData === null) {
+        throw Error('Bipartite.leafNodes called with missing treeData.')
+      }
+      return leafNodes(this.treeData)
+    },
+    leafNodesLookup() {
+      return Object.fromEntries(
+        this.leafNodes.map((leafNode, index) => [leafNode, index])
+      )
     },
     links(): Link[] {
       return flatten(
         this.sortedDataIndicesCollapsed.map((data, index) => {
           if (isGroup(data)) {
             return data.dataIndices.map((dataIndex) => ({
-              sourceIndex: dataIndex,
+              sourceIndex: this.getSourceIndex(dataIndex),
               targetIndex: index,
               color: data.isColorized ? data.color : undefined,
             }))
           } else {
             return {
-              sourceIndex: data,
+              sourceIndex: this.getSourceIndex(data),
               targetIndex: index,
               color: this.rowColors[data],
             }
@@ -55,6 +92,15 @@ export default {
   methods: {
     svg() {
       return d3.select('#bipartite')
+    },
+    getSourceIndex(dataIndex: number): number {
+      let leafNodeValue = this.mrnaIds[dataIndex]
+
+      if (this.treeSource === 'coreSNP') {
+        leafNodeValue = `${this.phenos[dataIndex].genome_nr}`
+      }
+
+      return this.leafNodesLookup[leafNodeValue]
     },
     linkPath({ sourceIndex, targetIndex }: Link): string {
       const yOffset = 0.5 * CELL_SIZE
@@ -110,12 +156,15 @@ export default {
     sortedDataIndicesCollapsed() {
       this.drawBipartite()
     },
+    treeData() {
+      this.drawBipartite()
+    },
   },
 }
 </script>
 
 <template>
-  <svg id="bipartite" :width="width" :height="height"></svg>
+  <svg id="bipartite" :width="width" :height="height" v-if="hasAllData"></svg>
 </template>
 
 <style lang="scss">

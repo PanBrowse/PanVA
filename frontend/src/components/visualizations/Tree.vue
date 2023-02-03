@@ -46,12 +46,13 @@ export default {
     },
     hierarchy(): HierarchyNode<TreeNode> {
       if (this.treeData === null) {
-        throw Error('Tree.root called with missing treeData.')
+        throw Error('Tree.hierarchy called with missing treeData.')
       }
       return d3.hierarchy<TreeNode>(this.treeData)
     },
     height(): number {
-      return this.sequenceCount * CELL_SIZE
+      if (this.treeData === null) return 0
+      return this.hierarchy.leaves().length * CELL_SIZE
     },
     links(): HierarchyPointLink<TreeNode>[] {
       const cluster = d3
