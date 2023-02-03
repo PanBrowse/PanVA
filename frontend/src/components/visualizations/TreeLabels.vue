@@ -25,7 +25,7 @@ export default {
       >
         <span v-if="tree === 'dendroDefault'">Dendrogram</span>
         <span v-if="tree === 'dendroCustom'">Custom dendrogram</span>
-        <span v-if="tree === 'coreSnp'">CoreSNP</span>
+        <span v-if="tree === 'coreSNP'">CoreSNP</span>
       </div>
     </foreignObject>
 

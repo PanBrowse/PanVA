@@ -5,7 +5,7 @@ export type mRNAid = string
 export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
 export type Range = [number, number]
 export type DataIndexCollapsed = number | Group
-export type TreeOption = 'dendroDefault' | 'dendroCustom' | 'coreSnp'
+export type TreeOption = 'dendroDefault' | 'dendroCustom' | 'coreSNP'
 export type FilterPosition =
   | 'all'
   | 'variable'
@@ -32,7 +32,7 @@ export type AppError = {
  * Sorting.
  */
 type SortingCommon = {
-  field: 'dendroDefault' | 'dendroCustom' | 'coreSnp' | 'mrnaId'
+  field: 'dendroDefault' | 'dendroCustom' | 'coreSNP' | 'mrnaId'
 }
 
 type SortingPheno = {

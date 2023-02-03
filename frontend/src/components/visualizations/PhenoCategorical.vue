@@ -67,6 +67,18 @@ export default {
     name(): string {
       return `pheno-${this.id}-${this.field}`
     },
+    rowValues(): (string | null)[] {
+      return this.sortedDataIndicesCollapsed.map((data) => {
+        if (isGroup(data)) {
+          const { values } = this.groupAggregates[data.id]
+          if (values.length === 1) {
+            return values[0]
+          }
+          return null
+        }
+        return this.phenos[data][this.field] as PhenoColumnCategoricalData
+      })
+    },
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
         this.groups.map(({ id, dataIndices }) => {
@@ -111,15 +123,10 @@ export default {
 
           (exit) => exit.remove()
         )
-        .text((data) => {
-          if (isGroup(data)) {
-            const { values } = this.groupAggregates[data.id]
-            if (values.length === 1) {
-              return values[0]
-            }
-            return 'multiple'
-          }
-          return this.phenos[data][this.field] as PhenoColumnCategoricalData
+        .text((data, index) => {
+          const value = this.rowValues[index]
+          if (value === null) return 'multiple'
+          return value
         })
         .style('color', (data) => {
           if (isGroup(data)) {
@@ -134,6 +141,14 @@ export default {
           return this.selectedDataIndices.includes(data)
         })
         .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
+        .attr('data-similar', (data, index) => {
+          if (this.hoverRowIndex === null) return false
+
+          return (
+            this.hoverRowIndex !== index &&
+            this.rowValues[this.hoverRowIndex] === this.rowValues[index]
+          )
+        })
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
           if (index === null) return
@@ -231,6 +246,10 @@ export default {
 
     &[data-hovered='true'] {
       color: #1890ff;
+    }
+
+    &[data-similar='true'] {
+      color: #7c9dda;
     }
   }
 }

@@ -57,7 +57,7 @@ def label_tree(n, data_labels):
     del n["node_id"]
 
     # Labeling convention: "@@"-separated leaf names
-    n["name"] = "-".join(sorted(map(str, leafNames)))
+    n["name"] = "@@".join(sorted(map(str, leafNames)))
 
     return leafNames
 

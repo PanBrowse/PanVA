@@ -26,6 +26,7 @@ export default {
   computed: {
     ...mapState(useConfigStore, ['phenoColumns']),
     ...mapState(useDataStore, [
+      'coreSNP',
       'dendroCustom',
       'filteredPositions',
       'groups',
@@ -86,7 +87,7 @@ export default {
               label: 'Custom dendrogram',
               isDisabled: !this.dendroCustom,
             },
-            { value: 'coreSnp', label: 'CoreSNP', isDisabled: true },
+            { value: 'coreSNP', label: 'CoreSNP', isDisabled: !this.coreSNP },
           ],
         },
         { value: 'mrnaId', label: 'mRNA id' },
@@ -139,13 +140,10 @@ export default {
       }
     },
     onSortChange(value: string) {
-      if (value === 'dendroDefault') {
+      const common = ['dendroDefault', 'dendroCustom', 'coreSNP', 'mrnaId']
+      if (common.includes(value)) {
         this.changeSorting({
-          field: 'dendroDefault',
-        })
-      } else if (value === 'dendroCustom') {
-        this.changeSorting({
-          field: 'dendroCustom',
+          field: value as any,
         })
       } else if (value === 'position') {
         this.changeSorting({
@@ -219,7 +217,7 @@ export default {
           <a-select-option value="dendroCustom" :disabled="!dendroCustom">
             Custom dendrogram
           </a-select-option>
-          <a-select-option value="coreSnp" disabled>CoreSNP</a-select-option>
+          <a-select-option value="coreSNP">CoreSNP</a-select-option>
         </a-select>
       </a-form-item>
 

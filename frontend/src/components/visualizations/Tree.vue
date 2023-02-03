@@ -1,9 +1,9 @@
 <script lang="ts">
 import * as d3 from 'd3'
-import { mapState } from 'pinia'
+import { mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
-import type { TreeNode } from '@/types'
+import type { TreeNode, TreeOption } from '@/types'
 import type { HierarchyNode, HierarchyPointLink, HierarchyPointNode } from 'd3'
 
 export default {
@@ -24,13 +24,24 @@ export default {
       'transitionTime',
       'tree',
     ]),
+    ...mapWritableState(useDataStore, ['selectedDataIndices']),
     hasAllData(): boolean {
       return this.treeData !== null && this.sequenceCount !== 0
     },
-    treeData(): TreeNode | null {
-      if (this.tree === 'dendroCustom' && this.dendroCustom) {
-        return this.dendroCustom
+    treeSource(): TreeOption {
+      if (this.tree === 'coreSNP' && this.coreSNP) {
+        return 'coreSNP'
       }
+
+      if (this.tree === 'dendroCustom' && this.dendroCustom) {
+        return 'dendroCustom'
+      }
+
+      return 'dendroDefault'
+    },
+    treeData(): TreeNode | null {
+      if (this.treeSource === 'coreSNP') return this.coreSNP
+      if (this.treeSource === 'dendroCustom') return this.dendroCustom
       return this.dendroDefault
     },
     hierarchy(): HierarchyNode<TreeNode> {
@@ -52,6 +63,9 @@ export default {
     },
     descendants(): HierarchyPointNode<TreeNode>[] {
       return this.hierarchy.descendants() as HierarchyPointNode<TreeNode>[]
+    },
+    isInteractive(): boolean {
+      return this.treeSource !== 'coreSNP'
     },
   },
   methods: {
@@ -110,21 +124,22 @@ export default {
               .attr('cy', (d) => d.x),
           (exit) => exit.remove()
         )
-        .attr('stroke', (d) => {
-          // Leaf nodes.
-          if (d.height === 0) {
-            const dataIndex = this.mrnaIdsLookup[d.data.name]
-            const color = this.rowColors[dataIndex]
-            if (color) return color
-          }
-
+        .attr('stroke', () => {
           return 'rgba(192, 192, 192, 0.5)'
         })
-        .attr('fill', function (d) {
+        .attr('fill', (d) => {
           if (d.height === 0 || d.depth === 0) {
             return '#ffffff'
           }
           return 'rgba(192, 192, 192, 0.5)'
+        })
+        .on('mousedown', (event, { data }) => {
+          if (!this.isInteractive) return
+
+          const mrnaIds = data.name.split('@@')
+          this.selectedDataIndices = mrnaIds.map(
+            (mrnaId) => this.mrnaIdsLookup[mrnaId]
+          )
         })
     },
   },
@@ -146,7 +161,12 @@ export default {
 </script>
 
 <template>
-  <svg id="tree" :width="width" :height="height"></svg>
+  <svg
+    id="tree"
+    :width="width"
+    :height="height"
+    :class="{ interactive: isInteractive }"
+  ></svg>
 </template>
 
 <style lang="scss">
@@ -157,7 +177,7 @@ export default {
     pointer-events: none;
   }
 
-  circle {
+  &.interactive circle {
     cursor: pointer;
 
     &:hover {

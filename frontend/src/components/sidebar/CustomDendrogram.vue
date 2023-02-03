@@ -9,7 +9,7 @@ export default {
   components: {
     SidebarItem,
   },
-  data: function () {
+  data() {
     return {
       isFetchingCustomDendro: false,
     }

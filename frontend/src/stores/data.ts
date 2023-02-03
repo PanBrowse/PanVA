@@ -48,6 +48,7 @@ import {
   clamp,
   constant,
   filter,
+  flatten,
   range,
   reverse,
   sortBy,
@@ -82,6 +83,7 @@ export const useDataStore = defineStore('data', {
     phenos: [] as Pheno[],
     sequences: [] as Sequence[],
     varPosCount: [] as VarPosCount[],
+    // mRNA ids in order as defined by the default dendrogram.
     // This is populated by taking the leaf nodes from dendroDefault.
     mrnaIds: [] as mRNAid[],
 
@@ -115,25 +117,6 @@ export const useDataStore = defineStore('data', {
     // Grouping.
     groups: [] as Group[],
     lastGroupId: 0,
-    // groups: [
-    //   {
-    //     id: 1,
-    //     name: '',
-    //     isColorized: true,
-    //     isCollapsed: true,
-    //     color: '#b15928',
-    //     dataIndices: range(13, 21),
-    //   },
-    //   {
-    //     id: 2,
-    //     name: '',
-    //     isColorized: true,
-    //     isCollapsed: true,
-    //     color: '#1f78b4',
-    //     dataIndices: range(40, 57),
-    //   },
-    // ] as Group[],
-    // lastGroupId: 2,
 
     // Sorting.
     sorting: DEFAULT_SORTING,
@@ -317,6 +300,19 @@ export const useDataStore = defineStore('data', {
     mrnaIdsSorted(): mRNAid[] {
       return this.sortedDataIndices.map((index) => this.mrnaIds[index])
     },
+    genomeMrnaIdsLookup(): Record<number, mRNAid[]> {
+      const lookup: Record<number, mRNAid[]> = {}
+
+      this.phenos.forEach(({ genome_nr, mRNA_id }) => {
+        if (genome_nr in lookup) {
+          lookup[genome_nr].push(mRNA_id)
+        } else {
+          lookup[genome_nr] = [mRNA_id]
+        }
+      })
+
+      return lookup
+    },
   },
   actions: {
     changeSorting(sorting: Sorting) {
@@ -328,7 +324,7 @@ export const useDataStore = defineStore('data', {
         // Same field and parameter, so we reverse the current sorting.
         // But we don't do this for the tree, that is static.
         if (
-          !['dendroDefault', 'dendroCustom', 'coreSnp'].includes(sorting.field)
+          !['dendroDefault', 'dendroCustom', 'coreSNP'].includes(sorting.field)
         ) {
           this.sortedDataIndices = reverse(this.sortedDataIndices)
         }
@@ -344,10 +340,32 @@ export const useDataStore = defineStore('data', {
       // First we update the sorting field to a new value.
       this.sorting = sorting
 
-      // Sorting by mrna id does not take current sorting into account.
+      // Sorting by custom dendrogram should not take current sorting into account.
       if (sorting.field === 'dendroCustom' && this.dendroCustom) {
+        // The leaf nodes of a dendrogram are mRNA ids.
         this.sortedDataIndices = leafNodes(this.dendroCustom).map(
           (mrnaId) => this.mrnaIdsLookup[mrnaId]
+        )
+        return
+      }
+
+      // Sorting by coreSNP should not take current sorting into account.
+      if (sorting.field === 'coreSNP' && this.coreSNP) {
+        this.sortedDataIndices = flatten(
+          // The leaf nodes of coreSNP are genome number strings.
+          leafNodes(this.coreSNP).map((leaf) => {
+            const genomeNr = parseInt(leaf)
+
+            // Not all genome numbers occur in each homology
+            // group, so lookup could result in undefined.
+            if (genomeNr in this.genomeMrnaIdsLookup) {
+              return this.genomeMrnaIdsLookup[genomeNr].map(
+                (mrnaId) => this.mrnaIdsLookup[mrnaId]
+              )
+            }
+
+            return []
+          })
         )
         return
       }

@@ -15,7 +15,7 @@ import { keys, pickBy } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import { groupCounts } from '@/helpers/groupCounts'
-import { drawNucleotide } from '@/helpers/nucleotide'
+import { drawNucleotide, sortNucleotideString } from '@/helpers/nucleotide'
 import type { StyleValue } from 'vue'
 
 type CellCoordinate = {
@@ -124,7 +124,9 @@ export default {
               counts[nucleotide]++
             })
 
-            const nucleotides = keys(pickBy(counts)).join('')
+            const nucleotides = sortNucleotideString(
+              keys(pickBy(counts)).join('')
+            )
 
             return { counts, nucleotides }
           })

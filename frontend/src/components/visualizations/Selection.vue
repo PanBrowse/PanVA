@@ -8,7 +8,7 @@ import type { CheckboxChangeEvent } from 'ant-design-vue/lib/checkbox/interface'
 import { arrayRange } from '@/helpers/arrayRange'
 
 export default {
-  data: function () {
+  data() {
     return {
       lastPosition: null as number | null,
       lastChecked: null as boolean | null,
