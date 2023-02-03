@@ -10,7 +10,6 @@ import { eventIndex } from '@/helpers/eventIndex'
 import { countBy, uniq } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
-import { groupCounts } from '@/helpers/groupCounts'
 
 type GroupCounts = Record<PhenoColumnCategoricalData, number>
 
@@ -174,7 +173,17 @@ export default {
 
                 return {
                   title: groupName(data),
-                  content: groupCounts(counts),
+                  template: `
+                      <a-descriptions size="small" layout="horizontal" :column="1" bordered>
+                        <a-descriptions-item :label="value" v-for="(count, value) in counts">
+                          {{ count }}
+                        </a-descriptions-item>
+                      </a-descriptions>
+                    `,
+                  data: {
+                    counts,
+                  },
+                  isCompact: true,
                   isPinnable: true,
                 }
               },
