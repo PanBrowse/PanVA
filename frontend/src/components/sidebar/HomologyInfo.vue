@@ -4,9 +4,12 @@ import { useDataStore } from '@/stores/data'
 
 import BooleanIndicator from '@/components/common/BooleanIndicator.vue'
 import SidebarItem from '@/components/common/SidebarItem.vue'
+import { Descriptions, DescriptionsItem } from 'ant-design-vue'
 
 export default {
   components: {
+    ADescriptions: Descriptions,
+    ADescriptionsItem: DescriptionsItem,
     BooleanIndicator,
     SidebarItem,
   },
@@ -18,17 +21,17 @@ export default {
 
 <template>
   <SidebarItem v-if="homology" title="Homology info" isDefaultCollapsed>
-    <a-descriptions size="small" layout="horizontal" :column="1" bordered>
-      <a-descriptions-item label="ID">
+    <ADescriptions size="small" layout="horizontal" :column="1" bordered>
+      <ADescriptionsItem label="ID">
         {{ homology.homology_id }}
-      </a-descriptions-item>
-      <a-descriptions-item label="Class">
+      </ADescriptionsItem>
+      <ADescriptionsItem label="Class">
         {{ homology.class }}
-      </a-descriptions-item>
-      <a-descriptions-item label="Members">
+      </ADescriptionsItem>
+      <ADescriptionsItem label="Members">
         {{ homology.members }}
-      </a-descriptions-item>
-      <a-descriptions-item label="Nucleotide">
+      </ADescriptionsItem>
+      <ADescriptionsItem label="Nucleotide">
         <BooleanIndicator :value="homology.variable_sites_nuc">
           Variable sites
         </BooleanIndicator>
@@ -38,8 +41,8 @@ export default {
         <BooleanIndicator :value="homology.pheno_specific_changes_nuc">
           Pheno specific changes
         </BooleanIndicator>
-      </a-descriptions-item>
-      <a-descriptions-item label="Protein">
+      </ADescriptionsItem>
+      <ADescriptionsItem label="Protein">
         <BooleanIndicator :value="homology.variable_sites_prot">
           Variable sites
         </BooleanIndicator>
@@ -49,7 +52,7 @@ export default {
         <BooleanIndicator :value="homology.pheno_specific_changes_prot">
           Pheno specific changes
         </BooleanIndicator>
-      </a-descriptions-item>
-    </a-descriptions>
+      </ADescriptionsItem>
+    </ADescriptions>
   </SidebarItem>
 </template>

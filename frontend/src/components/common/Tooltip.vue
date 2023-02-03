@@ -6,9 +6,12 @@ import { mapActions, mapState } from 'pinia'
 import { PushpinOutlined } from '@ant-design/icons-vue'
 
 import TooltipContent from '@/components/common/TooltipContent.vue'
+import { Button, Popover } from 'ant-design-vue'
 
 export default {
   components: {
+    AButton: Button,
+    APopover: Popover,
     PushpinOutlined,
     TooltipContent,
   },
@@ -84,14 +87,14 @@ export default {
     id="tooltip"
     :class="{ compact: isCompact, pinned: isPinned }"
   >
-    <a-popover
+    <APopover
       v-model:visible="isVisible"
       :mouseEnterDelay="0"
       :mouseLeaveDelay="0"
       :getPopupContainer="(node: HTMLElement) => node"
     >
       <template #title>
-        <a-button
+        <AButton
           :type="isPinned ? 'primary' : 'default'"
           shape="circle"
           size="small"
@@ -100,7 +103,7 @@ export default {
           @click="togglePinned"
         >
           <template #icon><PushpinOutlined /></template>
-        </a-button>
+        </AButton>
         {{ title }}
       </template>
       <template #content>
@@ -111,7 +114,7 @@ export default {
         />
         <div v-if="content">{{ content }}</div>
       </template>
-    </a-popover>
+    </APopover>
   </div>
 </template>
 

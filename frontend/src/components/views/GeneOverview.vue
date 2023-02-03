@@ -7,6 +7,7 @@ import type { D3BrushEvent } from 'd3'
 import { zipEqual } from '@/helpers/zipEqual'
 
 import LoadingBox from '@/components/common/LoadingBox.vue'
+import { Card } from 'ant-design-vue'
 
 type Score = {
   x: number
@@ -18,6 +19,7 @@ export default {
     title: String,
   },
   components: {
+    ACard: Card,
     LoadingBox,
   },
   data() {
@@ -274,7 +276,7 @@ export default {
 </script>
 
 <template>
-  <a-card
+  <ACard
     title="Gene overview"
     :bordered="false"
     size="small"
@@ -287,7 +289,7 @@ export default {
       id="geneOverview"
     ></svg>
     <LoadingBox v-show="!hasAllData" :height="svgHeight" />
-  </a-card>
+  </ACard>
 </template>
 
 <style lang="scss">

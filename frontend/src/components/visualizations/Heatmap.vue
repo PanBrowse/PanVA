@@ -322,14 +322,14 @@ export default {
             return {
               title: groupName(data),
               template: `
-                  <a-descriptions size="small" layout="horizontal" :column="1" bordered>
-                    <a-descriptions-item label="Bases">
+                  <ADescriptions size="small" layout="horizontal" :column="1" bordered>
+                    <ADescriptionsItem label="Bases">
                       {{ nucleotides }}
-                    </a-descriptions-item>
-                    <a-descriptions-item label="Position">
+                    </ADescriptionsItem>
+                    <ADescriptionsItem label="Position">
                       {{ position }}
-                    </a-descriptions-item>
-                  </a-descriptions>
+                    </ADescriptionsItem>
+                  </ADescriptions>
                 `,
               data: {
                 mrnaIds,
@@ -346,17 +346,17 @@ export default {
           return {
             title: this.mrnaIds[data],
             template: `
-                <a-descriptions size="small" layout="horizontal" :column="1" bordered>
-                  <a-descriptions-item label="Base">
+                <ADescriptions size="small" layout="horizontal" :column="1" bordered>
+                  <ADescriptionsItem label="Base">
                     {{ alignedPosition.nucleotide }}
-                  </a-descriptions-item>
-                  <a-descriptions-item label="Position">
+                  </ADescriptionsItem>
+                  <ADescriptionsItem label="Position">
                     {{ alignedPosition.position }}
-                  </a-descriptions-item>
-                  <a-descriptions-item label="Variable">
+                  </ADescriptionsItem>
+                  <ADescriptionsItem label="Variable">
                     <BooleanIndicator :value="alignedPosition.variable" />
-                  </a-descriptions-item>
-                </a-descriptions>
+                  </ADescriptionsItem>
+                </ADescriptions>
               `,
             data: {
               alignedPosition,

@@ -82,11 +82,5 @@ export default {
     <LocusView />
     <Tooltip />
     <ErrorOverlay />
-
-    <!--
-    <a-card title="Additional card" :bordered="false" size="small">
-      <p>Content</p>
-    </a-card>
-    -->
   </Layout>
 </template>

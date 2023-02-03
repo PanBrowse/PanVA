@@ -239,12 +239,12 @@ export default {
                 return {
                   title: groupName(data),
                   template: `
-                  <a-descriptions size="small" layout="horizontal" :column="1" bordered>
-                    <a-descriptions-item v-for="(count, label) in labeledCounts" :label="label">
-                      {{ count }}
-                    </a-descriptions-item>
-                  </a-descriptions>
-                `,
+                    <ADescriptions size="small" layout="horizontal" :column="1" bordered>
+                      <ADescriptionsItem v-for="(count, label) in labeledCounts" :label="label">
+                        {{ count }}
+                      </ADescriptionsItem>
+                    </ADescriptions>
+                  `,
                   data: {
                     labeledCounts,
                   },

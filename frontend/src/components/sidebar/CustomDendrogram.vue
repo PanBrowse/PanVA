@@ -4,9 +4,14 @@ import { mapActions, mapState, mapWritableState } from 'pinia'
 import SidebarItem from '@/components/common/SidebarItem.vue'
 import { difference, intersection, isEqual, range, sortBy, union } from 'lodash'
 import type { FilterPosition } from '@/types'
+import { Form, FormItem, Checkbox, Button } from 'ant-design-vue'
 
 export default {
   components: {
+    AButton: Button,
+    ACheckbox: Checkbox,
+    AForm: Form,
+    AFormItem: FormItem,
     SidebarItem,
   },
   data() {
@@ -144,9 +149,9 @@ export default {
       </span>
     </p>
 
-    <a-form class="dendro-options">
-      <a-form-item>
-        <a-checkbox
+    <AForm class="dendro-options">
+      <AFormItem>
+        <ACheckbox
           v-model:checked="isRegionChecked"
           :indeterminate="isRegionIndeterminate"
           @change="onCheckRegion"
@@ -154,30 +159,30 @@ export default {
           Select all {{ filteredPositionsCount }} {{ positionsLabel }} in
           {{ positionRegion[0] }} -
           {{ positionRegion[1] }}
-        </a-checkbox>
-      </a-form-item>
-      <a-form-item>
-        <a-checkbox
+        </ACheckbox>
+      </AFormItem>
+      <AFormItem>
+        <ACheckbox
           v-model:checked="isDatasetChecked"
           :indeterminate="isDatasetIndeterminate"
           @change="onCheckDataset"
         >
           Select all {{ allFilteredPositionsCount }} {{ positionsLabel }} in
           dataset
-        </a-checkbox>
-      </a-form-item>
+        </ACheckbox>
+      </AFormItem>
 
-      <a-form-item>
-        <a-button
+      <AFormItem>
+        <AButton
           :disabled="customDendroButtonDisabled"
           :loading="isFetchingCustomDendro"
           @click="updateCustomDendro"
         >
           <span v-if="dendroCustom">Update custom dendrogram</span>
           <span v-else>Generate custom dendrogram</span>
-        </a-button>
-      </a-form-item>
-    </a-form>
+        </AButton>
+      </AFormItem>
+    </AForm>
   </SidebarItem>
 </template>
 

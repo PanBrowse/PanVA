@@ -9,6 +9,14 @@ import { useConfigStore } from '@/stores/config'
 
 import { groupName } from '@/helpers/groupName'
 import type { mRNAid, Reference } from '@/types'
+import {
+  Form,
+  FormItem,
+  Select,
+  SelectOptGroup,
+  SelectOption,
+  Switch,
+} from 'ant-design-vue'
 
 type SortOption = {
   label: string
@@ -21,6 +29,12 @@ type SortOption = {
 
 export default {
   components: {
+    AForm: Form,
+    AFormItem: FormItem,
+    ASelect: Select,
+    ASelectOption: SelectOption,
+    ASelectOptGroup: SelectOptGroup,
+    ASwitch: Switch,
     SidebarItem,
   },
   computed: {
@@ -118,7 +132,7 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['changeSorting']),
     groupName,
-    onReferenceChange(value?: string) {
+    onReferenceChange(value: any) {
       if (value) {
         const [type, indexString] = value.split(':')
         const index = parseInt(indexString)
@@ -139,7 +153,7 @@ export default {
         this.reference = null
       }
     },
-    onSortChange(value: string) {
+    onSortChange(value: any) {
       const common = ['dendroDefault', 'dendroCustom', 'coreSNP', 'mrnaId']
       if (common.includes(value)) {
         this.changeSorting({
@@ -163,66 +177,66 @@ export default {
 
 <template>
   <SidebarItem title="View options">
-    <a-form
+    <AForm
       layout="horizontal"
       :labelCol="{ span: 8 }"
       :wrapperCol="{ span: 16 }"
       class="view-options"
     >
-      <a-form-item label="Filter positions">
-        <a-select
+      <AFormItem label="Filter positions">
+        <ASelect
           :dropdownMatchSelectWidth="false"
           v-model:value="filterPositions"
         >
-          <a-select-option value="all">All</a-select-option>
-          <a-select-option value="variable">Variable</a-select-option>
-          <a-select-option value="informative">Informative</a-select-option>
-          <a-select-option value="pheno_specific">
+          <ASelectOption value="all">All</ASelectOption>
+          <ASelectOption value="variable">Variable</ASelectOption>
+          <ASelectOption value="informative">Informative</ASelectOption>
+          <ASelectOption value="pheno_specific">
             Phenotype specific
-          </a-select-option>
-        </a-select>
-      </a-form-item>
+          </ASelectOption>
+        </ASelect>
+      </AFormItem>
 
-      <a-form-item label="Sorting">
-        <a-select
+      <AFormItem label="Sorting">
+        <ASelect
           :dropdownMatchSelectWidth="false"
           v-model:value="sortValue"
           @change="onSortChange"
         >
           <template v-for="option in sortOptions" v-bind:key="option.value">
-            <a-select-opt-group :label="option.label" v-if="option.options">
-              <a-select-option
+            <ASelectOptGroup :label="option.label" v-if="option.options">
+              <ASelectOption
                 v-for="suboption in option.options"
                 :value="suboption.value"
                 :disabled="suboption.isDisabled"
                 v-bind:key="suboption.value"
               >
                 {{ suboption.label }}
-              </a-select-option>
-            </a-select-opt-group>
-            <a-select-option
+              </ASelectOption>
+            </ASelectOptGroup>
+            <ASelectOption
               v-else
               :value="option.value"
               :disabled="option.isDisabled"
             >
               {{ option.label }}
-            </a-select-option>
+            </ASelectOption>
           </template>
-        </a-select>
-      </a-form-item>
+        </ASelect>
+      </AFormItem>
 
-      <a-form-item label="Tree">
-        <a-select :dropdownMatchSelectWidth="false" v-model:value="tree">
-          <a-select-option value="dendroDefault">Dendrogram</a-select-option>
-          <a-select-option value="dendroCustom" :disabled="!dendroCustom">
+      <AFormItem label="Tree">
+        <ASelect :dropdownMatchSelectWidth="false" v-model:value="tree">
+          <ASelectOption value="dendroDefault">Dendrogram</ASelectOption>
+          <ASelectOption value="dendroCustom" :disabled="!dendroCustom">
             Custom dendrogram
-          </a-select-option>
-          <a-select-option value="coreSNP">CoreSNP</a-select-option>
-        </a-select>
-      </a-form-item>
+          </ASelectOption>
+          <ASelectOption value="coreSNP">CoreSNP</ASelectOption>
+        </ASelect>
+      </AFormItem>
 
-      <a-form-item label="Reference">
-        <a-select
+      <AFormItem label="Reference">
+        <ASelect
           show-search
           :dropdownMatchSelectWidth="false"
           v-model:value="referenceValue"
@@ -230,45 +244,45 @@ export default {
           placeholder="None"
           allowClear
         >
-          <a-select-opt-group label="Groups" v-if="groups.length !== 0">
-            <a-select-option
+          <ASelectOptGroup label="Groups" v-if="groups.length !== 0">
+            <ASelectOption
               v-for="group in groups"
               :value="`group:${group.id}`"
               v-bind:key="group.id"
             >
               {{ groupName(group) }}
-            </a-select-option>
-          </a-select-opt-group>
+            </ASelectOption>
+          </ASelectOptGroup>
 
-          <a-select-option
+          <ASelectOption
             v-for="[mrnaId, dataIndex] in referenceMrnaIdOptions"
             :value="`data:${dataIndex}`"
             v-bind:key="dataIndex"
           >
             {{ mrnaId }}
-          </a-select-option>
-        </a-select>
-      </a-form-item>
+          </ASelectOption>
+        </ASelect>
+      </AFormItem>
 
-      <a-form-item label="Color scheme">
-        <a-select v-model:value="cellTheme" :dropdownMatchSelectWidth="false">
-          <a-select-option
+      <AFormItem label="Color scheme">
+        <ASelect v-model:value="cellTheme" :dropdownMatchSelectWidth="false">
+          <ASelectOption
             v-for="(theme, id) in cellThemeOptions"
             :value="id"
             v-bind:key="id"
           >
             {{ theme.name }}
-          </a-select-option>
-        </a-select>
-      </a-form-item>
+          </ASelectOption>
+        </ASelect>
+      </AFormItem>
 
-      <a-form-item
+      <AFormItem
         label="Transitions"
         extra="Disable for improved performance on slower computers."
       >
-        <a-switch size="small" v-model:checked="transitionsEnabled" />
-      </a-form-item>
-    </a-form>
+        <ASwitch size="small" v-model:checked="transitionsEnabled" />
+      </AFormItem>
+    </AForm>
   </SidebarItem>
 </template>
 

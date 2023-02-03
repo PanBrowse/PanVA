@@ -1,12 +1,23 @@
 <script lang="ts">
 import { GROUP_COLORS } from '@/constants'
 import { CheckOutlined } from '@ant-design/icons-vue'
+import {
+  Button,
+  Popover,
+  RadioGroup,
+  RadioButton,
+  type RadioChangeEvent,
+} from 'ant-design-vue'
 
 export default {
   props: {
     modelValue: String,
   },
   components: {
+    AButton: Button,
+    APopover: Popover,
+    ARadioGroup: RadioGroup,
+    ARadioButton: RadioButton,
     CheckOutlined,
   },
   emits: ['update:modelValue', 'change'],
@@ -16,7 +27,7 @@ export default {
     },
   },
   methods: {
-    handleChange(event: Event) {
+    handleChange(event: RadioChangeEvent) {
       this.$emit('update:modelValue', (event.target as HTMLInputElement).value)
       this.$emit('change')
     },
@@ -25,14 +36,14 @@ export default {
 </script>
 
 <template>
-  <a-popover
+  <APopover
     placement="bottomLeft"
     trigger="click"
     overlayClassName="color-select"
   >
     <template #content>
-      <a-radio-group :value="modelValue" @change="handleChange">
-        <a-radio-button
+      <ARadioGroup :value="modelValue" @change="handleChange">
+        <ARadioButton
           v-for="color in groupColors"
           :value="color"
           v-bind:key="color"
@@ -41,15 +52,15 @@ export default {
           <div class="color-select__color" :style="{ background: color }">
             <CheckOutlined />
           </div>
-        </a-radio-button>
-      </a-radio-group>
+        </ARadioButton>
+      </ARadioGroup>
     </template>
-    <a-button href="https://www.google.com">
+    <AButton href="https://www.google.com">
       <template #icon>
         <div class="color-select__color" :style="{ background: modelValue }" />
       </template>
-    </a-button>
-  </a-popover>
+    </AButton>
+  </APopover>
 </template>
 
 <style lang="scss">

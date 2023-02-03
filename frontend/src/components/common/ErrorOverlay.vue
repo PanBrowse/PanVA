@@ -76,35 +76,3 @@ export default {
   },
 }
 </script>
-
-<!--
-<template>
-  <a-modal :visible="true" @ok="clearError" :closable="false" type="error">
-    <template #title>
-      <a-typography-text type="danger">
-        <ExclamationCircleFilled
-          style="font-size: 24px; vertical-align: middle; margin-right: 8px"
-        />
-        An error has occurred
-      </a-typography-text>
-    </template>
-
-    <template v-if="error">
-      <p>{{ error.message }}</p>
-
-      <p v-if="error.isFatal">A reload of the application is required.</p>
-      <p v-else>
-        You can continue using the application, but a reload might be required
-        if the error persists.
-      </p>
-    </template>
-
-    <template #footer>
-      <a-button key="back" @click="clearError">Continue</a-button>
-      <a-button key="submit" type="danger" @click="reload"
-        >Reload application</a-button
-      >
-    </template>
-  </a-modal>
-</template>
--->

@@ -4,6 +4,7 @@ import { useDataStore } from '@/stores/data'
 
 import LoadingBox from '@/components/common/LoadingBox.vue'
 import SidebarItem from '@/components/common/SidebarItem.vue'
+import { Select, SelectOption } from 'ant-design-vue'
 
 type Option = {
   value: number
@@ -12,6 +13,8 @@ type Option = {
 
 export default {
   components: {
+    ASelect: Select,
+    ASelectOption: SelectOption,
     LoadingBox,
     SidebarItem,
   },
@@ -29,23 +32,23 @@ export default {
 
 <template>
   <SidebarItem title="Homology">
-    <a-select
+    <ASelect
       show-search
       :dropdownMatchSelectWidth="false"
       :filterOption="filterOption"
       v-model:value="homologyId"
       style="width: 100%"
-      v-if="homologies.length !== 0"
+      v-if="homologies.length !== 0 && homologyId"
     >
-      <a-select-option
+      <ASelectOption
         v-for="item in homologies"
         :value="item.homology_id"
         :label="item.name"
         v-bind:key="item.homology_id"
       >
         {{ item.name }}
-      </a-select-option>
-    </a-select>
+      </ASelectOption>
+    </ASelect>
     <LoadingBox :height="32" v-else />
   </SidebarItem>
 </template>

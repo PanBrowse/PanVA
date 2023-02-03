@@ -13,11 +13,17 @@ import { useDataStore } from '@/stores/data'
 import type { Group } from '@/types'
 import { GROUP_COLORS } from '@/constants'
 import { chain, cloneDeep, difference, map } from 'lodash'
+import { Button, Col, Divider, Input, Row } from 'ant-design-vue'
 
 type FormGroup = Omit<Group, 'id' | 'dataIndices'>
 
 export default {
   components: {
+    AButton: Button,
+    ACol: Col,
+    ADivider: Divider,
+    AInput: Input,
+    ARow: Row,
     BgColorsOutlined,
     ColorSelect,
     DeleteOutlined,
@@ -100,50 +106,50 @@ export default {
 
 <template>
   <SidebarItem title="Groups">
-    <a-row
+    <ARow
       type="flex"
       :gutter="4"
       style="margin-bottom: 8px"
       v-for="group in groups"
       v-bind:key="group.id"
     >
-      <a-col flex="0 0 auto">
+      <ACol flex="0 0 auto">
         <ColorSelect v-model="group.color" @change="updateGroups()" />
-      </a-col>
+      </ACol>
       <!-- -->
-      <a-col flex="0 0 188px">
-        <a-input
+      <ACol flex="0 0 188px">
+        <AInput
           :placeholder="`Group ${group.id}`"
           v-model:value="group.name"
           :onBlur="updateGroups"
         />
-      </a-col>
-      <a-col flex="0 0 auto">
-        <a-button
+      </ACol>
+      <ACol flex="0 0 auto">
+        <AButton
           :type="group.isColorized ? 'default' : 'text'"
           @click="toggleGroupColorized(group)"
           class="toggle"
         >
           <template #icon><BgColorsOutlined /></template>
-        </a-button>
-      </a-col>
-      <a-col flex="0 0 auto">
-        <a-button
+        </AButton>
+      </ACol>
+      <ACol flex="0 0 auto">
+        <AButton
           :type="group.isCollapsed ? 'default' : 'text'"
           @click="toggleGroupCollapsed(group)"
           class="toggle"
         >
           <template #icon><ShrinkOutlined /></template>
-        </a-button>
-      </a-col>
-      <a-col flex="0 0 auto">
-        <a-button type="text" @click="onDelete(group.id)">
+        </AButton>
+      </ACol>
+      <ACol flex="0 0 auto">
+        <AButton type="text" @click="onDelete(group.id)">
           <template #icon><DeleteOutlined /></template>
-        </a-button>
-      </a-col>
-    </a-row>
+        </AButton>
+      </ACol>
+    </ARow>
 
-    <a-divider v-if="groups.length !== 0" />
+    <ADivider v-if="groups.length !== 0" />
 
     <!-- Height should match form height. -->
     <p style="margin-bottom: 10px">
@@ -162,23 +168,23 @@ export default {
       </span>
     </p>
 
-    <a-row type="flex" :gutter="4" v-if="newGroup">
-      <a-col flex="0 0 auto">
+    <ARow type="flex" :gutter="4" v-if="newGroup">
+      <ACol flex="0 0 auto">
         <ColorSelect v-model="newGroup.color" />
-      </a-col>
+      </ACol>
       <!-- -->
-      <a-col flex="1 1 auto">
-        <a-input
+      <ACol flex="1 1 auto">
+        <AInput
           v-model:value="newGroup.name"
           :placeholder="`Group ${lastGroupId + 1}`"
         />
-      </a-col>
-      <a-col flex="0 0 auto">
-        <a-button type="primary" @click="onCreate">
+      </ACol>
+      <ACol flex="0 0 auto">
+        <AButton type="primary" @click="onCreate">
           <template #icon><PlusOutlined /></template>
-        </a-button>
-      </a-col>
-    </a-row>
+        </AButton>
+      </ACol>
+    </ARow>
   </SidebarItem>
 </template>
 

@@ -64,7 +64,7 @@ export default {
       }
       return leafNodes(this.treeData)
     },
-    leafNodesLookup() {
+    leafNodesLookup(): Record<string, number> {
       return Object.fromEntries(
         this.leafNodes.map((leafNode, index) => [leafNode, index])
       )

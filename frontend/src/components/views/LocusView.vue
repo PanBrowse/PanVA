@@ -13,9 +13,11 @@ import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { useConfigStore } from '@/stores/config'
 import { useTooltipStore } from '@/stores/tooltip'
+import { Card } from 'ant-design-vue'
 
 export default {
   components: {
+    ACard: Card,
     Bipartite,
     Heatmap,
     HeatmapHeader,
@@ -55,7 +57,7 @@ export default {
 </script>
 
 <template>
-  <a-card class="locus-view" title="Locus view" :bordered="false" size="small">
+  <ACard class="locus-view" title="Locus view" :bordered="false" size="small">
     <div class="header">
       <TreeLabels />
       <scroll-sync
@@ -98,7 +100,7 @@ export default {
         </template>
       </div>
     </div>
-  </a-card>
+  </ACard>
 </template>
 
 <style lang="scss">

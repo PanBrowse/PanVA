@@ -1,5 +1,11 @@
 <script lang="ts">
+import { Collapse, CollapsePanel } from 'ant-design-vue'
+
 export default {
+  components: {
+    ACollapse: Collapse,
+    ACollapsePanel: CollapsePanel,
+  },
   props: {
     title: {
       type: String,
@@ -31,7 +37,7 @@ export default {
 </script>
 
 <template>
-  <a-collapse
+  <ACollapse
     v-model:activeKey="activeKey"
     expandIconPosition="right"
     collapsible="header"
@@ -39,10 +45,10 @@ export default {
     class="sidebar-item"
     @change="toggleExpanded"
   >
-    <a-collapse-panel key="1" :header="title" class="sidebar-item-content">
+    <ACollapsePanel key="1" :header="title" class="sidebar-item-content">
       <slot></slot>
-    </a-collapse-panel>
-  </a-collapse>
+    </ACollapsePanel>
+  </ACollapse>
 </template>
 
 <style lang="scss">

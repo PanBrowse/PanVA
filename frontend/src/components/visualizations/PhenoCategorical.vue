@@ -174,11 +174,11 @@ export default {
                 return {
                   title: groupName(data),
                   template: `
-                      <a-descriptions size="small" layout="horizontal" :column="1" bordered>
-                        <a-descriptions-item :label="value" v-for="(count, value) in counts">
+                      <ADescriptions size="small" layout="horizontal" :column="1" bordered>
+                        <ADescriptionsItem :label="value" v-for="(count, value) in counts">
                           {{ count }}
-                        </a-descriptions-item>
-                      </a-descriptions>
+                        </ADescriptionsItem>
+                      </ADescriptions>
                     `,
                   data: {
                     counts,

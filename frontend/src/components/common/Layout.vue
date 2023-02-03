@@ -4,9 +4,22 @@ import { useConfigStore } from '@/stores/config'
 import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons-vue'
 import { mapState } from 'pinia'
 
+import {
+  Button,
+  Card,
+  Layout,
+  LayoutContent,
+  LayoutSider,
+} from 'ant-design-vue'
+
 export default {
   slots: ['sidebar'],
   components: {
+    AButton: Button,
+    ACard: Card,
+    ALayout: Layout,
+    ALayoutContent: LayoutContent,
+    ALayoutSider: LayoutSider,
     MenuUnfoldOutlined,
     MenuFoldOutlined,
   },
@@ -23,9 +36,9 @@ export default {
 </script>
 
 <template>
-  <a-layout hasSider>
-    <a-layout-content>
-      <a-button
+  <ALayout hasSider>
+    <ALayoutContent>
+      <AButton
         :type="collapsed ? 'primary' : 'default'"
         class="collapse-trigger"
         shape="circle"
@@ -35,28 +48,28 @@ export default {
           <MenuFoldOutlined v-if="collapsed" />
           <MenuUnfoldOutlined v-else />
         </template>
-      </a-button>
+      </AButton>
 
       <slot></slot>
-    </a-layout-content>
+    </ALayoutContent>
 
-    <a-layout-sider
+    <ALayoutSider
       v-model:collapsed="collapsed"
       :trigger="null"
       collapsible
       :collapsedWidth="0"
       :width="360"
     >
-      <a-card
+      <ACard
         :title="title || defaultTitle"
         :bordered="false"
         style="min-height: 100%"
         :bodyStyle="{ padding: 0 }"
       >
         <slot name="sidebar"></slot>
-      </a-card>
-    </a-layout-sider>
-  </a-layout>
+      </ACard>
+    </ALayoutSider>
+  </ALayout>
 </template>
 
 <style scoped>

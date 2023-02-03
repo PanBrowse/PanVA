@@ -3,9 +3,13 @@
 import BooleanIndicator from '@/components/common/BooleanIndicator.vue'
 import VRuntimeTemplate from 'vue3-runtime-template'
 
+import { DescriptionsItem, Descriptions } from 'ant-design-vue'
+
 export default {
   props: ['data', 'template'],
   components: {
+    ADescriptionsItem: DescriptionsItem,
+    ADescriptions: Descriptions,
     BooleanIndicator,
     VRuntimeTemplate,
   },
@@ -16,5 +20,5 @@ export default {
 </script>
 
 <template>
-  <v-runtime-template :template="template"></v-runtime-template>
+  <VRuntimeTemplate :template="template"></VRuntimeTemplate>
 </template>

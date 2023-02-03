@@ -3,11 +3,14 @@ import { CELL_SIZE } from '@/constants'
 import { useDataStore } from '@/stores/data'
 import { difference, union } from 'lodash'
 import { mapState, mapWritableState } from 'pinia'
-import type { CheckboxOptionType } from 'ant-design-vue'
+import { CheckboxGroup, type CheckboxOptionType } from 'ant-design-vue'
 import type { CheckboxChangeEvent } from 'ant-design-vue/lib/checkbox/interface'
 import { arrayRange } from '@/helpers/arrayRange'
 
 export default {
+  components: {
+    ACheckboxGroup: CheckboxGroup,
+  },
   data() {
     return {
       lastPosition: null as number | null,
@@ -96,7 +99,7 @@ export default {
       transitionDuration: transitionTime + 'ms',
     }"
   >
-    <a-checkbox-group v-model:value="selectionProxy" :options="options" />
+    <ACheckboxGroup v-model:value="selectionProxy" :options="options" />
   </div>
 </template>
 
