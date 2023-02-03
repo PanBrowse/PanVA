@@ -25,7 +25,7 @@ export default {
       // Initial value, is resized dynamically.
       svgWidth: 100,
       // Fixed value.
-      svgHeight: 80,
+      svgHeight: 72,
 
       // How much should the brush extend above the graph.
       brushExtendTop: 5,
@@ -35,9 +35,9 @@ export default {
 
       // Spacing around the graph for ticks and labels.
       margin: {
-        top: 20,
+        top: 16,
         right: 20,
-        bottom: 24,
+        bottom: 16,
         left: 30,
       },
     }
@@ -305,10 +305,8 @@ export default {
   }
 
   .brush-labels {
-    font-size: 10px;
-    font-family: Helvetica, Arial, 'Open Sans', sans-serif;
+    font-size: 9px;
     fill: cornflowerblue;
-    font-weight: 600;
   }
 
   .tick {
