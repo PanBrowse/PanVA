@@ -6,7 +6,7 @@ import os
 import json
 import pandas as pd
 import tanglegram as tg
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from flask_json_schema import JsonSchema
 
 from cluster_functions import (
@@ -19,14 +19,17 @@ from cluster_functions import (
 # TODO: Why is this necessary? Maybe the offending code should be refactored.
 sys.setrecursionlimit(1500)
 
-
-# Load config from `.env` file
-config = dotenv_values(".env")
-db_path = config.get("DB_PATH")
+# Load config from `.env` file into environment variables.
+load_dotenv(".env")
 
 # Instantiate the app.
 app = Flask(__name__)
-app.config.update(**config)
+
+# Load configuration options from environment variables (prefixed with API_).
+app.config.from_prefixed_env("API")
+
+# Database path where all data files are.
+db_path = os.environ.get("API_DB_PATH")
 
 # Enable CORS.
 CORS(app)

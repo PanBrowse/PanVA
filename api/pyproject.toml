@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "PanVA-api"
+version = "0.1.0"
+description = ""
+authors = [
+    "Astrid van den Brandt <a.v.d.brandt@tue.nl>",
+    "Folkert de Vries <info@fdev.nl>"
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.11"
+Flask-Cors = "3.0.10"
+flask-json-schema = "0.0.5"
+Flask = "2.1.2"
+Levenshtein = "0.18.1"
+numpy = "1.22.4"
+pandas = "1.4.2"
+python-dotenv = "0.20.0"
+scipy = "1.8.1"
+tanglegram = "0.2.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

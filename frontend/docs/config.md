@@ -9,7 +9,7 @@ All fields are optional.
 | Field               | Type          | Default value                                 |
 |---------------------|---------------|-----------------------------------------------|
 | `title`             | string        | `"PanVA"`                                     |
-| `apiUrl`            | string        | `"/"`                                         |
+| `apiUrl`            | string        | `"/api/"`                                     |
 | `defaultHomologyId` | integer       | The first homology id in the homologies list. |
 | `phenoColumns`      | PhenoColumn[] | `[]`                                          |
 

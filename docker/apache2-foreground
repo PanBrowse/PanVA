@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+# Apache gets grumpy about PID files pre-existing
+rm -f /usr/local/apache2/logs/httpd.pid
+
+# Bootstrap environment variables.
+APACHE_CONFDIR=/etc/apache2
+APACHE_ENVVARS="$APACHE_CONFDIR/envvars"
+if test -f $APACHE_ENVVARS; then
+  . $APACHE_ENVVARS
+fi
+
+exec apache2 -DFOREGROUND "$@"

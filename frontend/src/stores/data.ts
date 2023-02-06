@@ -431,7 +431,7 @@ export const useDataStore = defineStore('data', {
     async fetchHomologyIds() {
       try {
         const response = await axios.get<Homology[]>(
-          `${this.apiUrl}/homology_ids`
+          `${this.apiUrl}homology_ids`
         )
         this.homologies = sortBy(response.data, 'name')
       } catch (err) {
@@ -444,7 +444,7 @@ export const useDataStore = defineStore('data', {
     },
     async fetchCoreSNP() {
       try {
-        const response = await axios.get<string>(`${this.apiUrl}/core_snp`)
+        const response = await axios.get<string>(`${this.apiUrl}core_snp`)
         this.coreSNP = parse_newick(response.data)
       } catch (err) {
         this.setError({
@@ -463,7 +463,7 @@ export const useDataStore = defineStore('data', {
 
       try {
         const data = await d3.csv<AlignedPosition, AlignedPositionsCSVColumns>(
-          `${this.apiUrl}/${this.homologyId}/al_pos`,
+          `${this.apiUrl}${this.homologyId}/al_pos`,
           ({
             genome_nr,
             informative,
@@ -507,7 +507,7 @@ export const useDataStore = defineStore('data', {
     async fetchDendrogramDefault() {
       try {
         const data = await d3.json<TreeNode>(
-          `${this.apiUrl}/${this.homologyId}/d3dendro`
+          `${this.apiUrl}${this.homologyId}/d3dendro`
         )
         if (!data) {
           throw new Error('Empty dendrogram default data.')
@@ -525,7 +525,7 @@ export const useDataStore = defineStore('data', {
     async fetchDendrogramCustom() {
       try {
         const response = await axios.post<TreeNode>(
-          `${this.apiUrl}/${this.homologyId}/d3dendro`,
+          `${this.apiUrl}${this.homologyId}/d3dendro`,
           {
             positions: toRaw(this.selectedPositions),
           }
@@ -545,7 +545,7 @@ export const useDataStore = defineStore('data', {
 
       try {
         const data = await d3.csv<Pheno, PhenoCSVColumns | string>(
-          `${this.apiUrl}/${this.homologyId}/phenos`,
+          `${this.apiUrl}${this.homologyId}/phenos`,
           ({ mRNA_id, genome_nr, ...rest }) => {
             // Common fields.
             const data: Pheno = {
@@ -588,7 +588,7 @@ export const useDataStore = defineStore('data', {
     async fetchSequences() {
       try {
         const data = await d3.csv<Sequence, SequenceCSVColumns>(
-          `${this.apiUrl}/${this.homologyId}/sequences`,
+          `${this.apiUrl}${this.homologyId}/sequences`,
           ({
             mRNA_id,
             nuc_trimmed_seq,
@@ -620,7 +620,7 @@ export const useDataStore = defineStore('data', {
     async fetchVarPosCount() {
       try {
         this.varPosCount = await d3.csv<VarPosCount, VarPosCountCSVColumns>(
-          `${this.apiUrl}/${this.homologyId}/var_pos_count`,
+          `${this.apiUrl}${this.homologyId}/var_pos_count`,
           ({ A, C, conservation, G, gap, informative, other, position, T }) =>
             ({
               position: parseNumber(position),

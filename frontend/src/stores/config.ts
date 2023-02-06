@@ -8,7 +8,7 @@ import { useDataStore } from './data'
 
 export const useConfigStore = defineStore('config', {
   state: () => ({
-    apiUrl: '/' as string,
+    apiUrl: '/api/' as string,
     title: '' as string,
     phenoColumns: [] as PhenoColumn[],
     defaultHomologyId: null as number | null,
@@ -18,6 +18,11 @@ export const useConfigStore = defineStore('config', {
       const { setError } = useDataStore()
 
       const resp = await fetch('config.json')
+
+      // No custom config, so we are done.
+      if (!resp.ok) return true
+
+      // Load the custom config.
       const config = (await resp.json()) as Config
 
       // Validate content of config.

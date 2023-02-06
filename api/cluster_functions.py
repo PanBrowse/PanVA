@@ -1,7 +1,6 @@
 import Levenshtein as lv
 from scipy.cluster.hierarchy import linkage, to_tree
 from scipy.spatial.distance import squareform
-from functools import reduce
 import numpy as np
 
 
@@ -44,22 +43,14 @@ def create_linkage_matrix(data_matrix, output_file=None):
 def label_tree(n, data_labels):
     # Node is not a leaf; flatten all the leaves in the node's subtree
     if n["children"]:
-        leafNames = reduce(
-            lambda ls, c: ls + label_tree(c, data_labels), n["children"], []
-        )
-
-    # Node is a leaf, we have its name.
+        for child in n["children"]:
+            label_tree(child, data_labels)
     else:
-        leafNames = [data_labels[n["node_id"]]]
+        n["name"] = data_labels[n["node_id"]]
 
     # Delete the node id since we don't need it anymore and
     # it makes for cleaner JSON
     del n["node_id"]
-
-    # Labeling convention: "@@"-separated leaf names
-    n["name"] = "@@".join(sorted(map(str, leafNames)))
-
-    return leafNames
 
 
 def add_node(node, parent):
