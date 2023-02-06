@@ -5,6 +5,8 @@ import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
 import type { TreeNode, TreeOption } from '@/types'
 import type { HierarchyNode, HierarchyPointLink, HierarchyPointNode } from 'd3'
+import { leafNodes } from '@/helpers/tree'
+import { flatten } from 'lodash'
 
 export default {
   data() {
@@ -18,6 +20,7 @@ export default {
       'coreSNP',
       'dendroCustom',
       'dendroDefault',
+      'genomeMrnaIdsLookup',
       'mrnaIdsLookup',
       'rowColors',
       'sequenceCount',
@@ -64,9 +67,6 @@ export default {
     },
     descendants(): HierarchyPointNode<TreeNode>[] {
       return this.hierarchy.descendants() as HierarchyPointNode<TreeNode>[]
-    },
-    isInteractive(): boolean {
-      return this.treeSource !== 'coreSNP'
     },
   },
   methods: {
@@ -135,12 +135,28 @@ export default {
           return 'rgba(192, 192, 192, 0.5)'
         })
         .on('mousedown', (event, { data }) => {
-          if (!this.isInteractive) return
+          if (this.treeSource === 'coreSNP') {
+            this.selectedDataIndices = flatten(
+              // The leaf nodes of coreSNP are genome number strings.
+              leafNodes(data).map((leaf) => {
+                const genomeNr = parseInt(leaf)
 
-          const mrnaIds = data.name.split('@@')
-          this.selectedDataIndices = mrnaIds.map(
-            (mrnaId) => this.mrnaIdsLookup[mrnaId]
-          )
+                // Not all genome numbers occur in each homology
+                // group, so lookup could result in undefined.
+                if (genomeNr in this.genomeMrnaIdsLookup) {
+                  return this.genomeMrnaIdsLookup[genomeNr].map(
+                    (mrnaId) => this.mrnaIdsLookup[mrnaId]
+                  )
+                }
+
+                return []
+              })
+            )
+          } else {
+            this.selectedDataIndices = leafNodes(data).map(
+              (mrnaId) => this.mrnaIdsLookup[mrnaId]
+            )
+          }
         })
     },
   },
@@ -162,12 +178,7 @@ export default {
 </script>
 
 <template>
-  <svg
-    id="tree"
-    :width="width"
-    :height="height"
-    :class="{ interactive: isInteractive }"
-  ></svg>
+  <svg id="tree" :width="width" :height="height"></svg>
 </template>
 
 <style lang="scss">
@@ -178,7 +189,7 @@ export default {
     pointer-events: none;
   }
 
-  &.interactive circle {
+  circle {
     cursor: pointer;
 
     &:hover {
