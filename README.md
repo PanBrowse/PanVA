@@ -19,7 +19,7 @@ To run the application, you **don't** need the code from this repository.
 Using the publically available Docker image (NOT YET AVAILABLE), you can start the PanVA application from anywhere using the following command:
 
 ```
-docker run -p 8080:80 -v /path/to/your/config.json:/panva/frontend/config.json -v /path/to/your/data:/panva/api/data pantools/panva
+docker run -p 8080:80 -v /path/to/your/data:/panva/api/data -v /path/to/your/config.json:/panva/frontend/config.json pantools/panva
 ```
 
 The application will then be available on http://localhost:8080/.
@@ -29,10 +29,10 @@ We'll explain the various options passed to Docker.
 
 - `-p 8080:80`
   The image exposes port 80. This option maps that port to port 8080 on the host machine.
-- `-v /path/to/your/config.json:/panva/frontend/config.json`
-  Mounts your custom `config.json` file to the predefined path `/panva/frontend/config.json` that the application looks at.
 - `-v /path/to/your/data:/panva/api/data`
   Mounts your custom data directory to the predefined path `/panva/api/data` that the application looks at.
+- `-v /path/to/your/config.json:/panva/frontend/config.json`
+  Mounts your optional custom `config.json` file to the predefined path `/panva/frontend/config.json` that the application looks at.
 
 
 ## Building the application
