@@ -22,7 +22,7 @@ Each homology group is a subdirectory of the root data directory and has a uniqu
     |-- sequences.csv
     |-- variable.csv
     |-- annotations.csv     (optional)
-    |-- phenos.csv          (optional)
+    |-- metadata.csv        (optional)
     |-- linkage_matrix.npy  (auto-generated)
 ```
 
@@ -104,19 +104,24 @@ The sequences extracted from the multiple sequence alignment. This file is used 
 
 Summary of all variable positions in the alignment and their value counts. This data is used for calculation of the conservation score at each aligned position. For example:
 
-| `position` | `informative` | `pheno_specific` | `A` | `C` | `G` | `T` | `gap` |
-|------------|---------------|------------------|-----|-----|-----|-----|-------|
-| 1          | True          | True             | 0   | 30  | 70  | 0   | 0     |
-| 9          | False         | False            | 1   | 0   | 70  | 99  | 0     |
+| `position` | `informative` | `A` | `C` | `G` | `T` | `gap` | `pheno_specific` |
+|------------|---------------|-----|-----|-----|-----|-------|------------------|
+| 1          | True          | 0   | 30  | 70  | 0   | 0     | True             |
+| 9          | False         | 1   | 0   | 70  | 99  | 0     | False            |
 
 * `position`: The position in the alignment (_integer_).
 * `informative`: Is position informative in nucleotide alignment (_boolean_).
-* `pheno_specific`: Is position phenotype specific (for a predefined phenotype) in nucleotide alignment (_boolean_).
 * `A`: Number of sequences containing nucleotide A (_integer_).
 * `C`: Number of sequences containing nucleotide C (_integer_).
 * `G`: Number of sequences containing nucleotide G (_integer_).
 * `T`: Number of sequences containing nucleotide T (_integer_).
 * `gap`: Number of sequences containing a gap (-) (_integer_).
+
+This file can be extended with additional columns to be used as a position filter. For example:
+
+* `pheno_specific`: Is position phenotype specific in nucleotide alignment (_boolean_).
+
+The frontend needs to be [configured](../../frontend/docs/config.md) to filter on these additional columns.
 
 
 ### `annotations.csv` (OPTIONAL)
@@ -133,9 +138,9 @@ This optional file is only used for Eukaryotic pangenomes. It specifies the gene
 * `feature`: Is position in the coding regions (cds) (_boolean_).
 
 
-### `phenos.csv` (OPTIONAL)
+### `metadata.csv` (OPTIONAL)
 
-An optional CSV file containing the phenotypes for each genome indicated by `mRNA_id` that should be included in the analysis. For example: 
+An optional CSV file containing metadata for each genome indicated by `mRNA_id` that should be included in the analysis. For example: 
 
 | `mRNA_id`                | `virulence` | `species`     |
 |--------------------------|-------------|---------------|
@@ -143,8 +148,13 @@ An optional CSV file containing the phenotypes for each genome indicated by `mRN
 | 87_1_JABOGBIO_03490_mRNA | ?           | P.brasiliense |
 
 * `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
-* `virulence`: An example binary phenotype, in this case virulence (_boolean_).
-* `species`: An example categorical phenotype, in this case the species name (_string_).
+
+This file can be extended with additional columns to be shown as metadata. For example:
+
+* `virulence`: Example binary metadata, in this case virulence (_boolean_).
+* `species`: Example categorical metadata, in this case the species name (_string_).
+
+The frontend needs to be [configured](../../frontend/docs/config.md) to display this metadata.
 
 
 ### `linkage_matrix.npy` (AUTO-GENERATED)
