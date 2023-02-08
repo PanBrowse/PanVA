@@ -11,10 +11,10 @@ import {
 } from '@/constants'
 import {
   parseNumber,
-  parseOptionalBool,
-  parsePhenoBoolean,
-  parsePhenoCategorical,
+  parseMetadataBoolean,
+  parseMetadataCategorical,
   parseString,
+  parseBool,
 } from '@/helpers/parse'
 import type {
   AlignmentCSVColumns,
@@ -24,10 +24,8 @@ import type {
   Homology,
   mRNAid,
   Nucleotide,
-  Pheno,
-  PhenoColumn,
-  PhenoColumnData,
-  PhenoCSVColumns,
+  Metadata,
+  MetadataCSVColumns,
   Range,
   Sorting,
   VariablePosition,
@@ -38,9 +36,10 @@ import type {
   Reference,
   GroupReference,
   DataReference,
+  ConfigFilter,
+  ConfigMetadata,
 } from '@/types'
 import {
-  chain,
   clamp,
   constant,
   filter,
@@ -76,7 +75,7 @@ export const useDataStore = defineStore('data', {
     alignedPositions: [] as Nucleotide[],
     dendroCustom: null as TreeNode | null,
     dendroDefault: null as TreeNode | null,
-    phenos: [] as Pheno[],
+    metadata: [] as Metadata[],
     variablePositions: [] as (VariablePosition | null)[],
     // mRNA ids in order as defined by the default dendrogram.
     // This is populated by taking the leaf nodes from dendroDefault.
@@ -236,12 +235,12 @@ export const useDataStore = defineStore('data', {
     filterPositions() {
       return (positions: number[]) => {
         if (this.positionFilter !== 'all') {
-          const field = this.positionFilter as Exclude<FilterPosition, 'all'>
+          const field = this.positionFilter
           return positions.filter((pos) => {
             const varPos = this.variablePositions[pos - 1]
             if (!varPos) return false
             if (field === 'variable') return true
-            return varPos[field]
+            return varPos.properties[field]
           })
         }
 
@@ -335,13 +334,13 @@ export const useDataStore = defineStore('data', {
     changeSorting(sorting: Sorting) {
       // Check if the requested sorting equals the current sorting.
       if (
-        sorting.field === this.sorting.field &&
+        sorting.name === this.sorting.name &&
         sortingPayload(sorting) === sortingPayload(this.sorting)
       ) {
         // Same field and parameter, so we reverse the current sorting.
         // But we don't do this for the tree, that is static.
         if (
-          !['dendroDefault', 'dendroCustom', 'coreSNP'].includes(sorting.field)
+          !['dendroDefault', 'dendroCustom', 'coreSNP'].includes(sorting.name)
         ) {
           this.sortedDataIndices = reverse(this.sortedDataIndices)
         }
@@ -349,7 +348,7 @@ export const useDataStore = defineStore('data', {
       }
 
       // Sorting by dendrogram is the default sorting, so we reset everything.
-      if (sorting.field === 'dendroDefault') {
+      if (sorting.name === 'dendroDefault') {
         this.resetSorting()
         return
       }
@@ -358,7 +357,7 @@ export const useDataStore = defineStore('data', {
       this.sorting = sorting
 
       // Sorting by custom dendrogram should not take current sorting into account.
-      if (sorting.field === 'dendroCustom' && this.dendroCustom) {
+      if (sorting.name === 'dendroCustom' && this.dendroCustom) {
         // The leaf nodes of a dendrogram are mRNA ids.
         this.sortedDataIndices = leafNodes(this.dendroCustom).map(
           (mrnaId) => this.mrnaIdsLookup[mrnaId]
@@ -367,7 +366,7 @@ export const useDataStore = defineStore('data', {
       }
 
       // Sorting by coreSNP should not take current sorting into account.
-      if (sorting.field === 'coreSNP' && this.coreSNP) {
+      if (sorting.name === 'coreSNP' && this.coreSNP) {
         this.sortedDataIndices = flatten(
           // The leaf nodes of coreSNP are genome number strings.
           leafNodes(this.coreSNP).map((leaf) => {
@@ -388,7 +387,7 @@ export const useDataStore = defineStore('data', {
       }
 
       // Sorting by mrna id does not take current sorting into account.
-      if (sorting.field === 'mrnaId') {
+      if (sorting.name === 'mrnaId') {
         this.sortedDataIndices = naturalSort(this.mrnaIds).map(
           (mrnaId) => this.mrnaIdsLookup[mrnaId]
         )
@@ -397,15 +396,15 @@ export const useDataStore = defineStore('data', {
 
       // Get the array of values in the currently sorted order.
       const values = (() => {
-        if (this.sorting.field === 'pheno') {
-          const pheno = this.sorting.pheno
+        if (this.sorting.name === 'metadata') {
+          const field = this.sorting.field
           // Get the array of values in the currently sorted order.
-          return this.sortedDataIndices.map<PhenoColumnData>(
-            (index) => this.phenos[index][pheno]
+          return this.sortedDataIndices.map(
+            (index) => this.metadata[index][field]
           )
         }
 
-        if (this.sorting.field === 'position') {
+        if (this.sorting.name === 'position') {
           const position = this.sorting.position
           // Get the array of values in the currently sorted order.
           return this.sortedDataIndices.map<Nucleotide>(
@@ -478,8 +477,9 @@ export const useDataStore = defineStore('data', {
       }
 
       try {
-        // Type for temporary data.
-        type AlignmentData = {
+        // Temporary type that also holds data needed for sorting,
+        // but that is removed before aligned positions are stored.
+        type Data = {
           mRNA_id: mRNAid
           genome_nr: number
           position: number
@@ -487,7 +487,7 @@ export const useDataStore = defineStore('data', {
         }
 
         const data = sortBy(
-          await d3.csv<AlignmentData, AlignmentCSVColumns>(
+          await d3.csv<Data, AlignmentCSVColumns>(
             `${this.apiUrl}${this.homologyId}/alignments.csv`,
             ({ genome_nr, mRNA_id, nucleotide, position }) => ({
               genome_nr: parseNumber(genome_nr),
@@ -551,33 +551,43 @@ export const useDataStore = defineStore('data', {
         throw err
       }
     },
-    async fetchPhenos() {
+    async fetchMetadata() {
       const config = useConfigStore()
 
-      // No pheno columns defined, no need to load data.
-      if (config.phenoColumns.length === 0) {
+      // No metadata columns defined, no need to load data.
+      if (config.metadata.length === 0) {
         return
       }
 
       try {
-        const data = await d3.csv<Pheno, PhenoCSVColumns | string>(
-          `${this.apiUrl}${this.homologyId}/phenos.csv`,
-          ({ mRNA_id, genome_nr, ...rest }) => {
+        // Temporary type that also holds data needed for sorting,
+        // but that is removed before metadata is stored.
+        type Data = {
+          mrnaId: mRNAid
+          metadata: Metadata
+        }
+        const data = await d3.csv<Data, MetadataCSVColumns | string>(
+          `${this.apiUrl}${this.homologyId}/metadata.csv`,
+          ({ mRNA_id, ...rest }) => {
             // Common fields.
-            const data: Pheno = {
-              mRNA_id: parseString(mRNA_id),
+            const data: Data = {
+              mrnaId: parseString(mRNA_id),
+              metadata: {},
             }
 
             // Dataset specific fields.
-            config.phenoColumns.forEach((column: PhenoColumn) => {
+            config.metadata.forEach((column: ConfigMetadata) => {
               const { field, type } = column
 
               if (type === 'categorical') {
-                data[field] = parsePhenoCategorical(rest[field], column)
+                data.metadata[field] = parseMetadataCategorical(rest[field])
               }
 
               if (type === 'boolean') {
-                data[field] = parsePhenoBoolean(rest[field], column)
+                data.metadata[field] = parseMetadataBoolean(
+                  rest[field],
+                  column.values
+                )
               }
             })
 
@@ -585,51 +595,71 @@ export const useDataStore = defineStore('data', {
           }
         )
 
-        this.phenos = chain(data)
-          // Sort by mRNA id in the order as defined by the dendrogram.
-          .sortBy(({ mRNA_id }) => this.mrnaIdsLookup[mRNA_id])
-          // Fix the index column.
-          .map((pheno, index) => ({ ...pheno, index }))
-          .value()
+        // Sort by mRNA id in the order as defined by the dendrogram.
+        this.metadata = sortBy(
+          data,
+          ({ mrnaId }) => this.mrnaIdsLookup[mrnaId]
+        ).map(({ metadata }) => metadata)
       } catch (err) {
         this.setError({
-          message: 'Unable to fetch or parse phenotypes from API.',
+          message: 'Unable to fetch or parse metadata from API.',
           isFatal: true,
         })
         throw err
       }
     },
     async fetchVariablePositions() {
+      const config = useConfigStore()
+
       try {
-        type VariablePositionData = VariablePosition & {
+        // Temporary type that also holds data needed for sorting,
+        // but that is removed before variable positions are stored.
+        type Data = VariablePosition & {
           position: number
         }
 
-        const data = await d3.csv<
-          VariablePositionData,
-          VariablePositionCSVColumns
-        >(
+        const data = await d3.csv<Data, VariablePositionCSVColumns | string>(
           `${this.apiUrl}${this.homologyId}/variable.csv`,
-          ({ informative, position, pheno_specific, ...bases }) => {
-            const A = parseNumber(bases.A)
-            const C = parseNumber(bases.C)
-            const G = parseNumber(bases.G)
-            const T = parseNumber(bases.T)
-            const gap = parseNumber(bases.gap)
+          ({
+            informative,
+            position,
+            A: As,
+            C: Cs,
+            G: Gs,
+            T: Ts,
+            gap: Gaps,
+            ...rest
+          }) => {
+            const A = parseNumber(As)
+            const C = parseNumber(Cs)
+            const G = parseNumber(Gs)
+            const T = parseNumber(Ts)
+            const gap = parseNumber(Gaps)
 
             const conservation = Math.max(A, C, G, T, gap)
 
-            return {
+            // Common fields.
+            const data: Data = {
               position: parseNumber(position),
-              informative: parseOptionalBool(informative),
-              pheno_specific: parseOptionalBool(pheno_specific),
               A,
               C,
               G,
               T,
               gap,
               conservation,
+              properties: {
+                informative: parseBool(informative),
+              },
             }
+
+            // Dataset specific fields.
+            config.filters.forEach((filter: ConfigFilter) => {
+              const { field } = filter
+
+              data.properties[field] = parseBool(rest[field])
+            })
+
+            return data
           }
         )
 
@@ -653,7 +683,7 @@ export const useDataStore = defineStore('data', {
         alignedPositions: [],
         dendroCustom: null,
         dendroDefault: null,
-        phenos: [],
+        metadata: [],
         variablePositions: [],
 
         // Reset groups and selections that contain references to data.
@@ -674,7 +704,7 @@ export const useDataStore = defineStore('data', {
       // The remaining requests are performed concurrently to speed up loading.
       await Promise.all([
         this.fetchAlignments(),
-        this.fetchPhenos(),
+        this.fetchMetadata(),
         this.fetchVariablePositions(),
       ])
     },

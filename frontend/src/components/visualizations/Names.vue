@@ -36,7 +36,7 @@ export default {
     svg() {
       return d3.select('#names')
     },
-    drawNames() {
+    draw() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -104,23 +104,23 @@ export default {
     },
   },
   mounted() {
-    this.drawNames()
+    this.draw()
   },
   watch: {
     hasAllData() {
-      this.drawNames()
+      this.draw()
     },
     hoverRowIndex() {
-      this.drawNames()
+      this.draw()
     },
     selectedDataIndices() {
-      this.drawNames()
+      this.draw()
     },
     sortedDataIndicesCollapsed() {
-      this.drawNames()
+      this.draw()
     },
     rowColors() {
-      this.drawNames()
+      this.draw()
     },
   },
 }

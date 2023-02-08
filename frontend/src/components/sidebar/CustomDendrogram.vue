@@ -33,10 +33,7 @@ export default {
     ]),
     ...mapWritableState(useDataStore, ['tree', 'selectedPositions']),
     positionsLabel(): string {
-      if (this.positionFilter === 'variable') return 'variable positions'
-      if (this.positionFilter === 'informative') return 'informative positions'
-      if (this.positionFilter === 'pheno_specific')
-        return 'phenotype specific positions'
+      if (this.positionFilter !== 'all') return 'filtered positions'
       return 'positions'
     },
     // Same as filteredPositions, but for the entire gene.
@@ -121,7 +118,7 @@ export default {
 
         // Automatically switch to the custom dendrogram.
         this.tree = 'dendroCustom'
-        this.changeSorting({ field: 'dendroCustom' })
+        this.changeSorting({ name: 'dendroCustom' })
       } finally {
         this.isFetchingCustomDendro = false
       }

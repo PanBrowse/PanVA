@@ -20,8 +20,8 @@ export default {
       transform="translate(0,62) rotate(-45)"
     >
       <div
-        :class="{ sorted: sorting.field === tree }"
-        @click="changeSorting({ field: tree })"
+        :class="{ sorted: sorting.name === tree }"
+        @click="changeSorting({ name: tree })"
       >
         <span v-if="tree === 'dendroDefault'">Dendrogram</span>
         <span v-if="tree === 'dendroCustom'">Custom dendrogram</span>
@@ -35,8 +35,8 @@ export default {
       transform="translate(320,62) rotate(-45)"
     >
       <div
-        :class="{ sorted: sorting.field === 'mrnaId' }"
-        @click="changeSorting({ field: 'mrnaId' })"
+        :class="{ sorted: sorting.name === 'mrnaId' }"
+        @click="changeSorting({ name: 'mrnaId' })"
       >
         mRNA id
       </div>

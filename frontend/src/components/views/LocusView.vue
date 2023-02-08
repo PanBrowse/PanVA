@@ -5,9 +5,9 @@ import Heatmap from '@/components/visualizations/Heatmap.vue'
 import HeatmapHeader from '@/components/visualizations/HeatmapHeader.vue'
 import TreeLabels from '@/components/visualizations/TreeLabels.vue'
 import Names from '@/components/visualizations/Names.vue'
-import PhenoBoolean from '@/components/visualizations/PhenoBoolean.vue'
-import PhenoCategorical from '@/components/visualizations/PhenoCategorical.vue'
-import PhenoLabels from '@/components/visualizations/PhenoLabels.vue'
+import MetadataBoolean from '@/components/visualizations/MetadataBoolean.vue'
+import MetadataCategorical from '@/components/visualizations/MetadataCategorical.vue'
+import MetadataLabels from '@/components/visualizations/MetadataLabels.vue'
 import ScrollSync from '@/components/common/ScrollSync.vue'
 import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
@@ -22,15 +22,15 @@ export default {
     Heatmap,
     HeatmapHeader,
     Names,
-    PhenoBoolean,
-    PhenoCategorical,
-    PhenoLabels,
+    MetadataBoolean,
+    MetadataCategorical,
+    MetadataLabels,
     ScrollSync,
     Tree,
     TreeLabels,
   },
   computed: {
-    ...mapState(useConfigStore, ['phenoColumns']),
+    ...mapState(useConfigStore, ['metadata']),
   },
   methods: {
     ...mapActions(useDataStore, ['dragEnd']),
@@ -67,7 +67,7 @@ export default {
       >
         <HeatmapHeader />
       </scroll-sync>
-      <PhenoLabels />
+      <MetadataLabels />
     </div>
 
     <div class="content-wrapper">
@@ -82,15 +82,15 @@ export default {
         >
           <Heatmap />
         </scroll-sync>
-        <template v-for="(column, index) in phenoColumns">
-          <PhenoBoolean
+        <template v-for="(column, index) in metadata">
+          <MetadataBoolean
             v-bind:key="column.field"
             :id="index"
             :field="column.field"
             :labels="column.labels"
             v-if="column.type === 'boolean'"
           />
-          <PhenoCategorical
+          <MetadataCategorical
             v-bind:key="column.field"
             :id="index"
             :field="column.field"

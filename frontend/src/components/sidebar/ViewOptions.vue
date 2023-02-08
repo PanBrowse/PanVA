@@ -38,7 +38,6 @@ export default {
     SidebarItem,
   },
   computed: {
-    ...mapState(useConfigStore, ['phenoColumns']),
     ...mapState(useDataStore, [
       'coreSNP',
       'dendroCustom',
@@ -56,6 +55,7 @@ export default {
       'transitionsEnabled',
       'tree',
     ]),
+    ...mapState(useConfigStore, ['filters', 'metadata']),
     referenceValue(): string | undefined {
       if (!this.reference) return undefined
 
@@ -76,17 +76,17 @@ export default {
       ])
     },
     sortValue(): string {
-      if (this.sorting.field === 'pheno') {
-        return this.sorting.pheno
+      if (this.sorting.name === 'metadata') {
+        return this.sorting.field
       }
-      return this.sorting.field
+      return this.sorting.name
     },
     defaultSortPosition(): number {
       return this.filteredPositions[0] || 1
     },
     sortOptions(): SortOption[] {
       const sortPosition =
-        this.sorting.field === 'position'
+        this.sorting.name === 'position'
           ? this.sorting.position
           : this.defaultSortPosition
 
@@ -108,18 +108,18 @@ export default {
         { value: 'position', label: `Nucleotide (pos ${sortPosition})` },
       ]
 
-      const phenoSortOptions: SortOption[] = this.phenoColumns.map(
+      const metadataSortOptions: SortOption[] = this.metadata.map(
         ({ field, label }) => ({
           value: field,
           label,
         })
       )
 
-      if (phenoSortOptions.length) {
+      if (metadataSortOptions.length) {
         options.push({
-          value: 'phenotypes',
-          label: 'Phenotypes',
-          options: phenoSortOptions,
+          value: 'metadata',
+          label: 'Metadata',
+          options: metadataSortOptions,
         })
       }
 
@@ -157,17 +157,17 @@ export default {
       const common = ['dendroDefault', 'dendroCustom', 'coreSNP', 'mrnaId']
       if (common.includes(value)) {
         this.changeSorting({
-          field: value as any,
+          name: value as any,
         })
       } else if (value === 'position') {
         this.changeSorting({
-          field: 'position',
+          name: 'position',
           position: this.defaultSortPosition,
         })
       } else {
         this.changeSorting({
-          field: 'pheno',
-          pheno: value,
+          name: 'metadata',
+          field: value,
         })
       }
     },
@@ -191,8 +191,12 @@ export default {
           <ASelectOption value="all">All</ASelectOption>
           <ASelectOption value="variable">Variable</ASelectOption>
           <ASelectOption value="informative">Informative</ASelectOption>
-          <ASelectOption value="pheno_specific">
-            Phenotype specific
+          <ASelectOption
+            :value="filter.field"
+            v-for="filter in filters"
+            v-bind:key="filter.field"
+          >
+            {{ filter.label }}
           </ASelectOption>
         </ASelect>
       </AFormItem>

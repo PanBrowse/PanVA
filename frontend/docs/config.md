@@ -6,29 +6,42 @@ The PanVA application can be configured with a runtime configuration file `confi
 
 All fields are optional.
 
-| Field               | Type          | Default value                                 |
-|---------------------|---------------|-----------------------------------------------|
-| `title`             | string        | `"PanVA"`                                     |
-| `apiUrl`            | string        | `"/api/"`                                     |
-| `defaultHomologyId` | integer       | The first homology id in the homologies list. |
-| `phenoColumns`      | PhenoColumn[] | `[]`                                          |
+| Field               | Type       | Default value                                 |
+|---------------------|------------|-----------------------------------------------|
+| `apiUrl`            | string     | `"/api/"`                                     |
+| `defaultHomologyId` | integer    | The first homology id in the homologies list. |
+| `filters`           | Filter[]   | `[]`                                          |
+| `metadata`          | Metadata[] | `[]`                                          |
+| `title`             | string     | `"PanVA"`                                     |
 
 
-## PhenoColumn
+## Filter
 
-Phenotypes can be visualized in a number of different ways. You can configure which columns should be displayed.
+Positions can be filtered based on variable position properties. You can configure which properties should be available.
 
 Each column should be configured as a JSON object with the following options:
 
-| Field   | Type                                           | Notes                                                                  |
-|---------|------------------------------------------------|------------------------------------------------------------------------|
-| `type`  | `"boolean" \| "categorical" \| "quantitative"` |                                                                        |
-| `label` | string                                         | Shown above the column.                                                |
-| `field` | string                                         | CSV column in [`phenos.csv`](../../api/docs/data-format.md#phenoscsv). |
+| Field   | Type   | Notes                                                                      |
+|---------|--------|----------------------------------------------------------------------------|
+| `label` | string | Shown in the position filter options.                                      |
+| `field` | string | CSV column in [`variable.csv`](../../api/docs/data-format.md#variablecsv). |
+
+
+## Metadata
+
+Metadata can be visualized in a number of different ways. You can configure which columns should be displayed.
+
+Each column should be configured as a JSON object with the following options:
+
+| Field   | Type                                           | Notes                                                                      |
+|---------|------------------------------------------------|----------------------------------------------------------------------------|
+| `type`  | `"boolean" \| "categorical" \| "quantitative"` |                                                                            |
+| `label` | string                                         | Shown above the column.                                                    |
+| `field` | string                                         | CSV column in [`metadata.csv`](../../api/docs/data-format.md#metadatacsv). |
 
 Based on the value of `type` these options are extended with the options as defined below.
 
-Note: A column from [`phenos.csv`](../../api/docs/data-format.md#phenoscsv) can be used multiple times in different columns.
+Note: A column from [`metadata.csv`](../../api/docs/data-format.md#metadatacsv) can be used multiple times in different columns.
 
 
 ### Boolean
@@ -67,10 +80,15 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
 
 ```json
 {
-  "title": "PanVA: Pectobacterium",
   "apiUrl": "/pecto/",
   "defaultHomologyId": 13803671,
-  "phenoColumns": [
+  "filters": [
+    {
+      "field": "pheno_specific",
+      "label": "Phenotype specific"
+    }
+  ],
+  "metadata": [
     {
       "type": "quantitative",
       "field": "ft16",
@@ -103,6 +121,7 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
       "label": "Strain",
       "width": 120
     }
-  ]
+  ],
+  "title": "PanVA: Pectobacterium"
 }
 ```

@@ -19,7 +19,7 @@ export default {
       return 30
     },
     sortingPosition(): number | null {
-      if (this.sorting.field === 'position') {
+      if (this.sorting.name === 'position') {
         return this.sorting.position
       }
       return null
@@ -35,7 +35,7 @@ export default {
     svg() {
       return d3.select('#positions')
     },
-    drawPositions() {
+    draw() {
       this.svg()
         .selectAll('foreignObject')
         .data(this.filteredPositions, (position) => position as number)
@@ -50,7 +50,7 @@ export default {
               )
               .on('click', (event, position) => {
                 this.changeSorting({
-                  field: 'position',
+                  name: 'position',
                   position,
                 })
               })
@@ -67,14 +67,14 @@ export default {
     },
   },
   mounted() {
-    this.drawPositions()
+    this.draw()
   },
   watch: {
     sortingPosition() {
-      this.drawPositions()
+      this.draw()
     },
     filteredPositions() {
-      this.drawPositions()
+      this.draw()
     },
   },
 }

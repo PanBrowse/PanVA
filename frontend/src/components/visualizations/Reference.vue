@@ -36,7 +36,7 @@ export default {
         .node()!
         .getContext('2d')
     },
-    drawCells() {
+    draw() {
       if (!this.hasAllData) return
 
       const scaleFactor = 2.0
@@ -74,20 +74,20 @@ export default {
     },
   },
   mounted() {
-    this.drawCells()
+    this.draw()
   },
   watch: {
     hasAllData() {
-      this.drawCells()
+      this.draw()
     },
     filteredPositions() {
-      this.drawCells()
+      this.draw()
     },
     reference() {
-      this.drawCells()
+      this.draw()
     },
     cellTheme() {
-      this.drawCells()
+      this.draw()
     },
   },
 }

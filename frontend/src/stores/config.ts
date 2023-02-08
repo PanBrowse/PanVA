@@ -1,4 +1,4 @@
-import type { Config, PhenoColumn } from '@/types'
+import type { Config, ConfigMetadata, ConfigFilter } from '@/types'
 import { defineStore } from 'pinia'
 
 // @ts-ignore
@@ -9,9 +9,10 @@ import { useDataStore } from './data'
 export const useConfigStore = defineStore('config', {
   state: () => ({
     apiUrl: '/api/' as string,
-    title: '' as string,
-    phenoColumns: [] as PhenoColumn[],
     defaultHomologyId: null as number | null,
+    filters: [] as ConfigFilter[],
+    metadata: [] as ConfigMetadata[],
+    title: '' as string,
   }),
   actions: {
     async loadConfig() {

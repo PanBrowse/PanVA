@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
-import type { DataIndexCollapsed, PhenoColumnCategoricalData } from '@/types'
+import type { DataIndexCollapsed, MetadataCategorical } from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
@@ -11,7 +11,7 @@ import { countBy, uniq } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 
-type GroupCounts = Record<PhenoColumnCategoricalData, number>
+type GroupCounts = Record<MetadataCategorical, number>
 
 type GroupAggregates = Record<
   number,
@@ -19,7 +19,7 @@ type GroupAggregates = Record<
     // Counts per value in this position.
     counts: GroupCounts
     // Unique values within the group in this position.
-    values: PhenoColumnCategoricalData[]
+    values: MetadataCategorical[]
   }
 >
 
@@ -28,7 +28,7 @@ export default {
     /**
      * Since a field can be reused in multiple columns, for different
      * visualizations of the same data, we use the index in the
-     * `phenoColumns` configuration option in the unique identifier
+     * `metadata` configuration option in the unique identifier
      * for this component.
      */
     id: {
@@ -48,7 +48,7 @@ export default {
     ...mapState(useDataStore, [
       'groups',
       'rowColors',
-      'phenos',
+      'metadata',
       'selectedDataIndices',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
@@ -57,14 +57,15 @@ export default {
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
       return (
-        this.phenos.length !== 0 && this.sortedDataIndicesCollapsed.length !== 0
+        this.metadata.length !== 0 &&
+        this.sortedDataIndicesCollapsed.length !== 0
       )
     },
     height(): number {
       return this.sequenceCount * CELL_SIZE
     },
     name(): string {
-      return `pheno-${this.id}-${this.field}`
+      return `metadata-${this.id}-${this.field}`
     },
     rowValues(): (string | null)[] {
       return this.sortedDataIndicesCollapsed.map((data) => {
@@ -75,7 +76,7 @@ export default {
           }
           return null
         }
-        return this.phenos[data][this.field] as PhenoColumnCategoricalData
+        return this.metadata[data][this.field] as MetadataCategorical
       })
     },
     groupAggregates(): GroupAggregates {
@@ -83,7 +84,7 @@ export default {
         this.groups.map(({ id, dataIndices }) => {
           const allValues = dataIndices.map(
             (dataIndex) =>
-              this.phenos[dataIndex][this.field] as PhenoColumnCategoricalData
+              this.metadata[dataIndex][this.field] as MetadataCategorical
           )
           const counts = countBy(allValues)
           const values = uniq(allValues)
@@ -99,7 +100,7 @@ export default {
     svg() {
       return d3.select(`#${this.name}`)
     },
-    drawPheno() {
+    draw() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -166,7 +167,7 @@ export default {
           const data = this.sortedDataIndicesCollapsed[index]
           if (isGroup(data)) {
             this.showTooltip({
-              key: `pheno-${this.field}-${index}`,
+              key: this.name,
               element: event.target,
               generateContent: () => {
                 const { counts } = this.groupAggregates[data.id]
@@ -203,23 +204,23 @@ export default {
     },
   },
   mounted() {
-    this.drawPheno()
+    this.draw()
   },
   watch: {
     hasAllData() {
-      this.drawPheno()
+      this.draw()
     },
     sortedDataIndicesCollapsed() {
-      this.drawPheno()
+      this.draw()
     },
-    phenos() {
-      this.drawPheno()
+    metadata() {
+      this.draw()
     },
     selectedDataIndices() {
-      this.drawPheno()
+      this.draw()
     },
     hoverRowIndex() {
-      this.drawPheno()
+      this.draw()
     },
   },
 }
@@ -230,12 +231,12 @@ export default {
     :id="name"
     :width="width"
     :height="height"
-    class="pheno-categorical"
+    class="metadata-categorical"
   ></svg>
 </template>
 
 <style lang="scss">
-.pheno-categorical {
+.metadata-categorical {
   flex: 0 0 auto;
 
   foreignObject {

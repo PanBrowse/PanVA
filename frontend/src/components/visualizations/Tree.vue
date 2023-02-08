@@ -81,7 +81,7 @@ export default {
       const ty = d.target.x
       return `M${sx},${sy}V${ty}H${tx}`
     },
-    drawTree() {
+    draw() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -162,17 +162,17 @@ export default {
     },
   },
   mounted() {
-    this.drawTree()
+    this.draw()
   },
   watch: {
     hasAllData() {
-      this.drawTree()
+      this.draw()
     },
     rowColors() {
-      this.drawTree()
+      this.draw()
     },
     treeData() {
-      this.drawTree()
+      this.draw()
     },
   },
 }

@@ -104,7 +104,7 @@ export default {
     onResize() {
       // Card width minus the padding.
       this.svgWidth = this.$el.offsetWidth - 24
-      this.drawSvg()
+      this.draw()
     },
     svg() {
       return d3.select('#geneOverview')
@@ -241,7 +241,7 @@ export default {
         )
         .call(d3.axisBottom(this.xScale).tickValues(this.ticksXdomain))
     },
-    drawSvg() {
+    draw() {
       if (!this.hasAllData) return
 
       // Remove all old child elements from SVG.
@@ -261,10 +261,10 @@ export default {
   },
   watch: {
     hasAllData() {
-      this.drawSvg()
+      this.draw()
     },
     positionRegion() {
-      this.drawSvg()
+      this.draw()
     },
   },
 }

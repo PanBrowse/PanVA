@@ -1,8 +1,13 @@
 {
-  "title": "PanVA: Pectobacterium",
   "apiUrl": "http://localhost:5001/",
   "defaultHomologyId": 13803671,
-  "phenoColumns": [
+  "filters": [
+    {
+      "field": "pheno_specific",
+      "label": "Phenotype specific"
+    }
+  ],
+  "metadata": [
     {
       "type": "boolean",
       "field": "virulence",
@@ -29,5 +34,6 @@
       "label": "Strain",
       "width": 120
     }
-  ]
+  ],
+  "title": "PanVA: Pectobacterium"
 }

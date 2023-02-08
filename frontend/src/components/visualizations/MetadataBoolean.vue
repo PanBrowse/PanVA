@@ -5,8 +5,8 @@ import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
 import type {
   DataIndexCollapsed,
-  PhenoColumnBoolean,
-  PhenoColumnBooleanData,
+  ConfigMetadataBoolean,
+  MetadataBoolean,
 } from '@/types'
 import { eventIndex } from '@/helpers/eventIndex'
 import { valueKey } from '@/helpers/valueKey'
@@ -17,7 +17,7 @@ import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import type { PropType } from 'vue'
 
-type GroupCounts = Map<PhenoColumnBooleanData, number>
+type GroupCounts = Map<MetadataBoolean, number>
 
 type GroupAggregates = Record<
   number,
@@ -25,7 +25,7 @@ type GroupAggregates = Record<
     // Counts per value in this position.
     counts: GroupCounts
     // Unique values within the group in this position.
-    values: PhenoColumnBooleanData[]
+    values: MetadataBoolean[]
   }
 >
 
@@ -34,7 +34,7 @@ export default {
     /**
      * Since a field can be reused in multiple columns, for different
      * visualizations of the same data, we use the index in the
-     * `phenoColumns` configuration option in the unique identifier
+     * `metadata` configuration option in the unique identifier
      * for this component.
      */
     id: {
@@ -46,7 +46,7 @@ export default {
       required: true,
     },
     labels: {
-      type: Object as PropType<PhenoColumnBoolean['labels']>,
+      type: Object as PropType<ConfigMetadataBoolean['labels']>,
       required: true,
     },
   },
@@ -59,7 +59,7 @@ export default {
     ...mapState(useDataStore, [
       'groups',
       'mrnaIds',
-      'phenos',
+      'metadata',
       'selectedDataIndices',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
@@ -68,14 +68,15 @@ export default {
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
       return (
-        this.phenos.length !== 0 && this.sortedDataIndicesCollapsed.length !== 0
+        this.metadata.length !== 0 &&
+        this.sortedDataIndicesCollapsed.length !== 0
       )
     },
     height(): number {
       return this.sequenceCount * CELL_SIZE
     },
     name(): string {
-      return `pheno-${this.id}-${this.field}`
+      return `metadata-${this.id}-${this.field}`
     },
     width(): number {
       return this.padding * 2 + CELL_SIZE
@@ -98,13 +99,13 @@ export default {
     svg() {
       return d3.select(`#${this.name}`)
     },
-    valueAtDataIndex(dataIndex: number): PhenoColumnBooleanData {
-      return this.phenos[dataIndex][this.field] as PhenoColumnBooleanData
+    valueAtDataIndex(dataIndex: number): MetadataBoolean {
+      return this.metadata[dataIndex][this.field] as MetadataBoolean
     },
-    labelForValue(value: PhenoColumnBooleanData) {
+    labelForValue(value: MetadataBoolean) {
       return this.labels[`${value}`]
     },
-    circleRadius(values: PhenoColumnBooleanData[]) {
+    circleRadius(values: MetadataBoolean[]) {
       if (values.length === 1) {
         if (values[0] === true) return 4
         if (values[0] === false) return 4
@@ -113,7 +114,7 @@ export default {
       // Diagonal hatch.
       return 4
     },
-    circleStroke(values: PhenoColumnBooleanData[]) {
+    circleStroke(values: MetadataBoolean[]) {
       if (values.length === 1) {
         if (values[0] === true) return 'transparent'
         if (values[0] === false) return '#aaa'
@@ -122,7 +123,7 @@ export default {
       // Diagonal hatch.
       return '#aaa'
     },
-    circleFill(values: PhenoColumnBooleanData[]) {
+    circleFill(values: MetadataBoolean[]) {
       if (values.length === 1) {
         if (values[0] === true) return '#666'
         if (values[0] === false) return 'white'
@@ -131,7 +132,7 @@ export default {
       // Diagonal hatch.
       return 'url(#diagonalHatch)'
     },
-    drawPheno() {
+    draw() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -222,7 +223,7 @@ export default {
           }
 
           this.showTooltip({
-            key: `pheno-${this.field}-${index}`,
+            key: this.name,
             element: event.target,
             generateContent: () => {
               const data = this.sortedDataIndicesCollapsed[index]
@@ -273,30 +274,30 @@ export default {
     },
   },
   mounted() {
-    this.drawPheno()
+    this.draw()
   },
   watch: {
     hasAllData() {
-      this.drawPheno()
+      this.draw()
     },
     sortedDataIndicesCollapsed() {
-      this.drawPheno()
+      this.draw()
     },
-    phenos() {
-      this.drawPheno()
+    metadata() {
+      this.draw()
     },
     selectedDataIndices() {
-      this.drawPheno()
+      this.draw()
     },
     hoverRowIndex() {
-      this.drawPheno()
+      this.draw()
     },
   },
 }
 </script>
 
 <template>
-  <svg :id="name" :width="width" :height="height" class="pheno-boolean">
+  <svg :id="name" :width="width" :height="height" class="metadata-boolean">
     <defs>
       <pattern
         id="diagonalHatch"
@@ -315,7 +316,7 @@ export default {
 </template>
 
 <style lang="scss">
-.pheno-boolean {
+.metadata-boolean {
   flex: 0 0 auto;
 
   rect {

@@ -28,7 +28,6 @@ export default {
       'genomeNrs',
       'hoverRowIndex',
       'mrnaIds',
-      'phenos',
       'rowColors',
       'sortedDataIndicesCollapsed',
       'transitionTime',
@@ -112,7 +111,7 @@ export default {
         }) || ''
       )
     },
-    drawBipartite() {
+    draw() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -145,20 +144,20 @@ export default {
     },
   },
   mounted() {
-    this.drawBipartite()
+    this.draw()
   },
   watch: {
     hasAllData() {
-      this.drawBipartite()
+      this.draw()
     },
     hoverRowIndex() {
-      this.drawBipartite()
+      this.draw()
     },
     sortedDataIndicesCollapsed() {
-      this.drawBipartite()
+      this.draw()
     },
     treeData() {
-      this.drawBipartite()
+      this.draw()
     },
   },
 }

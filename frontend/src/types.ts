@@ -6,11 +6,7 @@ export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
 export type Range = [number, number]
 export type DataIndexCollapsed = number | Group
 export type TreeOption = 'dendroDefault' | 'dendroCustom' | 'coreSNP'
-export type FilterPosition =
-  | 'all'
-  | 'variable'
-  | 'informative'
-  | 'pheno_specific'
+export type FilterPosition = 'all' | 'variable' | 'informative' | string
 
 export type GroupReference = {
   type: 'group'
@@ -32,20 +28,20 @@ export type AppError = {
  * Sorting.
  */
 type SortingCommon = {
-  field: 'dendroDefault' | 'dendroCustom' | 'coreSNP' | 'mrnaId'
+  name: 'dendroDefault' | 'dendroCustom' | 'coreSNP' | 'mrnaId'
 }
 
-type SortingPheno = {
-  field: 'pheno'
-  pheno: string
+type SortingMetadata = {
+  name: 'metadata'
+  field: string
 }
 
 type SortingPosition = {
-  field: 'position'
+  name: 'position'
   position: number
 }
 
-export type Sorting = SortingCommon | SortingPheno | SortingPosition
+export type Sorting = SortingCommon | SortingMetadata | SortingPosition
 
 /**
  * Grouping.
@@ -77,14 +73,15 @@ export type Homology = {
 }
 
 export type VariablePosition = {
-  informative: boolean | null
-  pheno_specific: boolean | null
   A: number
   C: number
   G: number
   T: number
   gap: number
   conservation: number
+
+  // Includes `informative`, but also contains data for configured filters.
+  properties: Record<string, boolean | null>
 }
 
 export type TreeNode = {
@@ -94,57 +91,14 @@ export type TreeNode = {
   branch_length?: number
 }
 
-/**
- * Phenotype columns.
- */
-export type PhenoColumnCSVParser<T> = (value?: string) => T
+export type MetadataBoolean = boolean | null
+export type MetadataCategorical = string
+export type MetadataQuantitative = number | null
 
-type PhenoColumnBase = {
-  field: string
-  label: string
-}
-
-export type PhenoColumnBooleanData = boolean | null
-export type PhenoColumnBoolean = PhenoColumnBase & {
-  type: 'boolean'
-  values?: {
-    true: string
-    false: string
-  }
-  labels: {
-    true: string
-    false: string
-    null: string
-  }
-}
-
-export type PhenoColumnCategoricalData = string
-export type PhenoColumnCategorical = PhenoColumnBase & {
-  type: 'categorical'
-  width: number
-}
-
-export type PhenoColumnQuantitativeData = number | null
-export type PhenoColumnQuantitative = PhenoColumnBase & {
-  type: 'quantitative'
-  maxValue?: number
-  width: number
-}
-
-export type PhenoColumn =
-  | PhenoColumnBoolean
-  | PhenoColumnCategorical
-  | PhenoColumnQuantitative
-
-export type PhenoColumnType = PhenoColumn['type']
-export type PhenoColumnData =
-  | PhenoColumnBooleanData
-  | PhenoColumnCategoricalData
-  | PhenoColumnQuantitativeData
-
-export type Pheno = Record<string, PhenoColumnData> & {
-  mRNA_id: mRNAid
-}
+export type Metadata = Record<
+  string,
+  MetadataBoolean | MetadataCategorical | MetadataQuantitative
+>
 
 /**
  * Raw API data.
@@ -155,12 +109,11 @@ export type AlignmentCSVColumns =
   | 'position'
   | 'nucleotide'
 
-export type PhenoCSVColumns = 'mRNA_id'
+export type MetadataCSVColumns = 'mRNA_id'
 
 export type VariablePositionCSVColumns =
   | 'position'
   | 'informative'
-  | 'pheno_specific'
   | 'A'
   | 'C'
   | 'G'
@@ -189,9 +142,50 @@ export type CellTheme = {
  * When making changes, be sure to update the config validator by running:
  *   npm run generate:config-validator
  */
+
+type ConfigMetadataBase = {
+  field: string
+  label: string
+}
+
+export type ConfigMetadataBoolean = ConfigMetadataBase & {
+  type: 'boolean'
+  values?: {
+    true: string
+    false: string
+  }
+  labels: {
+    true: string
+    false: string
+    null: string
+  }
+}
+
+export type ConfigMetadataCategorical = ConfigMetadataBase & {
+  type: 'categorical'
+  width: number
+}
+
+export type ConfigMetadataQuantitative = ConfigMetadataBase & {
+  type: 'quantitative'
+  maxValue?: number
+  width: number
+}
+
+export type ConfigMetadata =
+  | ConfigMetadataBoolean
+  | ConfigMetadataCategorical
+  | ConfigMetadataQuantitative
+
+export type ConfigFilter = {
+  field: string
+  label: string
+}
+
 export type Config = {
   title?: string // Default constants.DEFAULT_TITLE
   apiUrl?: string // Default: '/'
   defaultHomologyId?: number // Default: First homology in homologies.
-  phenoColumns?: PhenoColumn[] // Default: []
+  metadata?: ConfigMetadata[] // Default: []
+  filters?: ConfigFilter[] // Default: []
 }

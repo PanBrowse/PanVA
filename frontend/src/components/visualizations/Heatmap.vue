@@ -15,6 +15,7 @@ import { groupName } from '@/helpers/groupName'
 import { groupCounts } from '@/helpers/groupCounts'
 import { drawNucleotide, sortNucleotideString } from '@/helpers/nucleotide'
 import type { StyleValue } from 'vue'
+import { useConfigStore } from '@/stores/config'
 
 type CellCoordinate = {
   column: number
@@ -69,6 +70,7 @@ export default {
       'transitionTime',
       'variablePositions',
     ]),
+    ...mapState(useConfigStore, ['filters']),
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
       return (
@@ -174,7 +176,7 @@ export default {
 
       return false
     },
-    drawDomCells() {
+    draw() {
       if (!this.hasAllData) return
 
       d3.select(this.customNode)
@@ -208,7 +210,7 @@ export default {
           return this.nucleotideAtPosition(data, position)
         })
     },
-    drawCanvasCell(
+    updateCanvasCell(
       ctx: CanvasRenderingContext2D,
       nucleotides: string,
       column: number,
@@ -229,7 +231,7 @@ export default {
         colorFn: this.nucleotideColor,
       })
     },
-    drawCanvas() {
+    updateCanvas() {
       const scaleFactor = 2.0
 
       const canvas = d3
@@ -260,7 +262,7 @@ export default {
           const x = parseInt(this.getAttribute('x') as string)
           const y = parseInt(this.getAttribute('y') as string)
 
-          that.drawCanvasCell(
+          that.updateCanvasCell(
             ctx,
             nucleotides,
             column,
@@ -313,9 +315,6 @@ export default {
           if (isGroup(data)) {
             const { counts } = this.groupAggregates[data.id][column]
             const nucleotides = groupCounts(counts)
-            const mrnaIds = data.dataIndices
-              .map((dataIndex) => this.mrnaIds[dataIndex])
-              .join(', ')
 
             return {
               title: groupName(data),
@@ -330,7 +329,6 @@ export default {
                   </ADescriptions>
                 `,
               data: {
-                mrnaIds,
                 nucleotides,
                 position,
               },
@@ -355,17 +353,20 @@ export default {
                   <ADescriptionsItem label="Variable">
                     <BooleanIndicator :value="!!varPos" />
                   </ADescriptionsItem>
-                  <ADescriptionsItem label="Informative" v-if="!!varPos">
-                    <BooleanIndicator :value="varPos.informative" />
-                  </ADescriptionsItem>
-                  <ADescriptionsItem label="Phenotype specific" v-if="!!varPos">
-                    <BooleanIndicator :value="varPos.pheno_specific" />
-                  </ADescriptionsItem>
+                  <template v-if="varPos">
+                    <ADescriptionsItem label="Informative">
+                      <BooleanIndicator :value="varPos.properties.informative" />
+                    </ADescriptionsItem>
+                    <ADescriptionsItem :label="property.label" v-for="property in properties">
+                      <BooleanIndicator :value="varPos.properties[property.field]" />
+                    </ADescriptionsItem>
+                  </template>
                 </ADescriptions>
               `,
             data: {
               nucleotide,
               position,
+              properties: this.filters,
               varPos,
             },
             isCompact: true,
@@ -395,37 +396,37 @@ export default {
   mounted() {
     // https://bl.ocks.org/1Cr18Ni9/75c29c06e02ff80671e37fd30eb8519e
     // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
-    this.mutationObserver = new MutationObserver(() => this.drawCanvas())
+    this.mutationObserver = new MutationObserver(() => this.updateCanvas())
     this.mutationObserver.observe(this.customNode, {
       attributes: true,
       childList: true,
       subtree: true,
     })
-    this.drawDomCells()
+    this.draw()
   },
   unmounted() {
     this.mutationObserver?.disconnect()
   },
   watch: {
     alignedPositions() {
-      this.drawDomCells()
+      this.draw()
     },
     cellTheme() {
-      this.drawCanvas()
+      this.updateCanvas()
     },
     hasAllData() {
-      this.drawDomCells()
+      this.draw()
     },
     reference() {
-      this.drawCanvas()
+      this.updateCanvas()
     },
     filteredPositions() {
-      this.drawDomCells()
+      this.draw()
     },
     sortedDataIndicesCollapsed(newData, oldData) {
       // Don't redraw unless data actually changed.
       if (!this.isDataEqual(newData, oldData)) {
-        this.drawDomCells()
+        this.draw()
       }
     },
   },

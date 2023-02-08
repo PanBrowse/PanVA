@@ -1,5 +1,3 @@
-import type { PhenoColumnBoolean, PhenoColumnCategorical } from '@/types'
-
 const isTrue = (val?: string) => {
   const v = val?.toLowerCase()
   return v === 'true' || v === 't' || v === 'yes' || v === 'y'
@@ -25,18 +23,19 @@ export const parseNumber = (val?: string): number => {
 
 export const parseString = (val?: string): string => val || ''
 
-export const parsePhenoCategorical = (
-  val: string | undefined,
-  _column: PhenoColumnCategorical
-) => parseString(val)
+export const parseMetadataCategorical = (val: string | undefined) =>
+  parseString(val)
 
-export const parsePhenoBoolean = (
+export const parseMetadataBoolean = (
   val: string | undefined,
-  column: PhenoColumnBoolean
+  values?: {
+    true: string
+    false: string
+  }
 ) => {
-  if (column.values) {
-    if (val === column.values.true) return true
-    if (val === column.values.false) return false
+  if (values) {
+    if (val === values.true) return true
+    if (val === values.false) return false
     return null
   }
 

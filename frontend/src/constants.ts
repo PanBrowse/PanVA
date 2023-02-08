@@ -1,7 +1,7 @@
 import type { CellTheme, Range, Sorting } from '@/types'
 
 export const DEFAULT_SORTING: Sorting = {
-  field: 'dendroDefault',
+  name: 'dendroDefault',
 }
 
 export const DEFAULT_TITLE = 'PanVA'

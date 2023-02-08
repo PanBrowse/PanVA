@@ -2,20 +2,20 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "additionalProperties": false,
     "definitions": {
-        "PhenoColumn": {
+        "ConfigMetadata": {
             "anyOf": [
                 {
-                    "$ref": "#/definitions/PhenoColumnBoolean"
+                    "$ref": "#/definitions/ConfigMetadataBoolean"
                 },
                 {
-                    "$ref": "#/definitions/PhenoColumnCategorical"
+                    "$ref": "#/definitions/ConfigMetadataCategorical"
                 },
                 {
-                    "$ref": "#/definitions/PhenoColumnQuantitative"
+                    "$ref": "#/definitions/ConfigMetadataQuantitative"
                 }
             ]
         },
-        "PhenoColumnBoolean": {
+        "ConfigMetadataBoolean": {
             "additionalProperties": false,
             "properties": {
                 "field": {
@@ -60,7 +60,7 @@
             },
             "type": "object"
         },
-        "PhenoColumnCategorical": {
+        "ConfigMetadataCategorical": {
             "additionalProperties": false,
             "properties": {
                 "field": {
@@ -81,7 +81,7 @@
             },
             "type": "object"
         },
-        "PhenoColumnQuantitative": {
+        "ConfigMetadataQuantitative": {
             "additionalProperties": false,
             "properties": {
                 "field": {
@@ -90,17 +90,22 @@
                 "label": {
                     "type": "string"
                 },
+                "maxValue": {
+                    "type": "number"
+                },
                 "type": {
                     "enum": [
                         "quantitative"
                     ],
                     "type": "string"
+                },
+                "width": {
+                    "type": "number"
                 }
             },
             "type": "object"
         }
     },
-    "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate:config-validator",
     "properties": {
         "apiUrl": {
             "type": "string"
@@ -108,9 +113,24 @@
         "defaultHomologyId": {
             "type": "number"
         },
-        "phenoColumns": {
+        "filters": {
             "items": {
-                "$ref": "#/definitions/PhenoColumn"
+                "additionalProperties": false,
+                "properties": {
+                    "field": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "type": "array"
+        },
+        "metadata": {
+            "items": {
+                "$ref": "#/definitions/ConfigMetadata"
             },
             "type": "array"
         },

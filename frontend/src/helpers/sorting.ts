@@ -2,8 +2,8 @@ import type { Sorting } from '@/types'
 import snc from 'string-natural-compare'
 
 export const sortingPayload = (sorting: Sorting) => {
-  if (sorting.field === 'pheno') return sorting.pheno
-  if (sorting.field === 'position') return sorting.position
+  if (sorting.name === 'metadata') return sorting.field
+  if (sorting.name === 'position') return sorting.position
   return undefined
 }
 
