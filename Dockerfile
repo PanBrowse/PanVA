@@ -75,6 +75,7 @@ RUN mkdir -p /app/api/venv
 COPY docker/panva.conf /etc/apache2/sites-available/
 RUN a2dissite 000-default default-ssl
 RUN a2ensite panva
+run a2enmod rewrite
 
 # Application code.
 COPY --from=frontend-builder /app/dist /app/frontend
@@ -90,7 +91,7 @@ RUN ln -sf /dev/stdout /var/log/apache2/access.log && \
     ln -sf /dev/stdout /var/log/apache2/error.log
 
 # https://httpd.apache.org/docs/2.4/stopping.html#gracefulstop
-STOPSIGNAL SIGWINCH
+# STOPSIGNAL SIGWINCH
 
 VOLUME "/panva/api/data"
 VOLUME "/panva/frontend"
