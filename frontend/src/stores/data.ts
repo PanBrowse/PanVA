@@ -542,6 +542,11 @@ export const useDataStore = defineStore('data', {
     async fetchPhenos() {
       const config = useConfigStore()
 
+      // No pheno columns defined, no need to load data.
+      if (config.phenoColumns.length === 0) {
+        return
+      }
+
       try {
         const data = await d3.csv<Pheno, PhenoCSVColumns | string>(
           `${this.apiUrl}${this.homologyId}/phenos.csv`,
