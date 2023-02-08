@@ -41,36 +41,44 @@ def create_linkage_matrix(data_matrix, output_file=None):
 
 
 def label_tree(n, data_labels):
-    # Node is not a leaf; flatten all the leaves in the node's subtree
-    if n["children"]:
-        for child in n["children"]:
-            label_tree(child, data_labels)
-    else:
-        n["name"] = data_labels[n["node_id"]]
+    nodes = [n]
 
-    # Delete the node id since we don't need it anymore and
-    # it makes for cleaner JSON
-    del n["node_id"]
+    while nodes:
+        n = nodes.pop(0)
+
+        if n["children"]:
+            nodes.extend(n["children"])
+
+        else:
+            n["name"] = data_labels[n["node_id"]]
+
+        # Delete the node id since we don't need it anymore and
+        # it makes for cleaner JSON
+        del n["node_id"]
 
 
 def add_node(node, parent):
-    # First create the new node and append it to its parent's children
-    newNode = dict(node_id=node.id, children=[])
-    parent["children"].append(newNode)
+    nodes = [(node, parent)]
 
-    # Recursively add the current node's children
-    if node.left:
-        add_node(node.left, newNode)
-    if node.right:
-        add_node(node.right, newNode)
+    while nodes:
+        n, p = nodes.pop(0)
+
+        # First create the new node and append it to its parent's children
+        newNode = dict(node_id=n.id, children=[])
+        p["children"].append(newNode)
+
+        if n.left:
+            nodes.append([n.left, newNode])
+        if n.right:
+            nodes.append([n.right, newNode])
 
 
 def create_dendrogram(linkage_matrix, data_labels):
+    dendrogram = dict(children=[])
+
     tree = to_tree(linkage_matrix, rd=False)
+    add_node(tree, dendrogram)
 
-    d3Dendro = dict(children=[], name="Root1")
-    add_node(tree, d3Dendro)
+    label_tree(dendrogram["children"][0], data_labels)
 
-    label_tree(d3Dendro["children"][0], data_labels)
-
-    return d3Dendro
+    return dendrogram

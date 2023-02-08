@@ -1,9 +1,8 @@
-from flask import Flask, Response, request, send_file, jsonify
+from flask import Flask, request
 from flask_cors import CORS
 import numpy as np
 import sys
 import os
-import json
 import pandas as pd
 import tanglegram as tg
 from dotenv import load_dotenv
@@ -15,10 +14,6 @@ from cluster_functions import (
     create_lv_matrix,
 )
 
-# Increase recursion limit.
-# TODO: Why is this necessary? Maybe the offending code should be refactored.
-sys.setrecursionlimit(1500)
-
 # Load config from `.env` file into environment variables.
 load_dotenv(".env")
 
@@ -26,7 +21,14 @@ load_dotenv(".env")
 db_path = os.environ.get("API_DB_PATH")
 
 # Instantiate the app.
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    # Static files in `db_path` will be served by Flask.
+    # In production, this should be handled by a webserver.
+    static_url_path="",
+    static_folder=db_path,
+)
+
 
 # Load Flask configuration options from environment variables (prefixed with API_).
 app.config.from_prefixed_env("API")
@@ -36,36 +38,6 @@ CORS(app)
 
 # Enable JSON Schema validation.
 schema = JsonSchema(app)
-
-
-@app.route("/homologies.json")
-def homology_ids():
-    return send_file(os.path.join(db_path, "homologies.json"))
-
-
-@app.route("/core_snp.txt")
-def core_snp():
-    return send_file(os.path.join(db_path, "core_snp.txt"))
-
-
-@app.route("/<id>/alignments.csv")
-def alignment(id):
-    return send_file(os.path.join(db_path, id, "alignments.csv"))
-
-
-@app.route("/<id>/phenos.csv")
-def phenos(id):
-    return send_file(os.path.join(db_path, id, "phenos.csv"))
-
-
-@app.route("/<id>/variable.csv")
-def var_pos_count(id):
-    return send_file(os.path.join(db_path, id, "variable.csv"))
-
-
-@app.route("/<id>/annotations.csv", methods=["GET"])
-def annotations(id):
-    return send_file(os.path.join(db_path, id, "annotations.csv"))
 
 
 @app.route("/<id>/dendrogram.json", methods=["GET", "POST"])
