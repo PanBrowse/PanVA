@@ -53,11 +53,10 @@ export default {
     if (await this.loadConfig()) {
       await this.fetchHomologies()
 
+      this.fetchCoreSNP()
+
       // Use the configured defaultHomologyId or default to the first homology from `homologies`.
       this.homologyId = this.defaultHomologyId || this.homologies[0].homology_id
-
-      this.fetchCoreSNP()
-      this.fetchHomology()
     }
   },
   watch: {
