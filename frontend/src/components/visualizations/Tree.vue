@@ -21,6 +21,7 @@ export default {
       'dendroCustom',
       'dendroDefault',
       'genomeMrnaIdsLookup',
+      'groupLookup',
       'mrnaIdsLookup',
       'rowColors',
       'sequenceCount',
@@ -144,18 +145,18 @@ export default {
                 // Not all genome numbers occur in each homology
                 // group, so lookup could result in undefined.
                 if (genomeNr in this.genomeMrnaIdsLookup) {
-                  return this.genomeMrnaIdsLookup[genomeNr].map(
-                    (mrnaId) => this.mrnaIdsLookup[mrnaId]
-                  )
+                  return this.genomeMrnaIdsLookup[genomeNr]
+                    .map((mrnaId) => this.mrnaIdsLookup[mrnaId])
+                    .filter((dataIndex) => !this.groupLookup[dataIndex])
                 }
 
                 return []
               })
             )
           } else {
-            this.selectedDataIndices = leafNodes(data).map(
-              (mrnaId) => this.mrnaIdsLookup[mrnaId]
-            )
+            this.selectedDataIndices = leafNodes(data)
+              .map((mrnaId) => this.mrnaIdsLookup[mrnaId])
+              .filter((dataIndex) => !this.groupLookup[dataIndex])
           }
         })
     },

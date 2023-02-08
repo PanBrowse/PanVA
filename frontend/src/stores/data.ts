@@ -193,18 +193,30 @@ export const useDataStore = defineStore('data', {
 
       return condenced
     },
-    rowColors(): string[] {
-      const colors = times(this.sequenceCount, constant(''))
-      this.groups.forEach(({ color, dataIndices, isColorized }) => {
-        if (!isColorized) return
+    groupLookup() {
+      /**
+       * Mapping of dataIndex => Group | null.
+       */
+      const result: (Group | null)[] = times(this.sequenceCount, constant(null))
 
-        dataIndices.forEach((index) => {
-          colors[index] = color
+      this.groups.forEach((group) => {
+        group.dataIndices.forEach((index) => {
+          result[index] = group
         })
       })
-      return colors
+
+      return result
     },
-    mrnaIdsLookup: (state) => {
+    rowColors(): string[] {
+      /**
+       * Mapping of dataIndex => color.
+       */
+      return this.groupLookup.map((group) => {
+        if (group && group.isColorized) return group.color
+        return ''
+      })
+    },
+    mrnaIdsLookup(): Record<string, number> {
       /**
        * We need to sort many data sets by the order as defined in `this.mrnaIds`.
        * Instead of using `this.mrnaIds.indexOf(mRNA_id)` as a sorting method,
@@ -212,13 +224,13 @@ export const useDataStore = defineStore('data', {
        * This brings down the total computation time from O(n^2) to O(2n).
        */
       return Object.fromEntries(
-        state.mrnaIds.map((mrnaId, dataIndex) => [mrnaId, dataIndex])
+        this.mrnaIds.map((mrnaId, dataIndex) => [mrnaId, dataIndex])
       )
     },
-    homology: (state) => {
+    homology(): Homology | undefined {
       // This will return undefined if the homologies have not yet loaded.
-      return state.homologies.find(
-        ({ homology_id }) => homology_id === state.homologyId
+      return this.homologies.find(
+        ({ homology_id }) => homology_id === this.homologyId
       )
     },
     filterPositions() {
