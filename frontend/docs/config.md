@@ -60,6 +60,7 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
 |------------|--------|--------------------|---------------------------------------------------------------------------------|
 | `width`    | number | :heavy_check_mark: | Width of the column.                                                            |
 | `maxValue` | number |                    | Maximum value to determine bar width. <br> Defaults to maximum value in column. |
+| `suffix`   | string |                    | String to be placed behind the numeric value (e.g. `"%"`)                       |
 
 
 ## Example configuration file

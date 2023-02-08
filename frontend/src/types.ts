@@ -66,6 +66,7 @@ export type Homology = {
   homology_id: number
   name: string
   members: number
+  gene_length: number
   class: string
   variable_sites_nuc: boolean
   informative_sites_nuc: boolean
@@ -75,38 +76,15 @@ export type Homology = {
   pheno_specific_changes_prot: boolean
 }
 
-export type AlignedPosition = {
-  index: number
-  mRNA_id: mRNAid
-  mRNA_index: number
-  genome_nr: number
-  position: number
-  nucleotide: Nucleotide
-  variable: boolean
-
-  // Are only defined if `variable` is true.
+export type VariablePosition = {
+  informative: boolean | null
   pheno_specific: boolean | null
-  informative: boolean | null
-}
-
-export type VarPosCount = {
-  position: number
-  informative: boolean | null
   A: number
   C: number
   G: number
   T: number
   gap: number
-  other: number
   conservation: number
-}
-
-export type Sequence = {
-  mRNA_id: mRNAid
-  nuc_trimmed_seq: string
-  nuc_seq: string
-  prot_trimmed_seq: string
-  prot_seq: string
 }
 
 export type TreeNode = {
@@ -165,44 +143,29 @@ export type PhenoColumnData =
   | PhenoColumnQuantitativeData
 
 export type Pheno = Record<string, PhenoColumnData> & {
-  index: number
-  genome_nr: number
   mRNA_id: mRNAid
 }
 
 /**
  * Raw API data.
  */
-export type AlignedPositionsCSVColumns =
-  | 'index'
+export type AlignmentCSVColumns =
   | 'mRNA_id'
   | 'genome_nr'
   | 'position'
   | 'nucleotide'
-  | 'variable'
-  | 'pheno_specific'
-  | 'informative'
-  | 'virulence'
 
-export type SequenceCSVColumns =
-  | 'mRNA_id'
-  | 'nuc_trimmed_seq'
-  | 'nuc_seq'
-  | 'prot_trimmed_seq'
-  | 'prot_seq'
+export type PhenoCSVColumns = 'mRNA_id'
 
-export type PhenoCSVColumns = 'mRNA_id' | 'genome_nr' | 'pheno_node_id'
-
-export type VarPosCountCSVColumns =
+export type VariablePositionCSVColumns =
   | 'position'
   | 'informative'
+  | 'pheno_specific'
   | 'A'
   | 'C'
   | 'G'
   | 'T'
   | 'gap'
-  | 'other'
-  | 'conservation'
 
 export type CellTheme = {
   name: string

@@ -51,7 +51,7 @@ export default {
     ]),
     ...mapWritableState(useDataStore, [
       'cellTheme',
-      'filterPositions',
+      'positionFilter',
       'reference',
       'transitionsEnabled',
       'tree',
@@ -186,7 +186,7 @@ export default {
       <AFormItem label="Filter positions">
         <ASelect
           :dropdownMatchSelectWidth="false"
-          v-model:value="filterPositions"
+          v-model:value="positionFilter"
         >
           <ASelectOption value="all">All</ASelectOption>
           <ASelectOption value="variable">Variable</ASelectOption>

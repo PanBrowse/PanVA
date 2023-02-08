@@ -10,7 +10,6 @@ import {
   TRANSITION_TIME,
 } from '@/constants'
 import {
-  parseBool,
   parseNumber,
   parseOptionalBool,
   parsePhenoBoolean,
@@ -18,8 +17,7 @@ import {
   parseString,
 } from '@/helpers/parse'
 import type {
-  AlignedPosition,
-  AlignedPositionsCSVColumns,
+  AlignmentCSVColumns,
   DataIndexCollapsed,
   TreeNode,
   Group,
@@ -31,11 +29,9 @@ import type {
   PhenoColumnData,
   PhenoCSVColumns,
   Range,
-  Sequence,
-  SequenceCSVColumns,
   Sorting,
-  VarPosCount,
-  VarPosCountCSVColumns,
+  VariablePosition,
+  VariablePositionCSVColumns,
   AppError,
   FilterPosition,
   TreeOption,
@@ -77,15 +73,17 @@ export const useDataStore = defineStore('data', {
 
     // Data that is fetched from the API using `homologyId`.
     // We don't keep data for previous homology ids because of memory consumption.
-    alignedPositions: [] as AlignedPosition[],
+    alignedPositions: [] as Nucleotide[],
     dendroCustom: null as TreeNode | null,
     dendroDefault: null as TreeNode | null,
     phenos: [] as Pheno[],
-    sequences: [] as Sequence[],
-    varPosCount: [] as VarPosCount[],
+    variablePositions: [] as (VariablePosition | null)[],
     // mRNA ids in order as defined by the default dendrogram.
     // This is populated by taking the leaf nodes from dendroDefault.
     mrnaIds: [] as mRNAid[],
+    // Genome numbers in order as defined by the default dendrogram.
+    // This is populated from the `genome_nr` column when fetching alignments.
+    genomeNrs: [] as number[],
 
     // API fetching state.
     error: null as AppError | null,
@@ -112,7 +110,7 @@ export const useDataStore = defineStore('data', {
     dendroCustomForSelectedPositions: [] as number[],
 
     // Filter positions based on position metadata.
-    filterPositions: 'all' as FilterPosition,
+    positionFilter: 'all' as FilterPosition,
 
     // Grouping.
     groups: [] as Group[],
@@ -223,16 +221,25 @@ export const useDataStore = defineStore('data', {
         ({ homology_id }) => homology_id === state.homologyId
       )
     },
+    filterPositions() {
+      return (positions: number[]) => {
+        if (this.positionFilter !== 'all') {
+          const field = this.positionFilter as Exclude<FilterPosition, 'all'>
+          return positions.filter((pos) => {
+            const varPos = this.variablePositions[pos - 1]
+            if (!varPos) return false
+            if (field === 'variable') return true
+            return varPos[field]
+          })
+        }
+
+        return positions
+      }
+    },
     filteredPositions(): number[] {
       const [start, end] = this.positionRegion
       const positions = range(start, end + 1)
-
-      if (this.filterPositions !== 'all') {
-        const field = this.filterPositions as Exclude<FilterPosition, 'all'>
-        return positions.filter((pos) => this.alignedPositions[pos - 1][field])
-      }
-
-      return positions
+      return this.filterPositions(positions)
     },
     filteredPositionsCount(): number {
       return this.filteredPositions.length
@@ -241,9 +248,7 @@ export const useDataStore = defineStore('data', {
       return this.mrnaIds.length
     },
     geneLength(): number {
-      if (this.sequences.length !== 0) {
-        return this.sequences[0].nuc_trimmed_seq.length
-      }
+      if (this.homology) return this.homology.gene_length
       return 0
     },
     nucleotideColor(): NucleotideColorFunc {
@@ -277,7 +282,7 @@ export const useDataStore = defineStore('data', {
           const nucleotides: Record<string, boolean> = {}
 
           dataIndices.forEach((dataIndex) => {
-            const { nucleotide } =
+            const nucleotide =
               this.alignedPositions[dataIndex * this.geneLength + position - 1]
             nucleotides[nucleotide] = true
           })
@@ -290,7 +295,7 @@ export const useDataStore = defineStore('data', {
         return this.filteredPositions.map((position) => {
           const { dataIndex } = this.reference as DataReference
 
-          const { nucleotide } =
+          const nucleotide =
             this.alignedPositions[dataIndex * this.geneLength + position - 1]
           return nucleotide
         })
@@ -303,11 +308,11 @@ export const useDataStore = defineStore('data', {
     genomeMrnaIdsLookup(): Record<number, mRNAid[]> {
       const lookup: Record<number, mRNAid[]> = {}
 
-      this.phenos.forEach(({ genome_nr, mRNA_id }) => {
-        if (genome_nr in lookup) {
-          lookup[genome_nr].push(mRNA_id)
+      zipEqual(this.genomeNrs, this.mrnaIds).map(([genomeNr, mrnaId]) => {
+        if (genomeNr in lookup) {
+          lookup[genomeNr].push(mrnaId)
         } else {
-          lookup[genome_nr] = [mRNA_id]
+          lookup[genomeNr] = [mrnaId]
         }
       })
 
@@ -394,7 +399,6 @@ export const useDataStore = defineStore('data', {
           return this.sortedDataIndices.map<Nucleotide>(
             (index) =>
               this.alignedPositions[index * this.geneLength + position - 1]
-                .nucleotide
           )
         }
 
@@ -428,10 +432,10 @@ export const useDataStore = defineStore('data', {
       // Pull out the mrna indices.
       this.sortedDataIndices = sorted.map(([index]) => index)
     },
-    async fetchHomologyIds() {
+    async fetchHomologies() {
       try {
         const response = await axios.get<Homology[]>(
-          `${this.apiUrl}homology_ids`
+          `${this.apiUrl}homologies.json`
         )
         this.homologies = sortBy(response.data, 'name')
       } catch (err) {
@@ -444,7 +448,7 @@ export const useDataStore = defineStore('data', {
     },
     async fetchCoreSNP() {
       try {
-        const response = await axios.get<string>(`${this.apiUrl}core_snp`)
+        const response = await axios.get<string>(`${this.apiUrl}core_snp.txt`)
         this.coreSNP = parse_newick(response.data)
       } catch (err) {
         this.setError({
@@ -454,7 +458,7 @@ export const useDataStore = defineStore('data', {
         throw err
       }
     },
-    async fetchAlignedPositions() {
+    async fetchAlignments() {
       if (this.mrnaIds.length === 0) {
         throw new Error(
           'Order of mRNA ids must be known (by fetching dendrogram) before fetching aligned positions.'
@@ -462,40 +466,35 @@ export const useDataStore = defineStore('data', {
       }
 
       try {
-        const data = await d3.csv<AlignedPosition, AlignedPositionsCSVColumns>(
-          `${this.apiUrl}${this.homologyId}/al_pos`,
-          ({
-            genome_nr,
-            informative,
-            mRNA_id,
-            nucleotide,
-            pheno_specific,
-            position,
-            variable,
-          }) => ({
-            genome_nr: parseNumber(genome_nr),
-            informative: parseOptionalBool(informative),
-            mRNA_id: parseString(mRNA_id),
-            nucleotide: parseString(nucleotide) as Nucleotide,
-            pheno_specific: parseOptionalBool(pheno_specific),
-            position: parseNumber(position),
-            variable: parseBool(variable),
-            index: 0, // Value gets generated later.
-            mRNA_index: 0, // Value gets generated later.
-          })
-        )
+        // Type for temporary data.
+        type AlignmentData = {
+          mRNA_id: mRNAid
+          genome_nr: number
+          position: number
+          nucleotide: Nucleotide
+        }
 
-        this.alignedPositions = chain(data)
+        const data = sortBy(
+          await d3.csv<AlignmentData, AlignmentCSVColumns>(
+            `${this.apiUrl}${this.homologyId}/alignments.csv`,
+            ({ genome_nr, mRNA_id, nucleotide, position }) => ({
+              genome_nr: parseNumber(genome_nr),
+              mRNA_id: parseString(mRNA_id),
+              nucleotide: parseString(nucleotide) as Nucleotide,
+              position: parseNumber(position),
+            })
+          ),
           // 1. Sort by mRNA id in the order as defined by the dendrogram.
           // 2. Sort by the position within each mRNA id.
-          .sortBy([({ mRNA_id }) => this.mrnaIdsLookup[mRNA_id], 'position'])
-          // Fix the mRNA_index column.
-          .map((alignedPosition, index) => ({
-            ...alignedPosition,
-            index,
-            mRNA_index: this.mrnaIdsLookup[alignedPosition.mRNA_id],
-          }))
-          .value()
+          [({ mRNA_id }) => this.mrnaIdsLookup[mRNA_id], 'position']
+        )
+
+        this.genomeNrs = range(
+          0,
+          this.geneLength * this.sequenceCount,
+          this.geneLength
+        ).map((index) => data[index].genome_nr)
+        this.alignedPositions = data.map(({ nucleotide }) => nucleotide)
       } catch (err) {
         this.setError({
           message: 'Unable to fetch or parse aligned positions from API.',
@@ -507,7 +506,7 @@ export const useDataStore = defineStore('data', {
     async fetchDendrogramDefault() {
       try {
         const data = await d3.json<TreeNode>(
-          `${this.apiUrl}${this.homologyId}/d3dendro`
+          `${this.apiUrl}${this.homologyId}/dendrogram.json`
         )
         if (!data) {
           throw new Error('Empty dendrogram default data.')
@@ -525,7 +524,7 @@ export const useDataStore = defineStore('data', {
     async fetchDendrogramCustom() {
       try {
         const response = await axios.post<TreeNode>(
-          `${this.apiUrl}${this.homologyId}/d3dendro`,
+          `${this.apiUrl}${this.homologyId}/dendrogram.json`,
           {
             positions: toRaw(this.selectedPositions),
           }
@@ -545,13 +544,11 @@ export const useDataStore = defineStore('data', {
 
       try {
         const data = await d3.csv<Pheno, PhenoCSVColumns | string>(
-          `${this.apiUrl}${this.homologyId}/phenos`,
+          `${this.apiUrl}${this.homologyId}/phenos.csv`,
           ({ mRNA_id, genome_nr, ...rest }) => {
             // Common fields.
             const data: Pheno = {
               mRNA_id: parseString(mRNA_id),
-              genome_nr: parseNumber(genome_nr),
-              index: 0, // Value gets generated later.
             }
 
             // Dataset specific fields.
@@ -585,55 +582,45 @@ export const useDataStore = defineStore('data', {
         throw err
       }
     },
-    async fetchSequences() {
+    async fetchVariablePositions() {
       try {
-        const data = await d3.csv<Sequence, SequenceCSVColumns>(
-          `${this.apiUrl}${this.homologyId}/sequences`,
-          ({
-            mRNA_id,
-            nuc_trimmed_seq,
-            nuc_seq,
-            prot_trimmed_seq,
-            prot_seq,
-          }) => ({
-            mRNA_id: parseString(mRNA_id),
-            nuc_trimmed_seq: parseString(nuc_trimmed_seq),
-            nuc_seq: parseString(nuc_seq),
-            prot_trimmed_seq: parseString(prot_trimmed_seq),
-            prot_seq: parseString(prot_seq),
-          })
-        )
+        type VariablePositionData = VariablePosition & {
+          position: number
+        }
 
-        // Sort by mRNA id in the order as defined by the dendrogram.
-        this.sequences = sortBy(
-          data,
-          ({ mRNA_id }) => this.mrnaIdsLookup[mRNA_id]
-        )
-      } catch (err) {
-        this.setError({
-          message: 'Unable to fetch or parse sequences from API.',
-          isFatal: true,
-        })
-        throw err
-      }
-    },
-    async fetchVarPosCount() {
-      try {
-        this.varPosCount = await d3.csv<VarPosCount, VarPosCountCSVColumns>(
-          `${this.apiUrl}${this.homologyId}/var_pos_count`,
-          ({ A, C, conservation, G, gap, informative, other, position, T }) =>
-            ({
+        const data = await d3.csv<
+          VariablePositionData,
+          VariablePositionCSVColumns
+        >(
+          `${this.apiUrl}${this.homologyId}/variable.csv`,
+          ({ informative, position, pheno_specific, ...bases }) => {
+            const A = parseNumber(bases.A)
+            const C = parseNumber(bases.C)
+            const G = parseNumber(bases.G)
+            const T = parseNumber(bases.T)
+            const gap = parseNumber(bases.gap)
+
+            const conservation = Math.max(A, C, G, T, gap)
+
+            return {
               position: parseNumber(position),
               informative: parseOptionalBool(informative),
-              A: parseNumber(A),
-              C: parseNumber(C),
-              G: parseNumber(G),
-              T: parseNumber(T),
-              gap: parseNumber(gap),
-              other: parseNumber(other),
-              conservation: parseNumber(conservation),
-            } as VarPosCount)
+              pheno_specific: parseOptionalBool(pheno_specific),
+              A,
+              C,
+              G,
+              T,
+              gap,
+              conservation,
+            }
+          }
         )
+
+        // Convert sparse array to array containing VariablePosition and null.
+        this.variablePositions = times(this.geneLength, constant(null))
+        data.forEach(({ position, ...varPos }) => {
+          this.variablePositions[position - 1] = varPos
+        })
       } catch (err) {
         this.setError({
           message:
@@ -650,8 +637,7 @@ export const useDataStore = defineStore('data', {
         dendroCustom: null,
         dendroDefault: null,
         phenos: [],
-        sequences: [],
-        varPosCount: [],
+        variablePositions: [],
 
         // Reset groups and selections that contain references to data.
         tree: 'dendroDefault',
@@ -665,17 +651,14 @@ export const useDataStore = defineStore('data', {
       // We fetch the dendrogram first, as it will define the order in which the other data will be stored.
       await this.fetchDendrogramDefault()
 
-      // Fetch the sequences after, so we can start displaying most visualizations early.
-      await this.fetchSequences()
-
       this.resetSorting()
       this.resetPositionRegion()
 
       // The remaining requests are performed concurrently to speed up loading.
       await Promise.all([
-        this.fetchAlignedPositions(),
+        this.fetchAlignments(),
         this.fetchPhenos(),
-        this.fetchVarPosCount(),
+        this.fetchVariablePositions(),
       ])
     },
     resetPositionRegion() {

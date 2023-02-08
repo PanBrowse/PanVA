@@ -25,6 +25,7 @@ export default {
       'coreSNP',
       'dendroCustom',
       'dendroDefault',
+      'genomeNrs',
       'hoverRowIndex',
       'mrnaIds',
       'phenos',
@@ -97,7 +98,7 @@ export default {
       let leafNodeValue = this.mrnaIds[dataIndex]
 
       if (this.treeSource === 'coreSNP') {
-        leafNodeValue = `${this.phenos[dataIndex].genome_nr}`
+        leafNodeValue = `${this.genomeNrs[dataIndex]}`
       }
 
       return this.leafNodesLookup[leafNodeValue]

@@ -65,7 +65,7 @@ def add_node(node, parent):
         add_node(node.right, newNode)
 
 
-def create_d3_dendrogram(linkage_matrix, data_labels):
+def create_dendrogram(linkage_matrix, data_labels):
     tree = to_tree(linkage_matrix, rd=False)
 
     d3Dendro = dict(children=[], name="Root1")

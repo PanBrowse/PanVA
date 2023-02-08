@@ -3,7 +3,6 @@ import { useDataStore } from '@/stores/data'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import SidebarItem from '@/components/common/SidebarItem.vue'
 import { difference, intersection, isEqual, range, sortBy, union } from 'lodash'
-import type { FilterPosition } from '@/types'
 import { Form, FormItem, Checkbox, Button } from 'ant-design-vue'
 
 export default {
@@ -24,30 +23,26 @@ export default {
       'alignedPositions',
       'dendroCustom',
       'dendroCustomForSelectedPositions',
-      'geneLength',
-      'positionRegion',
-      'filterPositions',
       'filteredPositions',
       'filteredPositionsCount',
+      'filterPositions',
+      'geneLength',
+      'positionFilter',
+      'positionRegion',
       'transitionTime',
     ]),
     ...mapWritableState(useDataStore, ['tree', 'selectedPositions']),
     positionsLabel(): string {
-      if (this.filterPositions === 'variable') return 'variable positions'
-      if (this.filterPositions === 'informative') return 'informative positions'
-      if (this.filterPositions === 'pheno_specific')
+      if (this.positionFilter === 'variable') return 'variable positions'
+      if (this.positionFilter === 'informative') return 'informative positions'
+      if (this.positionFilter === 'pheno_specific')
         return 'phenotype specific positions'
       return 'positions'
     },
     // Same as filteredPositions, but for the entire gene.
     allFilteredPositions(): number[] {
       const positions = range(1, this.geneLength + 1)
-      if (this.filterPositions !== 'all') {
-        const field = this.filterPositions as Exclude<FilterPosition, 'all'>
-        return positions.filter((pos) => this.alignedPositions[pos - 1][field])
-      }
-
-      return positions
+      return this.filterPositions(positions)
     },
     // Same as filteredPositionsCount, but for the entire gene.
     allFilteredPositionsCount(): number {

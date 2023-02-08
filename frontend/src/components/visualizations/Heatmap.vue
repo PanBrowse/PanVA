@@ -4,8 +4,6 @@ import { useDataStore } from '@/stores/data'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { CELL_SIZE } from '@/constants'
 
-import type { AlignedPosition } from '@/types'
-
 import LoadingBox from '@/components/common/LoadingBox.vue'
 
 import type { DataIndexCollapsed, Nucleotide } from '@/types'
@@ -69,6 +67,7 @@ export default {
       'sequenceCount',
       'sortedDataIndicesCollapsed',
       'transitionTime',
+      'variablePositions',
     ]),
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
@@ -120,7 +119,7 @@ export default {
             }
 
             dataIndices.forEach((dataIndex) => {
-              const { nucleotide } = this.dataAtPosition(dataIndex, position)
+              const nucleotide = this.nucleotideAtPosition(dataIndex, position)
               counts[nucleotide]++
             })
 
@@ -159,7 +158,7 @@ export default {
         .node()!
         .getContext('2d')
     },
-    dataAtPosition(dataIndex: number, position: number): AlignedPosition {
+    nucleotideAtPosition(dataIndex: number, position: number): Nucleotide {
       return this.alignedPositions[dataIndex * this.geneLength + position - 1]
     },
     isReference(data: DataIndexCollapsed): boolean {
@@ -206,8 +205,7 @@ export default {
             return nucleotides
           }
 
-          const { nucleotide } = this.dataAtPosition(data, position)
-          return nucleotide
+          return this.nucleotideAtPosition(data, position)
         })
     },
     drawCanvasCell(
@@ -341,25 +339,34 @@ export default {
             }
           }
 
-          const alignedPosition = this.dataAtPosition(data, position)
+          const nucleotide = this.nucleotideAtPosition(data, position)
+          const varPos = this.variablePositions[position - 1]
 
           return {
             title: this.mrnaIds[data],
             template: `
                 <ADescriptions size="small" layout="horizontal" :column="1" bordered>
                   <ADescriptionsItem label="Base">
-                    {{ alignedPosition.nucleotide }}
+                    {{ nucleotide }}
                   </ADescriptionsItem>
                   <ADescriptionsItem label="Position">
-                    {{ alignedPosition.position }}
+                    {{ position }}
                   </ADescriptionsItem>
                   <ADescriptionsItem label="Variable">
-                    <BooleanIndicator :value="alignedPosition.variable" />
+                    <BooleanIndicator :value="!!varPos" />
+                  </ADescriptionsItem>
+                  <ADescriptionsItem label="Informative" v-if="!!varPos">
+                    <BooleanIndicator :value="varPos.informative" />
+                  </ADescriptionsItem>
+                  <ADescriptionsItem label="Phenotype specific" v-if="!!varPos">
+                    <BooleanIndicator :value="varPos.pheno_specific" />
                   </ADescriptionsItem>
                 </ADescriptions>
               `,
             data: {
-              alignedPosition,
+              nucleotide,
+              position,
+              varPos,
             },
             isCompact: true,
             isPinnable: true,

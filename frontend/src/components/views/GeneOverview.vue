@@ -1,6 +1,6 @@
 <script lang="ts">
 import * as d3 from 'd3'
-import { mapValues, range, keyBy } from 'lodash'
+import { range } from 'lodash'
 import { useDataStore } from '@/stores/data'
 import { mapState, mapWritableState } from 'pinia'
 import type { D3BrushEvent } from 'd3'
@@ -49,29 +49,24 @@ export default {
       'geneLength',
       'homology',
       'sequenceCount',
-      'varPosCount',
+      'variablePositions',
     ]),
     ...mapWritableState(useDataStore, ['positionRegion']),
     hasAllData(): boolean {
       return (
-        this.varPosCount.length !== 0 &&
+        this.variablePositions.length !== 0 &&
         this.sequenceCount !== 0 &&
         this.geneLength !== 0
       )
     },
     allScores(): Score[] {
-      // Variable position count is sparse, so we fill up the missing values.
-      const lookup = mapValues(
-        keyBy(this.varPosCount, 'position'),
-        'conservation'
-      )
+      const positions = range(1, this.geneLength + 1)
+      const conservations = positions.map<number>((pos) => {
+        const varPos = this.variablePositions[pos - 1]
+        return varPos ? varPos.conservation : this.sequenceCount
+      })
 
-      const xValues = range(1, this.geneLength + 1)
-      const yValues = xValues.map<number>((x) =>
-        x in lookup ? lookup[x] : this.sequenceCount
-      )
-
-      return zipEqual(xValues, yValues).map(([x, y]) => ({
+      return zipEqual(positions, conservations).map(([x, y]) => ({
         x,
         y: (y / this.sequenceCount) * 100,
       }))

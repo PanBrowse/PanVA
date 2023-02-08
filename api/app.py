@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from flask_json_schema import JsonSchema
 
 from cluster_functions import (
-    create_d3_dendrogram,
+    create_dendrogram,
     create_linkage_matrix,
     create_lv_matrix,
 )
@@ -22,14 +22,14 @@ sys.setrecursionlimit(1500)
 # Load config from `.env` file into environment variables.
 load_dotenv(".env")
 
+# Get non-Flask configuration options from environment variables.
+db_path = os.environ.get("API_DB_PATH")
+
 # Instantiate the app.
 app = Flask(__name__)
 
-# Load configuration options from environment variables (prefixed with API_).
+# Load Flask configuration options from environment variables (prefixed with API_).
 app.config.from_prefixed_env("API")
-
-# Database path where all data files are.
-db_path = os.environ.get("API_DB_PATH")
 
 # Enable CORS.
 CORS(app)
@@ -38,52 +38,37 @@ CORS(app)
 schema = JsonSchema(app)
 
 
-@app.route("/homology_ids")
+@app.route("/homologies.json")
 def homology_ids():
-    return send_file(os.path.join(db_path, "data_homology_ids.json"))
+    return send_file(os.path.join(db_path, "homologies.json"))
 
 
-@app.route("/core_snp")
+@app.route("/core_snp.txt")
 def core_snp():
     return send_file(os.path.join(db_path, "core_snp.txt"))
 
 
-@app.route("/<id>/al_pos")
-def aligned_positions(id):
-    return send_file(os.path.join(db_path, id, "al_pos.csv"))
+@app.route("/<id>/alignments.csv")
+def alignment(id):
+    return send_file(os.path.join(db_path, id, "alignments.csv"))
 
 
-@app.route("/<id>/sequences")
-def sequences(id):
-    return send_file(os.path.join(db_path, id, "sequences.csv"))
-
-
-@app.route("/<id>/phenos")
+@app.route("/<id>/phenos.csv")
 def phenos(id):
-    # NOTE: `phenos.csv` does not contain `mRNA_id` column in CSV_db_pecto.
-    # Please run `pecto_phenos_mrna` to add the column from `sequence_info.csv` into `phenos.csv`.
-    # CSV_db_arabid_small does contain an `mRNA_id` column.
     return send_file(os.path.join(db_path, id, "phenos.csv"))
 
 
-@app.route("/<id>/var_pos_count")
+@app.route("/<id>/variable.csv")
 def var_pos_count(id):
-    var_pos_count = pd.read_csv(os.path.join(db_path, id, "var_pos_count.csv"))
-    var_pos_count["conservation"] = var_pos_count[["A", "C", "T", "G", "gap"]].max(
-        axis=1
-    )
-    return var_pos_count.to_csv(index=False)
+    return send_file(os.path.join(db_path, id, "variable.csv"))
 
 
-@app.route("/<id>/nuc_structure", methods=["GET"])
-def nuc_structure(id):
-    csv_path = os.path.join(db_path, id, "nuc_structure.csv")
-    if not os.path.isfile(csv_path):
-        return Response(status=204)
-    return send_file(csv_path)
+@app.route("/<id>/annotations.csv", methods=["GET"])
+def annotations(id):
+    return send_file(os.path.join(db_path, id, "annotations.csv"))
 
 
-@app.route("/<id>/d3dendro", methods=["GET", "POST"])
+@app.route("/<id>/dendrogram.json", methods=["GET", "POST"])
 @schema.validate(
     {
         "type": "object",
@@ -99,7 +84,7 @@ def nuc_structure(id):
         "required": ["positions"],
     }
 )
-def get_d3_dendro(id):
+def get_dendrogram(id):
     data_sequences = pd.read_csv(os.path.join(db_path, id, "sequences.csv"))
     linkage_matrix = np.load(os.path.join(db_path, id, "linkage_matrix.npy"))
 
@@ -121,28 +106,7 @@ def get_d3_dendro(id):
 
         linkage_matrix = untangled[0]
 
-    return create_d3_dendrogram(linkage_matrix, data_labels)
-
-
-# TODO: The routes below don't seem to be in use. Can we remove them?
-
-
-@app.route("/tree_nuc_trimmed/<id>", methods=["GET"])
-def trees():
-    data = json.load(os.path.join(db_path, id, "trees.json"))
-    return jsonify(data["nuc_trimmed"])
-
-
-@app.route("/<id>/al_pos/<int:start>-<int:end>")
-def aligned_positions_slice(id, start, end):
-    al_pos = pd.read_csv(os.path.join(db_path, id, "al_pos.csv"))
-    al_pos_small = al_pos[(start < al_pos["position"]) & (al_pos["position"] < end)]
-    return al_pos_small.to_csv(index=False)
-
-
-@app.route("/<id>")
-def homology(id):
-    return send_file(os.path.join(db_path, "{}.json".format(id)))
+    return create_dendrogram(linkage_matrix, data_labels)
 
 
 if __name__ == "__main__":

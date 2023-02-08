@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from dotenv import dotenv_values
 
-from api.cluster_functions import create_lv_matrix, create_linkage_matrix
+from cluster_functions import create_lv_matrix, create_linkage_matrix
 
 # Load database path from config.
 config = dotenv_values(".env")

@@ -39,7 +39,7 @@ export default {
   methods: {
     ...mapActions(useConfigStore, ['loadConfig']),
     ...mapActions(useDataStore, [
-      'fetchHomologyIds',
+      'fetchHomologies',
       'fetchCoreSNP',
       'fetchHomology',
     ]),
@@ -51,12 +51,13 @@ export default {
   },
   async created() {
     if (await this.loadConfig()) {
-      await this.fetchHomologyIds()
+      await this.fetchHomologies()
 
       // Use the configured defaultHomologyId or default to the first homology from `homologies`.
       this.homologyId = this.defaultHomologyId || this.homologies[0].homology_id
 
-      Promise.all([this.fetchCoreSNP(), this.fetchHomology()])
+      this.fetchCoreSNP()
+      this.fetchHomology()
     }
   },
   watch: {

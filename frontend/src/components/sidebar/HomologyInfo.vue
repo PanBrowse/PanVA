@@ -31,6 +31,9 @@ export default {
       <ADescriptionsItem label="Members">
         {{ homology.members }}
       </ADescriptionsItem>
+      <ADescriptionsItem label="Gene length">
+        {{ homology.gene_length }}
+      </ADescriptionsItem>
       <ADescriptionsItem label="Nucleotide">
         <BooleanIndicator :value="homology.variable_sites_nuc">
           Variable sites
