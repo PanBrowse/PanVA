@@ -37,7 +37,7 @@ A list of objects representing all homology ids of the selected set. Homology id
 * `name`: Name of the gene (**optional** _string_).
 * `members`: Number of sequences (_integer_).
 * `alignment_length`: Length of the alignment (_integer_).
-* `metadata`: Array of metadata objects, each containing:
+* `metadata`: Metadata shown in the frontend (**optional** _array_). Each containing:
     * `label`: Label to display (_string_).
     * `value`: Value to display (_string|boolean_).
 
