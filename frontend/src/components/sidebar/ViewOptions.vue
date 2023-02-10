@@ -77,7 +77,7 @@ export default {
     },
     sortValue(): string {
       if (this.sorting.name === 'metadata') {
-        return this.sorting.field
+        return `metadata:${this.sorting.field}`
       }
       return this.sorting.name
     },
@@ -110,7 +110,7 @@ export default {
 
       const metadataSortOptions: SortOption[] = this.metadata.map(
         ({ field, label }) => ({
-          value: field,
+          value: `metadata:${field}`,
           label,
         })
       )
@@ -154,20 +154,21 @@ export default {
       }
     },
     onSortChange(value: any) {
-      const common = ['dendroDefault', 'dendroCustom', 'coreSNP', 'mrnaId']
-      if (common.includes(value)) {
-        this.changeSorting({
-          name: value as any,
-        })
-      } else if (value === 'position') {
+      if (value === 'position') {
         this.changeSorting({
           name: 'position',
           position: this.defaultSortPosition,
         })
-      } else {
+      } else if (value.startsWith('metadata:')) {
+        const field = value.split(':')[1]
+
         this.changeSorting({
           name: 'metadata',
-          field: value,
+          field: field,
+        })
+      } else {
+        this.changeSorting({
+          name: value as any,
         })
       }
     },

@@ -48,7 +48,7 @@ export default {
     columnWidth(column: ConfigMetadata): number {
       if (column.type === 'boolean') return 18
       if (column.type === 'categorical') return column.width
-      if (column.type === 'quantitative') return 80
+      if (column.type === 'quantitative') return column.width
       return 0
     },
     svg() {

@@ -8,6 +8,7 @@ import Names from '@/components/visualizations/Names.vue'
 import MetadataBoolean from '@/components/visualizations/MetadataBoolean.vue'
 import MetadataCategorical from '@/components/visualizations/MetadataCategorical.vue'
 import MetadataLabels from '@/components/visualizations/MetadataLabels.vue'
+import MetadataQuantitative from '@/components/visualizations/MetadataQuantitative.vue'
 import ScrollSync from '@/components/common/ScrollSync.vue'
 import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
@@ -25,6 +26,7 @@ export default {
     MetadataBoolean,
     MetadataCategorical,
     MetadataLabels,
+    MetadataQuantitative,
     ScrollSync,
     Tree,
     TreeLabels,
@@ -96,6 +98,15 @@ export default {
             :field="column.field"
             :width="column.width"
             v-if="column.type === 'categorical'"
+          />
+          <MetadataQuantitative
+            v-bind:key="column.field"
+            :id="index"
+            :field="column.field"
+            :decimals="column.decimals"
+            :maxValue="column.maxValue"
+            :width="column.width"
+            v-if="column.type === 'quantitative'"
           />
         </template>
       </div>

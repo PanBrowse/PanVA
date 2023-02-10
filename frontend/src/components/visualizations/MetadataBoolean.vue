@@ -96,11 +96,11 @@ export default {
   methods: {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
-    svg() {
-      return d3.select(`#${this.name}`)
-    },
     valueAtDataIndex(dataIndex: number): MetadataBoolean {
       return this.metadata[dataIndex][this.field] as MetadataBoolean
+    },
+    svg() {
+      return d3.select(`#${this.name}`)
     },
     labelForValue(value: MetadataBoolean) {
       return this.labels[`${value}`]

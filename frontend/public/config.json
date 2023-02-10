@@ -29,6 +29,13 @@
       "width": 80
     },
     {
+      "type": "quantitative",
+      "field": "growth_rate",
+      "label": "Growth rate",
+      "decimals": 1,
+      "width": 100
+    },
+    {
       "type": "categorical",
       "field": "strain_name",
       "label": "Strain",

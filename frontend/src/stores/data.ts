@@ -15,6 +15,7 @@ import {
   parseMetadataCategorical,
   parseString,
   parseBool,
+  parseOptionalNumber,
 } from '@/helpers/parse'
 import type {
   AlignmentCSVColumns,
@@ -38,6 +39,7 @@ import type {
   DataReference,
   ConfigFilter,
   ConfigMetadata,
+  MetadataQuantitative,
 } from '@/types'
 import {
   clamp,
@@ -386,12 +388,31 @@ export const useDataStore = defineStore('data', {
         return
       }
 
-      // Sorting by mrna id does not take current sorting into account.
+      // Sorting by mrnaId should not take current sorting into account.
       if (sorting.name === 'mrnaId') {
         this.sortedDataIndices = naturalSort(this.mrnaIds).map(
           (mrnaId) => this.mrnaIdsLookup[mrnaId]
         )
         return
+      }
+
+      // Sorting by quantitative metadata should not take current sorting into account.
+      if (sorting.name === 'metadata') {
+        // Look for *any* metadata column for this field with type quantitative.
+        const config = useConfigStore()
+        const column = config.metadata.find(
+          ({ field, type }) =>
+            field === sorting.field && type === 'quantitative'
+        )
+
+        if (column) {
+          this.sortedDataIndices = sortBy(
+            this.sortedDataIndices,
+            (index) =>
+              this.metadata[index][sorting.field] as MetadataQuantitative
+          )
+          return
+        }
       }
 
       // Get the array of values in the currently sorted order.
@@ -588,6 +609,10 @@ export const useDataStore = defineStore('data', {
                   rest[field],
                   column.values
                 )
+              }
+
+              if (type === 'quantitative') {
+                data.metadata[field] = parseOptionalNumber(rest[field])
               }
             })
 

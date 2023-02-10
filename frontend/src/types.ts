@@ -168,6 +168,7 @@ export type ConfigMetadataCategorical = ConfigMetadataBase & {
 
 export type ConfigMetadataQuantitative = ConfigMetadataBase & {
   type: 'quantitative'
+  decimals?: number
   maxValue?: number
   width: number
 }

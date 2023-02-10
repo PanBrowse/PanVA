@@ -84,6 +84,9 @@
         "ConfigMetadataQuantitative": {
             "additionalProperties": false,
             "properties": {
+                "decimals": {
+                    "type": "number"
+                },
                 "field": {
                     "type": "string"
                 },

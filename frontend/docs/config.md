@@ -23,8 +23,8 @@ Each column should be configured as a JSON object with the following options:
 
 | Field   | Type   | Notes                                                                      |
 |---------|--------|----------------------------------------------------------------------------|
-| `label` | string | Shown in the position filter options.                                      |
 | `field` | string | CSV column in [`variable.csv`](../../api/docs/data-format.md#variablecsv). |
+| `label` | string | Shown in the position filter options.                                      |
 
 
 ## Metadata
@@ -35,9 +35,9 @@ Each column should be configured as a JSON object with the following options:
 
 | Field   | Type                                           | Notes                                                                      |
 |---------|------------------------------------------------|----------------------------------------------------------------------------|
-| `type`  | `"boolean" \| "categorical" \| "quantitative"` |                                                                            |
-| `label` | string                                         | Shown above the column.                                                    |
 | `field` | string                                         | CSV column in [`metadata.csv`](../../api/docs/data-format.md#metadatacsv). |
+| `label` | string                                         | Shown above the column.                                                    |
+| `type`  | `"boolean" \| "categorical" \| "quantitative"` |                                                                            |
 
 Based on the value of `type` these options are extended with the options as defined below.
 
@@ -71,9 +71,10 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
 
 | Field      | Type   | Required           | Notes                                                                           |
 |------------|--------|--------------------|---------------------------------------------------------------------------------|
-| `width`    | number | :heavy_check_mark: | Width of the column.                                                            |
+| `decimals` | number |                    | Maximum number of decimals to display. <br> Trailing zeroes are removed.        |
 | `maxValue` | number |                    | Maximum value to determine bar width. <br> Defaults to maximum value in column. |
 | `suffix`   | string |                    | String to be placed behind the numeric value (e.g. `"%"`)                       |
+| `width`    | number | :heavy_check_mark: | Width of the column.                                                            |
 
 
 ## Example configuration file
@@ -90,35 +91,35 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
   ],
   "metadata": [
     {
-      "type": "quantitative",
       "field": "ft16",
       "label": "FT16",
+      "type": "quantitative",
       "width": 80
     },
     {
-      "type": "boolean",
       "field": "virulence",
       "label": "Virulence",
-      "values": {
-        "true": "virulent",
-        "false": "avirulent"
-      },
       "labels": {
         "true": "Virulent",
         "false": "Avirulent",
         "null": "Unknown"
+      },
+      "type": "boolean",
+      "values": {
+        "true": "virulent",
+        "false": "avirulent"
       }
     },
     {
-      "type": "categorical",
       "field": "species",
       "label": "Species",
+      "type": "categorical",
       "width": 80
     },
     {
-      "type": "categorical",
       "field": "strain_name",
       "label": "Strain",
+      "type": "categorical",
       "width": 120
     }
   ],

@@ -3,16 +3,16 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
-import type { DataIndexCollapsed, MetadataCategorical } from '@/types'
+import type { DataIndexCollapsed, MetadataQuantitative } from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
-import { uniq } from 'lodash'
+import { max, mean, round, uniq } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import { mapCountBy } from '@/helpers/mapCountBy'
 
-type GroupCounts = Map<MetadataCategorical, number>
+type GroupCounts = Map<MetadataQuantitative, number>
 
 type GroupAggregates = Record<
   number,
@@ -20,9 +20,14 @@ type GroupAggregates = Record<
     // Counts per value in this position.
     counts: GroupCounts
     // Unique values within the group in this position.
-    values: MetadataCategorical[]
+    values: MetadataQuantitative[]
   }
 >
+
+type GroupValue = {
+  meanValue: number
+  nullCount: number
+}
 
 export default {
   props: {
@@ -39,6 +44,14 @@ export default {
     field: {
       type: String,
       required: true,
+    },
+    decimals: {
+      type: Number,
+      required: false,
+    },
+    maxValue: {
+      type: Number,
+      required: false,
     },
     width: {
       type: Number,
@@ -65,20 +78,40 @@ export default {
     height(): number {
       return this.sequenceCount * CELL_SIZE
     },
+    maximumValue(): number {
+      if (this.maxValue) return this.maxValue
+      const maximum = max(
+        this.metadata
+          .map((data) => data[this.field] as MetadataQuantitative)
+          .filter((value) => value !== null)
+      )
+      return maximum || 0
+    },
     name(): string {
       return `metadata-${this.id}-${this.field}`
     },
-    rowValues(): (MetadataCategorical | null)[] {
-      // Value `null` is used to indicate multiple values.
+    rowValues(): (MetadataQuantitative | GroupValue)[] {
+      const decimals = this.decimals || 0
       return this.sortedDataIndicesCollapsed.map((data) => {
         if (isGroup(data)) {
           const { values } = this.groupAggregates[data.id]
-          if (values.length === 1) {
-            return values[0]
+
+          const meanValue = round(
+            mean(values.filter((value) => value !== null)),
+            decimals
+          )
+          const nullCount = values.filter((value) => value === null).length
+
+          return {
+            meanValue,
+            nullCount,
           }
-          return null
         }
-        return this.valueAtDataIndex(data)
+
+        const value = this.valueAtDataIndex(data)
+        if (value !== null) return round(value, decimals)
+
+        return null
       })
     },
     groupAggregates(): GroupAggregates {
@@ -96,8 +129,48 @@ export default {
   methods: {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
-    valueAtDataIndex(dataIndex: number): MetadataCategorical {
-      return this.metadata[dataIndex][this.field] as MetadataCategorical
+    barWidth(data: DataIndexCollapsed, index: number): number {
+      const value = this.rowValues[index]
+      if (isGroup(data)) {
+        const { meanValue, nullCount } = value as GroupValue
+        if (nullCount === data.dataIndices.length) return 0
+        return this.widthForIndex(meanValue)
+      }
+      if (value !== null) return this.widthForIndex(value as number)
+      return 0
+    },
+    isBarEmpty(data: DataIndexCollapsed, index: number): boolean {
+      const value = this.rowValues[index]
+      if (isGroup(data)) {
+        const { nullCount } = value as GroupValue
+        return nullCount === data.dataIndices.length
+      }
+      return value === null
+    },
+    barText(data: DataIndexCollapsed, index: number): string {
+      if (this.isBarEmpty(data, index)) return '?'
+
+      const value = this.rowValues[index]
+      if (isGroup(data)) {
+        const { meanValue, nullCount } = value as GroupValue
+        if (nullCount) return `${meanValue} +${nullCount}?`
+        return `${meanValue}`
+      }
+      return `${value}`
+    },
+    barColor(data: DataIndexCollapsed): string {
+      if (isGroup(data)) {
+        if (data.isColorized) return data.color
+        return ''
+      }
+      return this.rowColors[data]
+    },
+    widthForIndex(value: number): number {
+      if (value >= this.maximumValue) return this.width
+      return (value * this.width) / this.maximumValue
+    },
+    valueAtDataIndex(dataIndex: number): MetadataQuantitative {
+      return this.metadata[dataIndex][this.field] as MetadataQuantitative
     },
     svg() {
       return d3.select(`#${this.name}`)
@@ -112,11 +185,25 @@ export default {
           (enter) =>
             enter
               .append('foreignObject')
-              .attr('x', 3)
+              .attr('x', 0)
               .attr('y', (data, index) => index * CELL_SIZE)
               .attr('width', this.width)
-              .attr('height', CELL_SIZE),
-
+              .attr('height', CELL_SIZE)
+              .append('xhtml:div')
+              .attr('class', (data, index) =>
+                this.barText(data, index) === '?' ? 'unknown' : ''
+              )
+              .style('background-color', (data, index) =>
+                this.isBarEmpty(data, index) ? '' : this.barColor(data)
+              )
+              .style('color', (data, index) =>
+                this.isBarEmpty(data, index) ? this.barColor(data) : ''
+              )
+              .style(
+                'min-width',
+                (data, index) => this.barWidth(data, index) + 'px'
+              )
+              .text((data, index) => this.barText(data, index)),
           (update) =>
             update
               .transition()
@@ -125,32 +212,12 @@ export default {
 
           (exit) => exit.remove()
         )
-        .text((data, index) => {
-          const value = this.rowValues[index]
-          if (value === null) return 'multiple'
-          return value
-        })
-        .style('color', (data) => {
-          if (isGroup(data)) {
-            if (data.isColorized) return data.color
-            return ''
-          }
-          return this.rowColors[data]
-        })
         .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
         .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
-        .attr('data-similar', (data, index) => {
-          if (this.hoverRowIndex === null) return false
-
-          return (
-            this.hoverRowIndex !== index &&
-            this.rowValues[this.hoverRowIndex] === this.rowValues[index]
-          )
-        })
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
           if (index === null) return
@@ -233,35 +300,62 @@ export default {
     :id="name"
     :width="width"
     :height="height"
-    class="metadata-categorical"
+    class="metadata-quantitative"
   ></svg>
 </template>
 
 <style lang="scss">
-.metadata-categorical {
+.metadata-quantitative {
   flex: 0 0 auto;
 
   foreignObject {
     user-select: none;
-    color: darkgrey;
-    font-size: 9px;
-    line-height: 10px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     cursor: crosshair;
 
-    &[data-similar='true'] {
-      color: #7c9dda;
+    div {
+      pointer-events: none;
+
+      background: darkgrey;
+      position: absolute;
+
+      display: inline-block;
+      color: white;
+      font-size: 9px;
+      line-height: 9px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+
+      padding: 0 2px;
+      border-radius: 2px;
+      text-align: right;
+
+      &.unknown {
+        background: transparent;
+        color: darkgrey;
+        padding: 0;
+      }
     }
 
-    &[data-selected='true'] {
+    &[data-selected='true'] div {
       font-weight: 500;
-      color: #333;
+
+      &:not(.unknown) {
+        background-color: #333;
+      }
+
+      &.unknown {
+        color: #333;
+      }
     }
 
-    &[data-hovered='true'] {
-      color: #1890ff !important;
+    &[data-hovered='true'] div {
+      &:not(.unknown) {
+        background-color: #1890ff;
+      }
+
+      &.unknown {
+        color: #1890ff;
+      }
     }
   }
 }
