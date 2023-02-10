@@ -58,18 +58,18 @@ export type Group = {
 /**
  * Data structures.
  */
+
+export type HomologyMetadata = {
+  label: string
+  value: string | boolean
+}
+
 export type Homology = {
   homology_id: number
-  name: string
   members: number
-  gene_length: number
-  class: string
-  variable_sites_nuc: boolean
-  informative_sites_nuc: boolean
-  variable_sites_prot: boolean
-  informative_sites_prot: boolean
-  pheno_specific_changes_nuc: boolean
-  pheno_specific_changes_prot: boolean
+  alignment_length: number
+  name?: string
+  metadata?: HomologyMetadata[]
 }
 
 export type VariablePosition = {

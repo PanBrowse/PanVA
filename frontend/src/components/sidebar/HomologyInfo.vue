@@ -25,36 +25,19 @@ export default {
       <ADescriptionsItem label="ID">
         {{ homology.homology_id }}
       </ADescriptionsItem>
-      <ADescriptionsItem label="Class">
-        {{ homology.class }}
-      </ADescriptionsItem>
       <ADescriptionsItem label="Members">
         {{ homology.members }}
       </ADescriptionsItem>
-      <ADescriptionsItem label="Gene length">
-        {{ homology.gene_length }}
-      </ADescriptionsItem>
-      <ADescriptionsItem label="Nucleotide">
-        <BooleanIndicator :value="homology.variable_sites_nuc">
-          Variable sites
-        </BooleanIndicator>
-        <BooleanIndicator :value="homology.informative_sites_nuc">
-          Informative sites
-        </BooleanIndicator>
-        <BooleanIndicator :value="homology.pheno_specific_changes_nuc">
-          Pheno specific changes
-        </BooleanIndicator>
-      </ADescriptionsItem>
-      <ADescriptionsItem label="Protein">
-        <BooleanIndicator :value="homology.variable_sites_prot">
-          Variable sites
-        </BooleanIndicator>
-        <BooleanIndicator :value="homology.informative_sites_prot">
-          Informative sites
-        </BooleanIndicator>
-        <BooleanIndicator :value="homology.pheno_specific_changes_prot">
-          Pheno specific changes
-        </BooleanIndicator>
+      <ADescriptionsItem
+        :label="label"
+        v-for="{ label, value } in homology.metadata"
+        v-bind:key="label"
+      >
+        <BooleanIndicator :value="true" v-if="value === true" />
+        <BooleanIndicator :value="false" v-else-if="value === false" />
+        <template v-else>
+          {{ value }}
+        </template>
       </ADescriptionsItem>
     </ADescriptions>
   </SidebarItem>

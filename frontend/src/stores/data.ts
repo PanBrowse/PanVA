@@ -261,7 +261,7 @@ export const useDataStore = defineStore('data', {
       return this.mrnaIds.length
     },
     geneLength(): number {
-      if (this.homology) return this.homology.gene_length
+      if (this.homology) return this.homology.alignment_length
       return 0
     },
     nucleotideColor(): NucleotideColorFunc {

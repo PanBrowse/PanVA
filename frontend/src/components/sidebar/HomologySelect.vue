@@ -46,7 +46,7 @@ export default {
         :label="item.name"
         v-bind:key="item.homology_id"
       >
-        {{ item.name }}
+        {{ item.name || item.homology_id }}
       </ASelectOption>
     </ASelect>
     <LoadingBox :height="32" v-else />

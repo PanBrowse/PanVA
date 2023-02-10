@@ -34,16 +34,12 @@ Each homology group is a subdirectory of the root data directory and has a uniqu
 A list of objects representing all homology ids of the selected set. Homology id objects have the following properties:
 
 * `homology_id`: Unique id for the homology group (_integer_).
-* `name`: Name of the gene (_string_).
+* `name`: Name of the gene (**optional** _string_).
 * `members`: Number of sequences (_integer_).
-* `gene_length`: Length of the gene (_integer_).
-* `class`: Homology classification (_string_).
-* `variable_sites_nuc`: Presence of any variable positions in nucleotide alignment (_boolean_).
-* `variable_sites_prot`: Presence of any informative positions in protein alignment (_boolean_).
-* `informative_sites_nuc`: Presence of any informative positions in nucleotide alignment (_boolean_).
-* `informative_sites_prot`: Presence of any informative positions in protein alignment (_boolean_).
-* `pheno_specific_changes_nuc`: Presence of any phenotype specific positions in nucleotide alignment for a predefined phenotype (_boolean_).
-* `pheno_specific_changes_prot`: Presence of any phenotype specific positions in protein alignment for a predefined phenotype (_boolean_).
+* `alignment_length`: Length of the alignment (_integer_).
+* `metadata`: Array of metadata objects, each containing:
+    * `label`: Label to display (_string_).
+    * `value`: Value to display (_string|boolean_).
 
 An example object in the array:
 ```json
@@ -52,14 +48,12 @@ An example object in the array:
         "homology_id": 13773385,
         "name": "GapA",
         "members": 197,
-        "gene_length": 996,
-        "class": "single copy core",
-        "variable_sites_nuc": true,
-        "variable_sites_prot": true,
-        "informative_sites_nuc": true,
-        "informative_sites_prot": true,
-        "pheno_specific_changes_nuc": true,
-        "pheno_specific_changes_prot": true
+        "alignment_length": 996,
+        "metadata": [
+            { "label": "Classification", "value": "single copy core" },
+            { "label": "Variable sites", "value": true },
+            { "label": "Informative sites", "value": false }
+        ]
     }
 ]
 ```
