@@ -71,6 +71,9 @@ RUN mkdir -p /app/frontend
 RUN mkdir -p /app/api/code
 RUN mkdir -p /app/api/venv
 
+# Create empty config.json as mounting point.
+RUN echo "{}" > /panva/frontend/config.json
+
 # Apache configuration
 COPY docker/panva.conf /etc/apache2/sites-available/
 RUN a2dissite 000-default default-ssl
@@ -93,8 +96,8 @@ RUN ln -sf /dev/stdout /var/log/apache2/access.log && \
 # https://httpd.apache.org/docs/2.4/stopping.html#gracefulstop
 # STOPSIGNAL SIGWINCH
 
-VOLUME "/panva/api/data"
-VOLUME "/panva/frontend"
+# VOLUME "/panva/api/data"
+# VOLUME "/panva/frontend/config.json"
 
 EXPOSE 80
 
