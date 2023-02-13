@@ -28,7 +28,7 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['changeSorting']),
     positionTransform(index: number) {
-      const x = index * CELL_SIZE
+      const x = (index + 1) * CELL_SIZE - 2
       const y = this.height
       return `translate(${x},${y}) rotate(-90)`
     },
@@ -37,14 +37,12 @@ export default {
     },
     draw() {
       this.svg()
-        .selectAll('foreignObject')
+        .selectAll('text')
         .data(this.filteredPositions, (position) => position as number)
         .join(
           (enter) =>
             enter
-              .append('foreignObject')
-              .attr('width', this.height)
-              .attr('height', CELL_SIZE)
+              .append('text')
               .attr('transform', (position, index) =>
                 this.positionTransform(index)
               )
@@ -54,7 +52,6 @@ export default {
                   position,
                 })
               })
-              .append('xhtml:div')
               .text((position) => position),
           (update) =>
             update.attr('transform', (d, index) =>
@@ -62,8 +59,7 @@ export default {
             ),
           (exit) => exit.remove()
         )
-        .select('div')
-        .attr('class', (d) => (this.sortingPosition === d ? 'sorted' : ''))
+        .attr('data-sorted', (d) => this.sortingPosition === d)
     },
   },
   mounted() {
@@ -120,25 +116,17 @@ export default {
     height: 4px;
   }
 
-  foreignObject div {
-    /* Fixed position is required for foreignObject>div to work in Safari. */
-    position: fixed;
-
-    display: inline-block;
-    user-select: none;
-    color: darkgrey;
+  text {
+    fill: darkgrey;
     font-size: 9px;
-    line-height: 10px;
-    overflow: hidden;
-    white-space: nowrap;
     cursor: pointer;
 
-    &.sorted {
-      color: black;
+    &[data-sorted='true'] {
+      fill: black;
     }
 
     &:hover {
-      color: #1890ff;
+      fill: #1890ff;
     }
   }
 }

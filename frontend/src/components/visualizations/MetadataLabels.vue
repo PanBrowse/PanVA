@@ -1,6 +1,5 @@
 <script lang="ts">
 import * as d3 from 'd3'
-import { CELL_SIZE } from '@/constants'
 import { mapState, mapActions } from 'pinia'
 import { sum } from 'lodash'
 import type { ConfigMetadata } from '@/types'
@@ -56,20 +55,17 @@ export default {
     },
     draw() {
       this.svg()
-        .selectAll('foreignObject')
+        .selectAll('text')
         .data(this.metadata, (d) => (d as ConfigMetadata).label)
         .join(
           (enter) =>
             enter
-              .append('foreignObject')
-              .attr('width', 200)
-              .attr('height', CELL_SIZE)
+              .append('text')
               .attr('transform', (d, index) => {
-                const x = this.xPositions[index]
-                const y = this.height - 10
+                const x = this.xPositions[index] + 5
+                const y = this.height - 5
                 return `translate(${x},${y}) rotate(-45)`
               })
-              .append('xhtml:div')
               .on('click', (event, d) => {
                 this.changeSorting({
                   name: 'metadata',
@@ -80,10 +76,7 @@ export default {
           (update) => update,
           (exit) => exit.remove()
         )
-        .select('div')
-        .attr('class', (d) =>
-          this.sortingMetadata === d.field ? 'sorted' : ''
-        )
+        .attr('data-sorted', (d) => this.sortingMetadata === d.field)
     },
   },
   mounted() {
@@ -106,26 +99,17 @@ export default {
 
 <style lang="scss">
 #metadata-labels {
-  foreignObject div {
-    /* Fixed position is required for foreignObject>div to work in Safari. */
-    position: fixed;
-
-    display: inline-block;
-    user-select: none;
-    color: darkgrey;
+  text {
+    fill: darkgrey;
     font-size: 10px;
-    line-height: 10px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     cursor: pointer;
 
     &:hover {
-      color: #1890ff;
+      fill: #1890ff;
     }
 
-    &.sorted {
-      color: black;
+    &[data-sorted='true'] {
+      fill: black;
     }
   }
 

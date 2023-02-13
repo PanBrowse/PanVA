@@ -102,26 +102,27 @@ export default {
     svg() {
       return d3.select(`#${this.name}`)
     },
+    textY(index: number) {
+      return (index + 1) * CELL_SIZE - 2
+    },
     draw() {
       if (!this.hasAllData) return
 
       this.svg()
-        .selectAll('foreignObject')
+        .selectAll('text')
         .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
         .join(
           (enter) =>
             enter
-              .append('foreignObject')
+              .append('text')
               .attr('x', 3)
-              .attr('y', (data, index) => index * CELL_SIZE)
-              .attr('width', this.width)
-              .attr('height', CELL_SIZE),
+              .attr('y', (data, index) => this.textY(index)),
 
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('y', (data, index) => index * CELL_SIZE),
+              .attr('y', (data, index) => this.textY(index)),
 
           (exit) => exit.remove()
         )
@@ -130,7 +131,7 @@ export default {
           if (value === null) return 'multiple'
           return value
         })
-        .style('color', (data) => {
+        .style('fill', (data) => {
           if (isGroup(data)) {
             if (data.isColorized) return data.color
             return ''
@@ -241,27 +242,22 @@ export default {
 .metadata-categorical {
   flex: 0 0 auto;
 
-  foreignObject {
-    user-select: none;
-    color: darkgrey;
+  text {
+    fill: darkgrey;
     font-size: 9px;
-    line-height: 10px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     cursor: crosshair;
 
     &[data-similar='true'] {
-      color: #7c9dda;
+      fill: #7c9dda;
     }
 
     &[data-selected='true'] {
       font-weight: 500;
-      color: #333;
+      fill: #333;
     }
 
     &[data-hovered='true'] {
-      color: #1890ff !important;
+      fill: #1890ff !important;
     }
   }
 }
