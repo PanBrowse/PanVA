@@ -174,12 +174,13 @@ export default {
       if (!this.hasAllData) return
 
       this.svg()
-        .selectAll('rect')
+        .selectAll('rect.bar')
         .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
         .join(
           (enter) =>
             enter
               .append('rect')
+              .attr('class', 'bar')
               .attr('x', 0)
               .attr('rx', 2)
               .attr('ry', 2)
@@ -220,12 +221,29 @@ export default {
           (exit) => exit.remove()
         )
         .style('fill', (data) => this.fillColor(data))
-        .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
         .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
+
+      this.svg()
+        .selectAll('rect.events')
+        .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
+        .join(
+          (enter) =>
+            enter
+              .append('rect')
+              .attr('class', 'events')
+              .attr('x', 0)
+              .attr('y', (data, index) => index * CELL_SIZE)
+              .attr('width', this.width)
+              .attr('height', CELL_SIZE),
+          (update) => update.attr('y', (data, index) => index * CELL_SIZE),
+
+          (exit) => exit.remove()
+        )
+        .attr('data-index', (data, index) => index)
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
           if (index === null) return
@@ -316,7 +334,7 @@ export default {
 .metadata-quantitative {
   flex: 0 0 auto;
 
-  rect {
+  rect.bar {
     fill: darkgrey;
     fill-opacity: 0.2;
 
@@ -327,6 +345,12 @@ export default {
     &[data-hovered='true'] {
       fill: #1890ff;
     }
+  }
+
+  rect.events {
+    fill: transparent;
+    cursor: crosshair;
+    pointer-events: all;
   }
 
   text {
