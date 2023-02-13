@@ -313,10 +313,11 @@ export default {
     cursor: crosshair;
 
     div {
-      pointer-events: none;
+      /* Fixed position is required for foreignObject>div to work in Safari. */
+      position: fixed;
 
+      pointer-events: none;
       background: darkgrey;
-      position: absolute;
 
       display: inline-block;
       color: white;

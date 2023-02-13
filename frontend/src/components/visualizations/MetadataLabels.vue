@@ -107,8 +107,10 @@ export default {
 <style lang="scss">
 #metadata-labels {
   foreignObject div {
+    /* Fixed position is required for foreignObject>div to work in Safari. */
+    position: fixed;
+
     display: inline-block;
-    position: absolute;
     user-select: none;
     color: darkgrey;
     font-size: 10px;
