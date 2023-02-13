@@ -343,7 +343,7 @@ export default {
     }
 
     &[data-hovered='true'] {
-      fill: #1890ff;
+      fill: #1890ff !important;
     }
   }
 
@@ -362,7 +362,7 @@ export default {
     }
 
     &[data-hovered='true'] {
-      fill: #1890ff;
+      fill: #1890ff !important;
     }
   }
 }
