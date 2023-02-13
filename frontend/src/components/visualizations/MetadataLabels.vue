@@ -109,7 +109,7 @@ export default {
     }
 
     &[data-sorted='true'] {
-      fill: black;
+      fill: #333;
     }
   }
 

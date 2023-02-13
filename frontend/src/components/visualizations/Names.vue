@@ -8,6 +8,7 @@ import { eventIndex } from '@/helpers/eventIndex'
 import { valueKey } from '@/helpers/valueKey'
 import type { DataIndexCollapsed } from '@/types'
 import { groupName } from '@/helpers/groupName'
+import { max } from 'lodash'
 
 export default {
   data() {
@@ -17,6 +18,7 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
+      'groups',
       'mrnaIds',
       'rowColors',
       'sequenceCount',
@@ -30,17 +32,67 @@ export default {
     height(): number {
       return this.sequenceCount * CELL_SIZE
     },
+    maximumGroupSize(): number {
+      const maximum = max(
+        this.groups.map(({ dataIndices }) => dataIndices.length)
+      )
+      return maximum || 0
+    },
   },
   methods: {
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
     svg() {
       return d3.select('#names')
     },
+    barWidth(data: DataIndexCollapsed): number {
+      if (isGroup(data)) {
+        return (
+          (data.dataIndices.length / this.maximumGroupSize) * (this.width - 8)
+        )
+      }
+      return 0
+    },
+    fillColor(data: DataIndexCollapsed) {
+      if (isGroup(data)) {
+        if (data.isColorized) return data.color
+        return ''
+      }
+      return this.rowColors[data]
+    },
     textY(index: number) {
       return (index + 1) * CELL_SIZE - 2
     },
     draw() {
       if (!this.hasAllData) return
+
+      this.svg()
+        .selectAll('rect')
+        .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
+        .join(
+          (enter) =>
+            enter
+              .append('rect')
+              .attr('x', 0)
+              .attr('rx', 2)
+              .attr('ry', 2)
+              .attr('y', (data, index) => index * CELL_SIZE)
+              .attr('width', (data) => this.barWidth(data))
+              .attr('height', CELL_SIZE - 1),
+          (update) =>
+            update
+              .transition()
+              .duration(this.transitionTime)
+              .attr('width', (data) => this.barWidth(data))
+              .attr('y', (data, index) => index * CELL_SIZE),
+
+          (exit) => exit.remove()
+        )
+        .style('fill', (data) => this.fillColor(data))
+        .attr('data-selected', (data) => {
+          if (isGroup(data)) return false
+          return this.selectedDataIndices.includes(data)
+        })
+        .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
 
       this.svg()
         .selectAll('text')
@@ -65,13 +117,7 @@ export default {
           }
           return this.mrnaIds[data]
         })
-        .style('fill', (data) => {
-          if (isGroup(data)) {
-            if (data.isColorized) return data.color
-            return ''
-          }
-          return this.rowColors[data]
-        })
+        .style('fill', (data) => this.fillColor(data))
         .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
@@ -123,6 +169,9 @@ export default {
     rowColors() {
       this.draw()
     },
+    maximumGroupSize() {
+      this.draw()
+    },
   },
 }
 </script>
@@ -133,13 +182,25 @@ export default {
 
 <style lang="scss">
 #names {
+  rect {
+    fill: darkgrey;
+    fill-opacity: 0.2;
+
+    &[data-selected='true'] {
+      fill: #333;
+    }
+
+    &[data-hovered='true'] {
+      fill: #1890ff;
+    }
+  }
+
   text {
     fill: darkgrey;
     font-size: 9px;
     cursor: crosshair;
 
     &[data-selected='true'] {
-      font-weight: 500;
       fill: #333;
     }
 

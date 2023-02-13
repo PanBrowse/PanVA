@@ -252,7 +252,6 @@ export default {
     }
 
     &[data-selected='true'] {
-      font-weight: 500;
       fill: #333;
     }
 

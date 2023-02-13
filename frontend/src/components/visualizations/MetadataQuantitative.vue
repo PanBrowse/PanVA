@@ -129,6 +129,10 @@ export default {
   methods: {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
+    widthForIndex(value: number): number {
+      if (value >= this.maximumValue) return this.width
+      return (value * this.width) / this.maximumValue
+    },
     barWidth(data: DataIndexCollapsed, index: number): number {
       const value = this.rowValues[index]
       if (isGroup(data)) {
@@ -139,38 +143,29 @@ export default {
       if (value !== null) return this.widthForIndex(value as number)
       return 0
     },
-    isBarEmpty(data: DataIndexCollapsed, index: number): boolean {
-      const value = this.rowValues[index]
-      if (isGroup(data)) {
-        const { nullCount } = value as GroupValue
-        return nullCount === data.dataIndices.length
-      }
-      return value === null
-    },
     barText(data: DataIndexCollapsed, index: number): string {
-      if (this.isBarEmpty(data, index)) return '?'
-
       const value = this.rowValues[index]
       if (isGroup(data)) {
         const { meanValue, nullCount } = value as GroupValue
+        if (nullCount === data.dataIndices.length) return '?'
         if (nullCount) return `${meanValue} +${nullCount}?`
         return `${meanValue}`
       }
+      if (value === null) return '?'
       return `${value}`
     },
-    barColor(data: DataIndexCollapsed): string {
+    fillColor(data: DataIndexCollapsed): string {
       if (isGroup(data)) {
         if (data.isColorized) return data.color
         return ''
       }
-      return this.rowColors[data]
-    },
-    widthForIndex(value: number): number {
-      if (value >= this.maximumValue) return this.width
-      return (value * this.width) / this.maximumValue
+      return this.rowColors[data] || ''
     },
     valueAtDataIndex(dataIndex: number): MetadataQuantitative {
       return this.metadata[dataIndex][this.field] as MetadataQuantitative
+    },
+    textY(index: number) {
+      return (index + 1) * CELL_SIZE - 2
     },
     svg() {
       return d3.select(`#${this.name}`)
@@ -179,31 +174,18 @@ export default {
       if (!this.hasAllData) return
 
       this.svg()
-        .selectAll('foreignObject')
+        .selectAll('rect')
         .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
         .join(
           (enter) =>
             enter
-              .append('foreignObject')
+              .append('rect')
               .attr('x', 0)
+              .attr('rx', 2)
+              .attr('ry', 2)
               .attr('y', (data, index) => index * CELL_SIZE)
-              .attr('width', this.width)
-              .attr('height', CELL_SIZE)
-              .append('xhtml:div')
-              .attr('class', (data, index) =>
-                this.barText(data, index) === '?' ? 'unknown' : ''
-              )
-              .style('background-color', (data, index) =>
-                this.isBarEmpty(data, index) ? '' : this.barColor(data)
-              )
-              .style('color', (data, index) =>
-                this.isBarEmpty(data, index) ? this.barColor(data) : ''
-              )
-              .style(
-                'min-width',
-                (data, index) => this.barWidth(data, index) + 'px'
-              )
-              .text((data, index) => this.barText(data, index)),
+              .attr('width', (data, index) => this.barWidth(data, index))
+              .attr('height', CELL_SIZE - 1),
           (update) =>
             update
               .transition()
@@ -212,6 +194,32 @@ export default {
 
           (exit) => exit.remove()
         )
+        .style('fill', (data) => this.fillColor(data))
+        .attr('data-selected', (data) => {
+          if (isGroup(data)) return false
+          return this.selectedDataIndices.includes(data)
+        })
+        .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
+
+      this.svg()
+        .selectAll('text')
+        .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
+        .join(
+          (enter) =>
+            enter
+              .append('text')
+              .attr('x', 2)
+              .attr('y', (data, index) => this.textY(index))
+              .text((data, index) => this.barText(data, index)),
+          (update) =>
+            update
+              .transition()
+              .duration(this.transitionTime)
+              .attr('y', (data, index) => this.textY(index)),
+
+          (exit) => exit.remove()
+        )
+        .style('fill', (data) => this.fillColor(data))
         .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
@@ -308,55 +316,29 @@ export default {
 .metadata-quantitative {
   flex: 0 0 auto;
 
-  foreignObject {
-    user-select: none;
-    cursor: crosshair;
+  rect {
+    fill: darkgrey;
+    fill-opacity: 0.2;
 
-    div {
-      /* Fixed position is required for foreignObject>div to work in Safari. */
-      position: fixed;
-
-      pointer-events: none;
-      background: darkgrey;
-
-      display: inline-block;
-      color: white;
-      font-size: 9px;
-      line-height: 9px;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-
-      padding: 0 2px;
-      border-radius: 2px;
-      text-align: right;
-
-      &.unknown {
-        background: transparent;
-        color: darkgrey;
-        padding: 0;
-      }
+    &[data-selected='true'] {
+      fill: #333;
     }
 
-    &[data-selected='true'] div {
-      font-weight: 500;
+    &[data-hovered='true'] {
+      fill: #1890ff;
+    }
+  }
 
-      &:not(.unknown) {
-        background-color: #333;
-      }
+  text {
+    fill: darkgrey;
+    font-size: 9px;
 
-      &.unknown {
-        color: #333;
-      }
+    &[data-selected='true'] {
+      fill: #333;
     }
 
-    &[data-hovered='true'] div {
-      &:not(.unknown) {
-        background-color: #1890ff;
-      }
-
-      &.unknown {
-        color: #1890ff;
-      }
+    &[data-hovered='true'] {
+      fill: #1890ff;
     }
   }
 }

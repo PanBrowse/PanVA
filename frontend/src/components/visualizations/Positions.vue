@@ -122,7 +122,7 @@ export default {
     cursor: pointer;
 
     &[data-sorted='true'] {
-      fill: black;
+      fill: #333;
     }
 
     &:hover {
