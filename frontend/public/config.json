@@ -1,11 +1,4 @@
 {
-  "apiUrl": "http://localhost:5001/",
-  "filters": [
-    {
-      "field": "pheno_specific",
-      "label": "Phenotype specific"
-    }
-  ],
   "metadata": [
     {
       "type": "categorical",
@@ -40,5 +33,5 @@
       "width": 120
     }
   ],
-  "title": "PanVA: Pectobacterium"
+  "title": "PanVA: Pectobacterium 454"
 }
