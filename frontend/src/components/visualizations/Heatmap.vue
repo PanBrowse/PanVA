@@ -203,7 +203,6 @@ export default {
         .attr('nucleotides', ({ data, position, column }) => {
           if (isGroup(data)) {
             const { nucleotides } = this.groupAggregates[data.id][column]
-            // return nucleotides
             return nucleotides
           }
 

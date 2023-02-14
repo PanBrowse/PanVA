@@ -6,7 +6,7 @@ from cluster_functions import create_lv_matrix, create_linkage_matrix
 
 # Load database path from config.
 config = dotenv_values(".env")
-db_path = config.get("DB_PATH")
+db_path = config.get("API_DB_PATH")
 
 # Look up ids in database.
 ids = sorted([os.path.relpath(x[0], db_path) for x in os.walk(db_path)][1:])

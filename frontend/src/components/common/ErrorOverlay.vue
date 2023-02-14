@@ -74,5 +74,8 @@ export default {
       this.showError()
     },
   },
+  render() {
+    return null
+  },
 }
 </script>

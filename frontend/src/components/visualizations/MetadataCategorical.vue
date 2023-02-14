@@ -3,7 +3,11 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
-import type { DataIndexCollapsed, MetadataCategorical } from '@/types'
+import type {
+  DataIndexCollapsed,
+  DataIndexCollapsedHover,
+  MetadataCategorical,
+} from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
@@ -48,6 +52,7 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'groups',
+      'hoverRowData',
       'rowColors',
       'metadata',
       'selectedDataIndices',
@@ -105,7 +110,7 @@ export default {
     textY(index: number) {
       return (index + 1) * CELL_SIZE - 2
     },
-    draw() {
+    drawText() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -117,7 +122,6 @@ export default {
               .append('text')
               .attr('x', 3)
               .attr('y', (data, index) => this.textY(index)),
-
           (update) =>
             update
               .transition()
@@ -143,7 +147,6 @@ export default {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
-        .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
         .attr('data-similar', (data, index) => {
           if (this.hoverRowIndex === null) return false
 
@@ -179,7 +182,7 @@ export default {
                   title: groupName(data),
                   template: `
                       <ADescriptions size="small" layout="horizontal" :column="1" bordered>
-                        <ADescriptionsItem :label="value" v-for="(count, value) in counts">
+                        <ADescriptionsItem :label="value" v-for="[value, count] in counts">
                           {{ count }}
                         </ADescriptionsItem>
                       </ADescriptions>
@@ -205,6 +208,28 @@ export default {
           this.hideTooltip()
         })
     },
+    drawHover() {
+      if (!this.hasAllData) return
+
+      this.svg()
+        .selectAll('text.hover')
+        .data<DataIndexCollapsedHover>(this.hoverRowData)
+        .join(
+          (enter) => enter.append('text').attr('class', 'hover').attr('x', 3),
+          (update) => update,
+          (exit) => exit.remove()
+        )
+        .attr('y', ([, index]) => this.textY(index))
+        .text(([, index]) => {
+          const value = this.rowValues[index]
+          if (value === null) return 'multiple'
+          return value
+        })
+    },
+    draw() {
+      this.drawText()
+      this.drawHover()
+    },
   },
   mounted() {
     this.draw()
@@ -222,8 +247,8 @@ export default {
     selectedDataIndices() {
       this.draw()
     },
-    hoverRowIndex() {
-      this.draw()
+    hoverRowData() {
+      this.drawHover()
     },
   },
 }
@@ -254,10 +279,11 @@ export default {
     &[data-selected='true'] {
       fill: #333;
     }
+  }
 
-    &[data-hovered='true'] {
-      fill: #1890ff !important;
-    }
+  text.hover {
+    pointer-events: none;
+    fill: #1890ff;
   }
 }
 </style>

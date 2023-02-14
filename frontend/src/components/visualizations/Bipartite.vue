@@ -88,6 +88,12 @@ export default {
         })
       )
     },
+    hoverLinks(): Link[] {
+      if (this.hoverRowIndex === null) return []
+      return this.links.filter(
+        ({ targetIndex }) => targetIndex === this.hoverRowIndex
+      )
+    },
   },
   methods: {
     svg() {
@@ -111,36 +117,48 @@ export default {
         }) || ''
       )
     },
-    draw() {
+    drawLines() {
       if (!this.hasAllData) return
 
       this.svg()
-        .selectAll('path')
+        .selectAll('path.line')
         .data(this.links, (d: any) => d.sourceIndex)
         .join(
           (enter) =>
             enter
               .append('path')
-              .attr('fill', 'none')
-              .attr('stroke', 'rgba(192, 192, 192, 0.5)')
+              .attr('class', 'line')
               .attr('d', (d) => this.linkPath(d)),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
               .attr('d', (d) => this.linkPath(d)),
-          (exit) =>
-            exit
-              .transition()
-              .duration(this.transitionTime)
-              .attr('stroke', 'rgba(192, 192, 192, 0)')
-              .remove()
+          (exit) => exit.remove()
         )
-        .attr('stroke', ({ targetIndex, color }) => {
-          if (this.hoverRowIndex === targetIndex) return '#1890ff'
-          if (color) return color
-          return 'rgba(192, 192, 192, 0.5)'
+        .style('stroke', ({ color }) => {
+          return color || ''
         })
+    },
+    drawHover() {
+      if (!this.hasAllData) return
+
+      this.svg()
+        .selectAll('path.hover')
+        .data(this.hoverLinks, (d: any) => d.sourceIndex)
+        .join(
+          (enter) =>
+            enter
+              .append('path')
+              .attr('class', 'hover')
+              .attr('d', (d) => this.linkPath(d)),
+          (update) => update,
+          (exit) => exit.remove()
+        )
+    },
+    draw() {
+      this.drawLines()
+      this.drawHover()
     },
   },
   mounted() {
@@ -150,8 +168,8 @@ export default {
     hasAllData() {
       this.draw()
     },
-    hoverRowIndex() {
-      this.draw()
+    hoverLinks() {
+      this.drawHover()
     },
     sortedDataIndicesCollapsed() {
       this.draw()
@@ -164,11 +182,21 @@ export default {
 </script>
 
 <template>
-  <svg id="bipartite" :width="width" :height="height" v-if="hasAllData"></svg>
+  <svg id="bipartite" :width="width" :height="height"></svg>
 </template>
 
 <style lang="scss">
 #bipartite {
   flex: 0 0 auto;
+
+  path {
+    fill: none;
+    stroke: lightgrey;
+  }
+
+  path.hover {
+    fill: none;
+    stroke: #1890ff;
+  }
 }
 </style>

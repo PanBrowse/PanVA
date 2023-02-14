@@ -6,7 +6,11 @@ import { CELL_SIZE } from '@/constants'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
 import { valueKey } from '@/helpers/valueKey'
-import type { DataIndexCollapsed } from '@/types'
+import type {
+  DataIndexCollapsed,
+  DataIndexCollapsedHover,
+  Group,
+} from '@/types'
 import { groupName } from '@/helpers/groupName'
 import { max } from 'lodash'
 
@@ -19,6 +23,7 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'groups',
+      'hoverRowData',
       'mrnaIds',
       'rowColors',
       'sequenceCount',
@@ -37,6 +42,14 @@ export default {
         this.groups.map(({ dataIndices }) => dataIndices.length)
       )
       return maximum || 0
+    },
+    indexedGroups(): [Group, number][] {
+      return this.sortedDataIndicesCollapsed
+        .map<[DataIndexCollapsed, number]>((dataIndex, index) => [
+          dataIndex,
+          index,
+        ])
+        .filter(([dataIndex]) => isGroup(dataIndex)) as [Group, number][]
     },
   },
   methods: {
@@ -62,12 +75,12 @@ export default {
     textY(index: number) {
       return (index + 1) * CELL_SIZE - 2
     },
-    draw() {
+    drawGroupBars() {
       if (!this.hasAllData) return
 
       this.svg()
         .selectAll('rect')
-        .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
+        .data<[Group, number]>(this.indexedGroups, valueKey)
         .join(
           (enter) =>
             enter
@@ -75,24 +88,27 @@ export default {
               .attr('x', 0)
               .attr('rx', 2)
               .attr('ry', 2)
-              .attr('y', (data, index) => index * CELL_SIZE)
-              .attr('width', (data) => this.barWidth(data))
+              .attr('y', ([, index]) => index * CELL_SIZE)
+              .attr('width', ([data]) => this.barWidth(data))
               .attr('height', CELL_SIZE - 1),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('width', (data) => this.barWidth(data))
-              .attr('y', (data, index) => index * CELL_SIZE),
+              .attr('width', ([data]) => this.barWidth(data))
+              .attr('y', ([, index]) => index * CELL_SIZE),
 
           (exit) => exit.remove()
         )
-        .style('fill', (data) => this.fillColor(data))
-        .attr('data-selected', (data) => {
+        .style('fill', ([data]) => this.fillColor(data))
+        .attr('data-selected', ([data]) => {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
-        .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
+        .attr('data-hovered', ([, index]) => this.hoverRowIndex === index)
+    },
+    drawText() {
+      if (!this.hasAllData) return
 
       this.svg()
         .selectAll('text')
@@ -123,7 +139,6 @@ export default {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
-        .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
           if (index === null) return
@@ -149,6 +164,30 @@ export default {
           this.hoverRowIndex = null
         })
     },
+    drawHover() {
+      if (!this.hasAllData) return
+
+      this.svg()
+        .selectAll('text.hover')
+        .data<DataIndexCollapsedHover>(this.hoverRowData)
+        .join(
+          (enter) => enter.append('text').attr('class', 'hover').attr('x', 3),
+          (update) => update,
+          (exit) => exit.remove()
+        )
+        .attr('y', ([, index]) => this.textY(index))
+        .text(([data]) => {
+          if (isGroup(data)) {
+            return `${groupName(data)} (${data.dataIndices.length})`
+          }
+          return this.mrnaIds[data]
+        })
+    },
+    draw() {
+      this.drawGroupBars()
+      this.drawText()
+      this.drawHover()
+    },
   },
   mounted() {
     this.draw()
@@ -157,8 +196,9 @@ export default {
     hasAllData() {
       this.draw()
     },
-    hoverRowIndex() {
-      this.draw()
+    hoverRowData() {
+      this.drawGroupBars()
+      this.drawHover()
     },
     selectedDataIndices() {
       this.draw()
@@ -183,6 +223,7 @@ export default {
 <style lang="scss">
 #names {
   rect {
+    pointer-events: none;
     fill: darkgrey;
     fill-opacity: 0.2;
 
@@ -203,10 +244,11 @@ export default {
     &[data-selected='true'] {
       fill: #333;
     }
+  }
 
-    &[data-hovered='true'] {
-      fill: #1890ff !important;
-    }
+  text.hover {
+    pointer-events: none;
+    fill: #1890ff;
   }
 
   flex: 0 0 auto;

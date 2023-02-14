@@ -103,6 +103,7 @@ export default {
             v-bind:key="column.field"
             :id="index"
             :field="column.field"
+            :suffix="column.suffix"
             :decimals="column.decimals"
             :maxValue="column.maxValue"
             :width="column.width"

@@ -40,6 +40,7 @@ import type {
   ConfigFilter,
   ConfigMetadata,
   MetadataQuantitative,
+  DataIndexCollapsedHover,
 } from '@/types'
 import {
   clamp,
@@ -270,6 +271,16 @@ export const useDataStore = defineStore('data', {
         .scaleOrdinal<string>()
         .domain(['A', 'C', 'G', 'T', 'a', 'c', 'g', 't', '-'])
         .range(colors)
+    },
+    hoverRowData(): DataIndexCollapsedHover[] {
+      return this.hoverRowIndex === null
+        ? []
+        : [
+            [
+              this.sortedDataIndicesCollapsed[this.hoverRowIndex],
+              this.hoverRowIndex,
+            ],
+          ]
     },
     transitionTime(): number {
       return this.transitionsEnabled ? TRANSITION_TIME : 0

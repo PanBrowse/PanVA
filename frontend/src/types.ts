@@ -7,6 +7,7 @@ export type Range = [number, number]
 export type DataIndexCollapsed = number | Group
 export type TreeOption = 'dendroDefault' | 'dendroCustom' | 'coreSNP'
 export type FilterPosition = 'all' | 'variable' | 'informative' | string
+export type DataIndexCollapsedHover = [DataIndexCollapsed, number]
 
 export type GroupReference = {
   type: 'group'
@@ -169,6 +170,7 @@ export type ConfigMetadataCategorical = ConfigMetadataBase & {
 export type ConfigMetadataQuantitative = ConfigMetadataBase & {
   type: 'quantitative'
   decimals?: number
+  suffix?: string
   maxValue?: number
   width: number
 }

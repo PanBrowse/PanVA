@@ -150,5 +150,9 @@ export default {
   &.compact .ant-popover-inner-content {
     padding: 0;
   }
+
+  .ant-descriptions-item-content {
+    word-break: normal;
+  }
 }
 </style>

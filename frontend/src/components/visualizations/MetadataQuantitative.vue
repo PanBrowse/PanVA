@@ -3,7 +3,11 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
-import type { DataIndexCollapsed, MetadataQuantitative } from '@/types'
+import type {
+  DataIndexCollapsed,
+  DataIndexCollapsedHover,
+  MetadataQuantitative,
+} from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
@@ -49,6 +53,11 @@ export default {
       type: Number,
       required: false,
     },
+    suffix: {
+      type: String,
+      required: false,
+      default: '',
+    },
     maxValue: {
       type: Number,
       required: false,
@@ -61,6 +70,7 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'groups',
+      'hoverRowData',
       'rowColors',
       'metadata',
       'selectedDataIndices',
@@ -148,11 +158,11 @@ export default {
       if (isGroup(data)) {
         const { meanValue, nullCount } = value as GroupValue
         if (nullCount === data.dataIndices.length) return '?'
-        if (nullCount) return `${meanValue} +${nullCount}?`
-        return `${meanValue}`
+        if (nullCount) return `${meanValue}${this.suffix} +${nullCount}?`
+        return `${meanValue}${this.suffix}`
       }
       if (value === null) return '?'
-      return `${value}`
+      return `${value}${this.suffix}`
     },
     fillColor(data: DataIndexCollapsed): string {
       if (isGroup(data)) {
@@ -170,7 +180,7 @@ export default {
     svg() {
       return d3.select(`#${this.name}`)
     },
-    draw() {
+    drawBars() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -200,7 +210,6 @@ export default {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
-        .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
 
       this.svg()
         .selectAll('text')
@@ -225,7 +234,6 @@ export default {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
-        .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
 
       this.svg()
         .selectAll('rect.events')
@@ -271,7 +279,7 @@ export default {
                   title: groupName(data),
                   template: `
                       <ADescriptions size="small" layout="horizontal" :column="1" bordered>
-                        <ADescriptionsItem :label="value" v-for="(count, value) in counts">
+                        <ADescriptionsItem :label="value === null ? '?' : value" v-for="[value, count] in counts">
                           {{ count }}
                         </ADescriptionsItem>
                       </ADescriptions>
@@ -297,6 +305,43 @@ export default {
           this.hideTooltip()
         })
     },
+    drawHover() {
+      if (!this.hasAllData) return
+
+      this.svg()
+        .selectAll('rect.bar.hover')
+        .data<DataIndexCollapsedHover>(this.hoverRowData)
+        .join(
+          (enter) =>
+            enter
+              .append('rect')
+              .attr('class', 'bar hover')
+              .attr('x', 0)
+              .attr('rx', 2)
+              .attr('ry', 2)
+              .attr('width', ([data, index]) => this.barWidth(data, index))
+              .attr('height', CELL_SIZE - 1),
+          (update) => update,
+
+          (exit) => exit.remove()
+        )
+        .attr('y', ([, index]) => index * CELL_SIZE)
+
+      this.svg()
+        .selectAll('text.hover')
+        .data<DataIndexCollapsedHover>(this.hoverRowData)
+        .join(
+          (enter) => enter.append('text').attr('class', 'hover').attr('x', 2),
+          (update) => update,
+          (exit) => exit.remove()
+        )
+        .attr('y', ([, index]) => this.textY(index))
+        .text(([data, index]) => this.barText(data, index))
+    },
+    draw() {
+      this.drawBars()
+      this.drawHover()
+    },
   },
   mounted() {
     this.draw()
@@ -314,8 +359,8 @@ export default {
     selectedDataIndices() {
       this.draw()
     },
-    hoverRowIndex() {
-      this.draw()
+    hoverRowData() {
+      this.drawHover()
     },
   },
 }
@@ -335,35 +380,39 @@ export default {
   flex: 0 0 auto;
 
   rect.bar {
+    pointer-events: none;
     fill: darkgrey;
     fill-opacity: 0.2;
 
     &[data-selected='true'] {
       fill: #333;
     }
-
-    &[data-hovered='true'] {
-      fill: #1890ff !important;
-    }
   }
 
-  rect.events {
-    fill: transparent;
-    cursor: crosshair;
-    pointer-events: all;
+  rect.bar.hover {
+    pointer-events: none;
+    fill: #1890ff;
   }
 
   text {
+    pointer-events: none;
     fill: darkgrey;
     font-size: 9px;
 
     &[data-selected='true'] {
       fill: #333;
     }
+  }
 
-    &[data-hovered='true'] {
-      fill: #1890ff !important;
-    }
+  text.hover {
+    pointer-events: none;
+    fill: #1890ff;
+  }
+
+  rect.events {
+    fill: transparent;
+    cursor: crosshair;
+    pointer-events: all;
   }
 }
 </style>

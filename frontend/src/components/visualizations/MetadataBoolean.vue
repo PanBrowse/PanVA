@@ -7,6 +7,7 @@ import type {
   DataIndexCollapsed,
   ConfigMetadataBoolean,
   MetadataBoolean,
+  DataIndexCollapsedHover,
 } from '@/types'
 import { eventIndex } from '@/helpers/eventIndex'
 import { valueKey } from '@/helpers/valueKey'
@@ -58,6 +59,7 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'groups',
+      'hoverRowData',
       'mrnaIds',
       'metadata',
       'selectedDataIndices',
@@ -132,7 +134,7 @@ export default {
       // Diagonal hatch.
       return 'url(#diagonalHatch)'
     },
-    draw() {
+    drawCircles() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -174,7 +176,6 @@ export default {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
-        .attr('data-hovered', (data, index) => this.hoverRowIndex === index)
         .attr('stroke', (data) => {
           if (isGroup(data)) {
             const { values } = this.groupAggregates[data.id]
@@ -272,6 +273,46 @@ export default {
           this.hideTooltip()
         })
     },
+    drawHover() {
+      if (!this.hasAllData) return
+
+      this.svg()
+        .selectAll('circle.hover')
+        .data<DataIndexCollapsedHover>(this.hoverRowData)
+        .join(
+          (enter) =>
+            enter
+              .append('circle')
+              .attr('class', 'hover')
+              .attr('cx', this.padding + 0.5 * CELL_SIZE)
+              .attr('r', ([data]) => {
+                if (isGroup(data)) {
+                  const { values } = this.groupAggregates[data.id]
+                  return this.circleRadius(values)
+                }
+
+                const value = this.valueAtDataIndex(data)
+                return this.circleRadius([value])
+              }),
+          (update) => update,
+          (exit) => exit.remove()
+        )
+        .attr('cy', ([, index]) => (index + 0.5) * CELL_SIZE)
+        .attr('stroke', ([data]) => {
+          if (isGroup(data)) {
+            const { values } = this.groupAggregates[data.id]
+            if (data.isColorized) return data.color
+            return this.circleStroke(values)
+          }
+
+          const value = this.valueAtDataIndex(data)
+          return this.circleStroke([value])
+        })
+    },
+    draw() {
+      this.drawCircles()
+      this.drawHover()
+    },
   },
   mounted() {
     this.draw()
@@ -289,8 +330,8 @@ export default {
     selectedDataIndices() {
       this.draw()
     },
-    hoverRowIndex() {
-      this.draw()
+    hoverRowData() {
+      this.drawHover()
     },
   },
 }
@@ -327,10 +368,12 @@ export default {
     &[data-selected='true'] {
       stroke: #000;
     }
+  }
 
-    &[data-hovered='true'] {
-      stroke: #1890ff;
-    }
+  circle.hover {
+    pointer-events: none;
+    fill: none;
+    stroke: #1890ff;
   }
 }
 </style>
