@@ -175,7 +175,9 @@ export default {
 
   path {
     fill: none;
-    stroke: $gray-5;
+
+    /* Looks like gray-5 on white, but darkens when overlapping with other lines. */
+    stroke: rgba(0, 0, 0, 0.15);
   }
 }
 </style>
