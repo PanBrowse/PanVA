@@ -329,7 +329,7 @@ export default {
     <component is="style" type="text/css">
       <!-- prettier-ignore -->
       <template v-if="hoverRowIndex !== null">
-        #{{ name }} rect[data-index="{{ hoverRowIndex }}"] {
+        #{{ name }} rect.bar[data-index="{{ hoverRowIndex }}"] {
           fill: {{ colors.hover }} !important;
         }
         

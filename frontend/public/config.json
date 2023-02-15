@@ -1,12 +1,13 @@
 {
   "apiUrl": "http://localhost:5001/",
-  "metadata": [
+  "defaultHomologyId": 13803671,
+  "filters": [
     {
-      "type": "categorical",
-      "field": "host",
-      "label": "Host",
-      "width": 120
-    },
+      "field": "pheno_specific",
+      "label": "Phenotype specific"
+    }
+  ],
+  "metadata": [
     {
       "type": "boolean",
       "field": "virulence",
@@ -23,16 +24,23 @@
     },
     {
       "type": "categorical",
-      "field": "collection_year",
-      "label": "Collection year",
+      "field": "species",
+      "label": "Species",
       "width": 80
     },
     {
+      "type": "quantitative",
+      "field": "growth_rate",
+      "label": "Growth rate",
+      "decimals": 1,
+      "width": 100
+    },
+    {
       "type": "categorical",
-      "field": "strain",
+      "field": "strain_name",
       "label": "Strain",
       "width": 120
     }
   ],
-  "title": "PanVA: Pectobacterium 454"
+  "title": "PanVA: Pectobacterium"
 }
