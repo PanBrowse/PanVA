@@ -63,8 +63,7 @@ def get_dendrogram(id):
 
     # Load linkage matrix, or create if it does not exist.
     linkage_matrix = load_linkage_matrix(linkage_matrix_path)
-    if not linkage_matrix:
-        print("Generating linkage_matrix for ${id}")
+    if linkage_matrix is None:
         linkage_matrix = save_linkage_matrix(linkage_matrix_path, sequences)
 
     labels = sequences["mRNA_id"].to_list()
