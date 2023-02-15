@@ -1,17 +1,15 @@
 from flask import Flask, request
 from flask_cors import CORS
-import numpy as np
-import sys
 import os
 import pandas as pd
-import tanglegram as tg
 from dotenv import load_dotenv
 from flask_json_schema import JsonSchema
 
 from cluster_functions import (
     create_dendrogram,
-    create_linkage_matrix,
-    create_lv_matrix,
+    filtered_linkage_matrix,
+    load_linkage_matrix,
+    save_linkage_matrix,
 )
 
 # Load config from `.env` file into environment variables.
@@ -57,28 +55,28 @@ schema = JsonSchema(app)
     }
 )
 def get_dendrogram(id):
-    data_sequences = pd.read_csv(os.path.join(db_path, id, "sequences.csv"))
-    linkage_matrix = np.load(os.path.join(db_path, id, "linkage_matrix.npy"))
+    sequences_path = os.path.join(db_path, id, "sequences.csv")
+    linkage_matrix_path = os.path.join(db_path, id, "linkage_matrix.npy")
 
-    data_labels = data_sequences["mRNA_id"].to_list()
+    # Load sequences data.
+    sequences = pd.read_csv(sequences_path)
 
+    # Load linkage matrix, or create if it does not exist.
+    linkage_matrix = load_linkage_matrix(linkage_matrix_path)
+    if not linkage_matrix:
+        print("Generating linkage_matrix for ${id}")
+        linkage_matrix = save_linkage_matrix(linkage_matrix_path, sequences)
+
+    labels = sequences["mRNA_id"].to_list()
+
+    # Generate custom dendrogram based on passed positions.
     if request.method == "POST":
         positions = request.json["positions"]
-
-        selected_data_matrix = create_lv_matrix(data_sequences, positions)
-        selected_linkage_matrix = create_linkage_matrix(selected_data_matrix)
-
-        untangled = tg.untangle(
-            selected_linkage_matrix,
-            linkage_matrix,
-            data_labels,
-            data_labels,
-            method="step1side",
+        linkage_matrix = filtered_linkage_matrix(
+            linkage_matrix, sequences, positions, labels
         )
 
-        linkage_matrix = untangled[0]
-
-    return create_dendrogram(linkage_matrix, data_labels)
+    return create_dendrogram(linkage_matrix, labels)
 
 
 if __name__ == "__main__":

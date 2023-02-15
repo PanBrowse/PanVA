@@ -27,11 +27,12 @@ The application will then be available on http://localhost:8080/.
 
 We'll explain the various options passed to Docker.
 
-- `-p 8080:80`
+- `-p 8080:80` \
   The image exposes port 80. This option maps that port to port 8080 on the host machine.
-- `-v /path/to/your/data:/panva/api/data`
-  Mounts your custom data directory to the predefined path `/panva/api/data` that the application looks at.
-- `-v /path/to/your/config.json:/panva/frontend/config.json`
+- `-v /path/to/your/data:/panva/api/data` \
+  Mounts your custom data directory to the predefined path `/panva/api/data` that the application looks at. \
+  **IMPORTANT:** Make sure this directory is writable so the [linkage_matrix.npy](api/docs/data-format.md#linkage_matrixnpy-auto-generated) files can be stored in each homology group directory.
+- `-v /path/to/your/config.json:/panva/frontend/config.json` \
   Mounts your optional custom `config.json` file to the predefined path `/panva/frontend/config.json` that the application looks at.
 
 

@@ -33,15 +33,15 @@ Metadata can be visualized in a number of different ways. You can configure whic
 
 Each column should be configured as a JSON object with the following options:
 
-| Field   | Type                                           | Notes                                                                      |
-|---------|------------------------------------------------|----------------------------------------------------------------------------|
-| `field` | string                                         | CSV column in [`metadata.csv`](../../api/docs/data-format.md#metadatacsv). |
-| `label` | string                                         | Shown above the column.                                                    |
-| `type`  | `"boolean" \| "categorical" \| "quantitative"` |                                                                            |
+| Field   | Type                                           | Notes                                                                               |
+|---------|------------------------------------------------|-------------------------------------------------------------------------------------|
+| `field` | string                                         | CSV column in [`metadata.csv`](../../api/docs/data-format.md#metadatacsv-optional). |
+| `label` | string                                         | Shown above the column.                                                             |
+| `type`  | `"boolean" \| "categorical" \| "quantitative"` |                                                                                     |
 
 Based on the value of `type` these options are extended with the options as defined below.
 
-Note: A column from [`metadata.csv`](../../api/docs/data-format.md#metadatacsv) can be used multiple times in different columns.
+Note: A column from [`metadata.csv`](../../api/docs/data-format.md#metadatacsv-optional) can be used multiple times in different columns.
 
 
 ### Boolean

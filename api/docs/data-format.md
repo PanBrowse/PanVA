@@ -155,4 +155,6 @@ The frontend needs to be [configured](../../frontend/docs/config.md) to display 
 
 The linkage matrix for generating the initial clustering dendrogram, stored as NumPy file. This file is generated once by the API and is used to improve application performance.
 
+**Important:** Please delete this file if the contents of `sequences.csv` has changed.
+
 
