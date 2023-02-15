@@ -51,7 +51,7 @@ export default {
       'groups',
       'rowColors',
       'metadata',
-      'selectedDataIndices',
+      'selectedDataIndicesSet',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
       'transitionTime',
@@ -166,7 +166,7 @@ export default {
         })
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
-          return this.selectedDataIndices.includes(data)
+          return this.selectedDataIndicesSet.has(data)
         })
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
@@ -232,7 +232,7 @@ export default {
     sortedDataIndicesCollapsed() {
       this.draw()
     },
-    selectedDataIndices() {
+    selectedDataIndicesSet() {
       this.draw()
     },
   },

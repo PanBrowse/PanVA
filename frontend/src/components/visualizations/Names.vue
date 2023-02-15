@@ -23,10 +23,11 @@ export default {
       'mrnaIds',
       'rowColors',
       'sequenceCount',
+      'selectedDataIndicesSet',
       'sortedDataIndicesCollapsed',
       'transitionTime',
     ]),
-    ...mapWritableState(useDataStore, ['hoverRowIndex', 'selectedDataIndices']),
+    ...mapWritableState(useDataStore, ['hoverRowIndex']),
     hasAllData(): boolean {
       return this.sortedDataIndicesCollapsed.length !== 0
     },
@@ -104,7 +105,7 @@ export default {
         .attr('data-index', ([, index]) => index)
         .attr('data-selected', ([data]) => {
           if (isGroup(data)) return false
-          return this.selectedDataIndices.includes(data)
+          return this.selectedDataIndicesSet.has(data)
         })
 
       this.svg()
@@ -134,7 +135,7 @@ export default {
         .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
-          return this.selectedDataIndices.includes(data)
+          return this.selectedDataIndicesSet.has(data)
         })
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
@@ -169,7 +170,7 @@ export default {
     hasAllData() {
       this.draw()
     },
-    selectedDataIndices() {
+    selectedDataIndicesSet() {
       this.draw()
     },
     sortedDataIndicesCollapsed() {

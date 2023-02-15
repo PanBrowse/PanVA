@@ -69,7 +69,7 @@ export default {
       'groups',
       'rowColors',
       'metadata',
-      'selectedDataIndices',
+      'selectedDataIndicesSet',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
       'transitionTime',
@@ -208,7 +208,7 @@ export default {
         .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
-          return this.selectedDataIndices.includes(data)
+          return this.selectedDataIndicesSet.has(data)
         })
 
       this.svg()
@@ -233,7 +233,7 @@ export default {
         .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
-          return this.selectedDataIndices.includes(data)
+          return this.selectedDataIndicesSet.has(data)
         })
 
       this.svg()
@@ -317,7 +317,7 @@ export default {
     sortedDataIndicesCollapsed() {
       this.draw()
     },
-    selectedDataIndices() {
+    selectedDataIndicesSet() {
       this.draw()
     },
   },

@@ -331,6 +331,10 @@ export const useDataStore = defineStore('data', {
 
       return lookup
     },
+    selectedDataIndicesSet(): Set<number> {
+      // Array.includes is O(n) while Set.has is O(1).
+      return new Set(this.selectedDataIndices)
+    },
   },
   actions: {
     changeSorting(sorting: Sorting) {

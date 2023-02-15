@@ -61,7 +61,7 @@ export default {
       'groups',
       'mrnaIds',
       'metadata',
-      'selectedDataIndices',
+      'selectedDataIndicesSet',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
       'transitionTime',
@@ -177,7 +177,7 @@ export default {
         .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
-          return this.selectedDataIndices.includes(data)
+          return this.selectedDataIndicesSet.has(data)
         })
         .attr('stroke', (data) => {
           if (isGroup(data)) {
@@ -290,7 +290,7 @@ export default {
     metadata() {
       this.draw()
     },
-    selectedDataIndices() {
+    selectedDataIndicesSet() {
       this.draw()
     },
   },
