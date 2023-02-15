@@ -5,7 +5,7 @@ import { createHead, VueHeadMixin } from '@vueuse/head'
 import App from './App.vue'
 
 import { registerErrorHandlers } from './errors'
-import './assets/main.css'
+import './assets/main.scss'
 
 const pinia = createPinia()
 const head = createHead()

@@ -18,6 +18,8 @@ export default {
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 .loading-box {
   display: flex;
   align-items: center;
@@ -25,7 +27,7 @@ export default {
 
   .anticon-loading-3-quarters {
     font-size: 40px;
-    color: #40a9ff;
+    color: $gray-8;
   }
 }
 </style>

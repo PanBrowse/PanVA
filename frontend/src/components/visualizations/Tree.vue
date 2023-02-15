@@ -88,24 +88,13 @@ export default {
         .selectAll('path')
         .data(this.links)
         .join(
-          (enter) =>
-            enter
-              .append('path')
-              .attr('fill', 'none')
-              .attr('stroke', 'rgba(192, 192, 192, 0.5)')
-              .attr('d', (d) => this.linkPath(d)),
+          (enter) => enter.append('path').attr('d', (d) => this.linkPath(d)),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr('d', (d) => this.linkPath(d))
-              .attr('stroke', 'rgba(192, 192, 192, 0.5)'),
-          (exit) =>
-            exit
-              .transition()
-              .duration(this.transitionTime)
-              .attr('stroke', 'rgba(192, 192, 192, 0)')
-              .remove()
+              .attr('d', (d) => this.linkPath(d)),
+          (exit) => exit.remove()
         )
 
       this.svg()
@@ -126,15 +115,7 @@ export default {
               .attr('cy', (d) => d.x),
           (exit) => exit.remove()
         )
-        .attr('stroke', () => {
-          return 'rgba(192, 192, 192, 0.5)'
-        })
-        .attr('fill', (d) => {
-          if (d.height === 0 || d.depth === 0) {
-            return '#ffffff'
-          }
-          return 'rgba(192, 192, 192, 0.5)'
-        })
+        .attr('data-leaf', (d) => d.height === 0 || d.depth === 0)
         .on('mousedown', (event, { data }) => {
           if (this.treeSource === 'coreSNP') {
             this.selectedDataIndices = flatten(
@@ -183,18 +164,29 @@ export default {
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 #tree {
   flex: 0 0 auto;
 
   path {
     pointer-events: none;
+    fill: none;
+    stroke: $gray-5;
   }
 
   circle {
     cursor: pointer;
+    fill: $gray-6;
+    stroke: $gray-6;
+    fill-opacity: 0.5;
+
+    &[data-leaf='true'] {
+      fill: $gray-1;
+    }
 
     &:hover {
-      stroke: #1890ff;
+      stroke: $hover;
     }
   }
 }

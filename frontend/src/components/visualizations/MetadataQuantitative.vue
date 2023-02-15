@@ -3,11 +3,7 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
-import type {
-  DataIndexCollapsed,
-  DataIndexCollapsedHover,
-  MetadataQuantitative,
-} from '@/types'
+import type { DataIndexCollapsed, MetadataQuantitative } from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
@@ -15,6 +11,7 @@ import { max, mean, round, uniq } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import { mapCountBy } from '@/helpers/mapCountBy'
+import colors from '@/assets/colors.module.scss'
 
 type GroupCounts = Map<MetadataQuantitative, number>
 
@@ -70,7 +67,6 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'groups',
-      'hoverRowData',
       'rowColors',
       'metadata',
       'selectedDataIndices',
@@ -135,6 +131,9 @@ export default {
         })
       )
     },
+    colors() {
+      return colors
+    },
   },
   methods: {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
@@ -180,7 +179,7 @@ export default {
     svg() {
       return d3.select(`#${this.name}`)
     },
-    drawBars() {
+    draw() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -206,6 +205,7 @@ export default {
           (exit) => exit.remove()
         )
         .style('fill', (data) => this.fillColor(data))
+        .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
@@ -230,6 +230,7 @@ export default {
           (exit) => exit.remove()
         )
         .style('fill', (data) => this.fillColor(data))
+        .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
@@ -305,43 +306,6 @@ export default {
           this.hideTooltip()
         })
     },
-    drawHover() {
-      if (!this.hasAllData) return
-
-      this.svg()
-        .selectAll('rect.bar.hover')
-        .data<DataIndexCollapsedHover>(this.hoverRowData)
-        .join(
-          (enter) =>
-            enter
-              .append('rect')
-              .attr('class', 'bar hover')
-              .attr('x', 0)
-              .attr('rx', 2)
-              .attr('ry', 2)
-              .attr('width', ([data, index]) => this.barWidth(data, index))
-              .attr('height', CELL_SIZE - 1),
-          (update) => update,
-
-          (exit) => exit.remove()
-        )
-        .attr('y', ([, index]) => index * CELL_SIZE)
-
-      this.svg()
-        .selectAll('text.hover')
-        .data<DataIndexCollapsedHover>(this.hoverRowData)
-        .join(
-          (enter) => enter.append('text').attr('class', 'hover').attr('x', 2),
-          (update) => update,
-          (exit) => exit.remove()
-        )
-        .attr('y', ([, index]) => this.textY(index))
-        .text(([data, index]) => this.barText(data, index))
-    },
-    draw() {
-      this.drawBars()
-      this.drawHover()
-    },
   },
   mounted() {
     this.draw()
@@ -353,60 +317,54 @@ export default {
     sortedDataIndicesCollapsed() {
       this.draw()
     },
-    metadata() {
-      this.draw()
-    },
     selectedDataIndices() {
       this.draw()
-    },
-    hoverRowData() {
-      this.drawHover()
     },
   },
 }
 </script>
 
 <template>
-  <svg
-    :id="name"
-    :width="width"
-    :height="height"
-    class="metadata-quantitative"
-  ></svg>
+  <svg :id="name" :width="width" :height="height" class="metadata-quantitative">
+    <component is="style" type="text/css">
+      <!-- prettier-ignore -->
+      <template v-if="hoverRowIndex !== null">
+        #{{ name }} rect[data-index="{{ hoverRowIndex }}"] {
+          fill: {{ colors.hover }} !important;
+        }
+        
+        #{{ name }} text[data-index="{{ hoverRowIndex }}"] {
+          fill: {{ colors.hover }} !important;
+        }
+      </template>
+    </component>
+  </svg>
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 .metadata-quantitative {
   flex: 0 0 auto;
 
   rect.bar {
     pointer-events: none;
-    fill: darkgrey;
+    fill: $gray-7;
     fill-opacity: 0.2;
 
     &[data-selected='true'] {
-      fill: #333;
+      fill: $selection;
     }
-  }
-
-  rect.bar.hover {
-    pointer-events: none;
-    fill: #1890ff;
   }
 
   text {
     pointer-events: none;
-    fill: darkgrey;
+    fill: $gray-7;
     font-size: 9px;
 
     &[data-selected='true'] {
-      fill: #333;
+      fill: $selection;
     }
-  }
-
-  text.hover {
-    pointer-events: none;
-    fill: #1890ff;
   }
 
   rect.events {

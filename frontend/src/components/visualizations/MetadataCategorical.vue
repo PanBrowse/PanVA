@@ -3,11 +3,7 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
-import type {
-  DataIndexCollapsed,
-  DataIndexCollapsedHover,
-  MetadataCategorical,
-} from '@/types'
+import type { DataIndexCollapsed, MetadataCategorical } from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
@@ -15,6 +11,7 @@ import { uniq } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import { mapCountBy } from '@/helpers/mapCountBy'
+import colors from '@/assets/colors.module.scss'
 
 type GroupCounts = Map<MetadataCategorical, number>
 
@@ -52,7 +49,6 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'groups',
-      'hoverRowData',
       'rowColors',
       'metadata',
       'selectedDataIndices',
@@ -86,6 +82,23 @@ export default {
         return this.valueAtDataIndex(data)
       })
     },
+    valueIndexLookup() {
+      const map = new Map()
+      let lastIndex = 0
+      this.metadata.forEach(({ [this.field]: value }) => {
+        if (!map.has(value)) {
+          map.set(value, ++lastIndex)
+        }
+      })
+
+      return map
+    },
+    hoverValueIndex() {
+      if (this.hoverRowIndex === null) return
+      const value = this.rowValues[this.hoverRowIndex]
+      if (value === null) return
+      return this.valueIndexLookup.get(value)
+    },
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
         this.groups.map(({ id, dataIndices }) => {
@@ -96,6 +109,9 @@ export default {
           return [id, { counts, values }]
         })
       )
+    },
+    colors() {
+      return colors
     },
   },
   methods: {
@@ -110,7 +126,7 @@ export default {
     textY(index: number) {
       return (index + 1) * CELL_SIZE - 2
     },
-    drawText() {
+    draw() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -143,17 +159,14 @@ export default {
           return this.rowColors[data]
         })
         .attr('data-index', (data, index) => index)
+        .attr('data-value-index', (data, index) => {
+          const value = this.rowValues[index]
+          if (value === null) return ''
+          return this.valueIndexLookup.get(value)
+        })
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
-        })
-        .attr('data-similar', (data, index) => {
-          if (this.hoverRowIndex === null) return false
-
-          return (
-            this.hoverRowIndex !== index &&
-            this.rowValues[this.hoverRowIndex] === this.rowValues[index]
-          )
         })
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
@@ -208,28 +221,6 @@ export default {
           this.hideTooltip()
         })
     },
-    drawHover() {
-      if (!this.hasAllData) return
-
-      this.svg()
-        .selectAll('text.hover')
-        .data<DataIndexCollapsedHover>(this.hoverRowData)
-        .join(
-          (enter) => enter.append('text').attr('class', 'hover').attr('x', 3),
-          (update) => update,
-          (exit) => exit.remove()
-        )
-        .attr('y', ([, index]) => this.textY(index))
-        .text(([, index]) => {
-          const value = this.rowValues[index]
-          if (value === null) return 'multiple'
-          return value
-        })
-    },
-    draw() {
-      this.drawText()
-      this.drawHover()
-    },
   },
   mounted() {
     this.draw()
@@ -241,49 +232,44 @@ export default {
     sortedDataIndicesCollapsed() {
       this.draw()
     },
-    metadata() {
-      this.draw()
-    },
     selectedDataIndices() {
       this.draw()
-    },
-    hoverRowData() {
-      this.drawHover()
     },
   },
 }
 </script>
 
 <template>
-  <svg
-    :id="name"
-    :width="width"
-    :height="height"
-    class="metadata-categorical"
-  ></svg>
+  <svg :id="name" :width="width" :height="height" class="metadata-categorical">
+    <component is="style" type="text/css">
+      <!-- prettier-ignore -->
+      <template v-if="hoverRowIndex !== null">
+        #{{ name }} text[data-value-index="{{ hoverValueIndex }}"]:not([data-selected="true"]) {
+          fill: {{ colors.similar }};
+        }
+
+        #{{ name }} text[data-index="{{ hoverRowIndex }}"] {
+          fill: {{ colors.hover }} !important;
+        }
+      </template>
+    </component>
+  </svg>
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 .metadata-categorical {
   flex: 0 0 auto;
 
   text {
-    fill: darkgrey;
+    fill: $gray-7;
     font-size: 9px;
     cursor: crosshair;
 
-    &[data-similar='true'] {
-      fill: #7c9dda;
-    }
-
     &[data-selected='true'] {
-      fill: #333;
+      fill: $selection;
     }
-  }
-
-  text.hover {
-    pointer-events: none;
-    fill: #1890ff;
   }
 }
 </style>

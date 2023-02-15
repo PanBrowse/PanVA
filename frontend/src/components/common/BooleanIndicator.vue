@@ -20,16 +20,18 @@ export default {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '@/assets/colors.module.scss';
+
 .container {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 .anticon-check-circle {
-  color: #237804;
+  color: $success;
 }
 .anticon-close-circle {
-  color: #a8071a;
+  color: $danger;
 }
 </style>

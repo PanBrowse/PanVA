@@ -288,22 +288,24 @@ export default {
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 .gene-overview {
   .brush .selection {
     stroke-width: 0;
-    fill: #1890ff;
+    fill: $hover;
     fill-opacity: 0.3;
   }
 
   .exons {
-    fill: #f0f2f5;
-    stroke: #89899a;
+    fill: $gray-3;
+    stroke: $gray-7;
     stroke-width: 0.5;
   }
 
   .brush-labels {
     font-size: 9px;
-    fill: cornflowerblue;
+    fill: $hover;
   }
 
   .tick {

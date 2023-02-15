@@ -90,6 +90,8 @@ export default {
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 .positions-wrapper {
   transition-property: width;
   transition-timing-function: linear;
@@ -117,16 +119,17 @@ export default {
   }
 
   text {
-    fill: darkgrey;
+    fill: $gray-7;
     font-size: 9px;
     cursor: pointer;
 
     &[data-sorted='true'] {
-      fill: #333;
+      font-weight: 500;
+      fill: $gray-10;
     }
 
     &:hover {
-      fill: #1890ff;
+      fill: $hover;
     }
   }
 }

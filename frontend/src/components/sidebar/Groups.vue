@@ -189,17 +189,19 @@ export default {
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 .ant-btn.toggle:not(.ant-btn-text) {
-  border-color: #d9d9d9;
-  color: #525252;
-  background: #f2f2f2;
+  border-color: $gray-5;
+  color: $gray-8;
+  background: $gray-4;
 
   &:hover {
-    border-color: #b5b5b5;
-    color: #323232;
+    border-color: $gray-6;
+    color: $gray-10;
   }
 }
 .ant-btn-text.toggle:not(:hover) {
-  color: #b5b5b5;
+  color: $gray-6;
 }
 </style>

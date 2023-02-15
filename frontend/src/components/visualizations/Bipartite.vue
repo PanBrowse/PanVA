@@ -8,9 +8,11 @@ import { flatten } from 'lodash'
 import type { TreeNode, TreeOption } from '@/types'
 import { leafNodes } from '@/helpers/tree'
 
+import colors from '@/assets/colors.module.scss'
+
 type Link = {
-  sourceIndex: number
-  targetIndex: number
+  treeIndex: number
+  rowIndex: number
   color?: string
 }
 
@@ -74,32 +76,29 @@ export default {
         this.sortedDataIndicesCollapsed.map((data, index) => {
           if (isGroup(data)) {
             return data.dataIndices.map((dataIndex) => ({
-              sourceIndex: this.getSourceIndex(dataIndex),
-              targetIndex: index,
+              treeIndex: this.getTreeIndex(dataIndex),
+              rowIndex: index,
               color: data.isColorized ? data.color : undefined,
             }))
           } else {
             return {
-              sourceIndex: this.getSourceIndex(data),
-              targetIndex: index,
+              treeIndex: this.getTreeIndex(data),
+              rowIndex: index,
               color: this.rowColors[data],
             }
           }
         })
       )
     },
-    hoverLinks(): Link[] {
-      if (this.hoverRowIndex === null) return []
-      return this.links.filter(
-        ({ targetIndex }) => targetIndex === this.hoverRowIndex
-      )
+    colors() {
+      return colors
     },
   },
   methods: {
     svg() {
       return d3.select('#bipartite')
     },
-    getSourceIndex(dataIndex: number): number {
+    getTreeIndex(dataIndex: number): number {
       let leafNodeValue = this.mrnaIds[dataIndex]
 
       if (this.treeSource === 'coreSNP') {
@@ -108,27 +107,23 @@ export default {
 
       return this.leafNodesLookup[leafNodeValue]
     },
-    linkPath({ sourceIndex, targetIndex }: Link): string {
+    linkPath({ treeIndex, rowIndex }: Link): string {
       const yOffset = 0.5 * CELL_SIZE
       return (
         d3.linkHorizontal()({
-          source: [0, sourceIndex * CELL_SIZE + yOffset],
-          target: [this.width, targetIndex * CELL_SIZE + yOffset],
+          source: [0, treeIndex * CELL_SIZE + yOffset],
+          target: [this.width, rowIndex * CELL_SIZE + yOffset],
         }) || ''
       )
     },
-    drawLines() {
+    draw() {
       if (!this.hasAllData) return
 
       this.svg()
-        .selectAll('path.line')
-        .data(this.links, (d: any) => d.sourceIndex)
+        .selectAll('path')
+        .data(this.links, (d: any) => d.treeIndex)
         .join(
-          (enter) =>
-            enter
-              .append('path')
-              .attr('class', 'line')
-              .attr('d', (d) => this.linkPath(d)),
+          (enter) => enter.append('path').attr('d', (d) => this.linkPath(d)),
           (update) =>
             update
               .transition()
@@ -139,26 +134,7 @@ export default {
         .style('stroke', ({ color }) => {
           return color || ''
         })
-    },
-    drawHover() {
-      if (!this.hasAllData) return
-
-      this.svg()
-        .selectAll('path.hover')
-        .data(this.hoverLinks, (d: any) => d.sourceIndex)
-        .join(
-          (enter) =>
-            enter
-              .append('path')
-              .attr('class', 'hover')
-              .attr('d', (d) => this.linkPath(d)),
-          (update) => update,
-          (exit) => exit.remove()
-        )
-    },
-    draw() {
-      this.drawLines()
-      this.drawHover()
+        .attr('data-index', ({ rowIndex }) => rowIndex)
     },
   },
   mounted() {
@@ -167,9 +143,6 @@ export default {
   watch: {
     hasAllData() {
       this.draw()
-    },
-    hoverLinks() {
-      this.drawHover()
     },
     sortedDataIndicesCollapsed() {
       this.draw()
@@ -182,21 +155,27 @@ export default {
 </script>
 
 <template>
-  <svg id="bipartite" :width="width" :height="height"></svg>
+  <svg id="bipartite" :width="width" :height="height">
+    <component is="style" type="text/css">
+      <!-- prettier-ignore -->
+      <template v-if="hoverRowIndex !== null">
+        path[data-index="{{ hoverRowIndex }}"] {
+          stroke: {{ colors.hover }} !important;
+        }
+      </template>
+    </component>
+  </svg>
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 #bipartite {
   flex: 0 0 auto;
 
   path {
     fill: none;
-    stroke: lightgrey;
-  }
-
-  path.hover {
-    fill: none;
-    stroke: #1890ff;
+    stroke: $gray-5;
   }
 }
 </style>

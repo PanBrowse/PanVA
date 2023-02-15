@@ -2,6 +2,8 @@ import { CELL_SIZE } from '@/constants'
 import type { Nucleotide } from '@/types'
 import { sortBy } from 'lodash'
 
+import colors from '@/assets/colors.module.scss'
+
 export const sortNucleotideString = (value: string) => {
   const order = 'ACGTacgt-'
   return sortBy(value.split(''), (val) => order.indexOf(val)).join('')
@@ -26,7 +28,7 @@ export const drawNucleotide = ({
 
   // No nucleotide or matches with reference.
   if (nucleotides.length === 0) {
-    ctx.fillStyle = '#e9ecef'
+    ctx.fillStyle = colors['gray-4']
     ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
   }
   // Single nucleotide or group with the same nucleotide; solid color square.
@@ -36,7 +38,7 @@ export const drawNucleotide = ({
   }
   // Multiple nucleotides.
   else {
-    ctx.fillStyle = '#4d4d4d'
+    ctx.fillStyle = colors['gray-9']
     ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
 
     if (nucleotides.includes('a') || nucleotides.includes('A')) {
@@ -88,19 +90,19 @@ export const drawNucleotide = ({
     }
 
     if (nucleotides.includes('-')) {
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = colors['gray-1']
       ctx.beginPath()
       ctx.ellipse(x + 5, y + 5, 2.75, 2.75, 0, 0, 0)
       ctx.closePath()
       ctx.fill()
 
-      ctx.fillStyle = '#4d4d4d'
+      ctx.fillStyle = colors['gray-9']
       ctx.beginPath()
       ctx.ellipse(x + 5, y + 5, 2.5, 2.5, 0, 0, 0)
       ctx.closePath()
       ctx.fill()
 
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = colors['gray-1']
       ctx.beginPath()
       ctx.ellipse(x + 5, y + 5, 1.5, 1.5, 0, 0, 0)
       ctx.closePath()
@@ -109,7 +111,7 @@ export const drawNucleotide = ({
   }
 
   // White border overlay.
-  ctx.strokeStyle = '#ffffff'
+  ctx.strokeStyle = colors['gray-1']
   ctx.lineWidth = 0.5
   ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE)
 

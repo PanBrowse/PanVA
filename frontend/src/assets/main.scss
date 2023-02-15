@@ -1,4 +1,5 @@
 @import 'ant-design-vue/dist/antd.css';
+@import '@/assets/colors.module.scss';
 
 /**
  * Bugfixes for antd: plus and min icons are not shown on small buttons in Firefox.
@@ -19,7 +20,7 @@
 
 body {
   overflow: hidden;
-  background: #ececec;
+  background: $background;
 }
 
 #app {
@@ -31,11 +32,11 @@ svg {
 }
 
 kbd {
-  background-color: #eee;
+  background-color: $gray-4;
   border-radius: 3px;
-  border: 1px solid #b4b4b4;
+  border: 1px solid $gray-6;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
-  color: #333;
+  color: $gray-8;
   display: inline-block;
   font-size: 0.85em;
   font-weight: 700;

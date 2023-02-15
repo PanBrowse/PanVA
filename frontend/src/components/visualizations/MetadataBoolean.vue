@@ -7,7 +7,6 @@ import type {
   DataIndexCollapsed,
   ConfigMetadataBoolean,
   MetadataBoolean,
-  DataIndexCollapsedHover,
 } from '@/types'
 import { eventIndex } from '@/helpers/eventIndex'
 import { valueKey } from '@/helpers/valueKey'
@@ -17,6 +16,7 @@ import { uniq } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import type { PropType } from 'vue'
+import colors from '@/assets/colors.module.scss'
 
 type GroupCounts = Map<MetadataBoolean, number>
 
@@ -59,7 +59,6 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'groups',
-      'hoverRowData',
       'mrnaIds',
       'metadata',
       'selectedDataIndices',
@@ -94,6 +93,9 @@ export default {
         })
       )
     },
+    colors() {
+      return colors
+    },
   },
   methods: {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
@@ -119,22 +121,22 @@ export default {
     circleStroke(values: MetadataBoolean[]) {
       if (values.length === 1) {
         if (values[0] === true) return 'transparent'
-        if (values[0] === false) return '#aaa'
-        return '#ccc'
+        if (values[0] === false) return colors['gray-6']
+        return colors['gray-6']
       }
       // Diagonal hatch.
-      return '#aaa'
+      return colors['gray-6']
     },
     circleFill(values: MetadataBoolean[]) {
       if (values.length === 1) {
-        if (values[0] === true) return '#666'
-        if (values[0] === false) return 'white'
-        return '#ccc'
+        if (values[0] === true) return colors['gray-8']
+        if (values[0] === false) return colors['gray-1']
+        return colors['gray-6']
       }
       // Diagonal hatch.
       return 'url(#diagonalHatch)'
     },
-    drawCircles() {
+    draw() {
       if (!this.hasAllData) return
 
       this.svg()
@@ -172,6 +174,7 @@ export default {
               .attr('cy', (data, index) => (index + 0.5) * CELL_SIZE),
           (exit) => exit.remove()
         )
+        .attr('data-index', (data, index) => index)
         .attr('data-selected', (data) => {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
@@ -273,46 +276,6 @@ export default {
           this.hideTooltip()
         })
     },
-    drawHover() {
-      if (!this.hasAllData) return
-
-      this.svg()
-        .selectAll('circle.hover')
-        .data<DataIndexCollapsedHover>(this.hoverRowData)
-        .join(
-          (enter) =>
-            enter
-              .append('circle')
-              .attr('class', 'hover')
-              .attr('cx', this.padding + 0.5 * CELL_SIZE)
-              .attr('r', ([data]) => {
-                if (isGroup(data)) {
-                  const { values } = this.groupAggregates[data.id]
-                  return this.circleRadius(values)
-                }
-
-                const value = this.valueAtDataIndex(data)
-                return this.circleRadius([value])
-              }),
-          (update) => update,
-          (exit) => exit.remove()
-        )
-        .attr('cy', ([, index]) => (index + 0.5) * CELL_SIZE)
-        .attr('stroke', ([data]) => {
-          if (isGroup(data)) {
-            const { values } = this.groupAggregates[data.id]
-            if (data.isColorized) return data.color
-            return this.circleStroke(values)
-          }
-
-          const value = this.valueAtDataIndex(data)
-          return this.circleStroke([value])
-        })
-    },
-    draw() {
-      this.drawCircles()
-      this.drawHover()
-    },
   },
   mounted() {
     this.draw()
@@ -330,15 +293,21 @@ export default {
     selectedDataIndices() {
       this.draw()
     },
-    hoverRowData() {
-      this.drawHover()
-    },
   },
 }
 </script>
 
 <template>
   <svg :id="name" :width="width" :height="height" class="metadata-boolean">
+    <component is="style" type="text/css">
+      <!-- prettier-ignore -->
+      <template v-if="hoverRowIndex !== null">
+        #{{ name }} circle[data-index="{{ hoverRowIndex }}"] {
+          stroke: {{ colors.hover }} !important;
+        }
+      </template>
+    </component>
+
     <defs>
       <pattern
         id="diagonalHatch"
@@ -348,7 +317,7 @@ export default {
       >
         <path
           d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2"
-          stroke="#000000"
+          :stroke="colors['gray-13']"
           stroke-width="1"
         ></path>
       </pattern>
@@ -357,6 +326,8 @@ export default {
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 .metadata-boolean {
   flex: 0 0 auto;
 
@@ -366,14 +337,8 @@ export default {
 
   circle {
     &[data-selected='true'] {
-      stroke: #000;
+      stroke: $selection;
     }
-  }
-
-  circle.hover {
-    pointer-events: none;
-    fill: none;
-    stroke: #1890ff;
   }
 }
 </style>

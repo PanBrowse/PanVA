@@ -40,7 +40,7 @@ export const CELL_THEMES: Record<string, CellTheme> = {
       '#d2dcc5',
       '#c5b8a6',
 
-      '#f6ffff',
+      '#ffffff',
     ],
   },
   default2: {
@@ -56,7 +56,7 @@ export const CELL_THEMES: Record<string, CellTheme> = {
       '#fdcffe',
       '#f99372',
 
-      '#f6ffff',
+      '#ffffff',
     ],
   },
   clustal: {
@@ -88,7 +88,7 @@ export const CELL_THEMES: Record<string, CellTheme> = {
       '#dfd266',
       '#e29eb6',
 
-      '#f6ffff',
+      '#ffffff',
     ],
   },
   'pur-pyr': {
@@ -104,7 +104,7 @@ export const CELL_THEMES: Record<string, CellTheme> = {
       '#a463ce',
       '#9fd0cb',
 
-      '#f6ffff',
+      '#ffffff',
     ],
   },
 }

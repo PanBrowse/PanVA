@@ -38,18 +38,21 @@ export default {
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 #tree-labels {
   text {
-    fill: darkgrey;
+    fill: $gray-7;
     font-size: 10px;
     cursor: pointer;
 
     &:hover {
-      fill: #1890ff;
+      fill: $hover;
     }
 
     &[data-sorted='true'] {
-      fill: #333;
+      font-weight: 500;
+      fill: $gray-10;
     }
   }
 

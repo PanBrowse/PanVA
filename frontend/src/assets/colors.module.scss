@@ -1,0 +1,50 @@
+/**
+ * Colors taken from Ant Design.
+ * https://ant.design/docs/spec/colors
+ */
+
+$gray-1: #ffffff;
+$gray-2: #fafafa;
+$gray-3: #f5f5f5;
+$gray-4: #f0f0f0;
+$gray-5: #d9d9d9;
+$gray-6: #bfbfbf;
+$gray-7: #8c8c8c;
+$gray-8: #595959;
+$gray-9: #434343;
+$gray-10: #262626;
+$gray-11: #1f1f1f;
+$gray-12: #141414;
+$gray-13: #000000;
+
+$success: #237804; // green-8
+$danger: #a8071a; // red-8
+
+$background: $gray-4;
+
+$hover: #4096ff; // blue-5
+$similar: #fa8c16; // green-5
+
+$selection: $gray-10;
+
+:export {
+  background: $background;
+  danger: $danger;
+  gray-1: $gray-1;
+  gray-10: $gray-10;
+  gray-11: $gray-11;
+  gray-12: $gray-12;
+  gray-13: $gray-13;
+  gray-2: $gray-2;
+  gray-3: $gray-3;
+  gray-4: $gray-4;
+  gray-5: $gray-5;
+  gray-6: $gray-6;
+  gray-7: $gray-7;
+  gray-8: $gray-8;
+  gray-9: $gray-9;
+  hover: $hover;
+  selection: $selection;
+  similar: $similar;
+  success: $success;
+}

@@ -6,13 +6,10 @@ import { CELL_SIZE } from '@/constants'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
 import { valueKey } from '@/helpers/valueKey'
-import type {
-  DataIndexCollapsed,
-  DataIndexCollapsedHover,
-  Group,
-} from '@/types'
+import type { DataIndexCollapsed, Group } from '@/types'
 import { groupName } from '@/helpers/groupName'
 import { max } from 'lodash'
+import colors from '@/assets/colors.module.scss'
 
 export default {
   data() {
@@ -23,7 +20,6 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'groups',
-      'hoverRowData',
       'mrnaIds',
       'rowColors',
       'sequenceCount',
@@ -51,6 +47,9 @@ export default {
         ])
         .filter(([dataIndex]) => isGroup(dataIndex)) as [Group, number][]
     },
+    colors() {
+      return colors
+    },
   },
   methods: {
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
@@ -75,9 +74,10 @@ export default {
     textY(index: number) {
       return (index + 1) * CELL_SIZE - 2
     },
-    drawGroupBars() {
+    draw() {
       if (!this.hasAllData) return
 
+      // Only draw rects for groups.
       this.svg()
         .selectAll('rect')
         .data<[Group, number]>(this.indexedGroups, valueKey)
@@ -101,14 +101,11 @@ export default {
           (exit) => exit.remove()
         )
         .style('fill', ([data]) => this.fillColor(data))
+        .attr('data-index', ([, index]) => index)
         .attr('data-selected', ([data]) => {
           if (isGroup(data)) return false
           return this.selectedDataIndices.includes(data)
         })
-        .attr('data-hovered', ([, index]) => this.hoverRowIndex === index)
-    },
-    drawText() {
-      if (!this.hasAllData) return
 
       this.svg()
         .selectAll('text')
@@ -164,30 +161,6 @@ export default {
           this.hoverRowIndex = null
         })
     },
-    drawHover() {
-      if (!this.hasAllData) return
-
-      this.svg()
-        .selectAll('text.hover')
-        .data<DataIndexCollapsedHover>(this.hoverRowData)
-        .join(
-          (enter) => enter.append('text').attr('class', 'hover').attr('x', 3),
-          (update) => update,
-          (exit) => exit.remove()
-        )
-        .attr('y', ([, index]) => this.textY(index))
-        .text(([data]) => {
-          if (isGroup(data)) {
-            return `${groupName(data)} (${data.dataIndices.length})`
-          }
-          return this.mrnaIds[data]
-        })
-    },
-    draw() {
-      this.drawGroupBars()
-      this.drawText()
-      this.drawHover()
-    },
   },
   mounted() {
     this.draw()
@@ -195,10 +168,6 @@ export default {
   watch: {
     hasAllData() {
       this.draw()
-    },
-    hoverRowData() {
-      this.drawGroupBars()
-      this.drawHover()
     },
     selectedDataIndices() {
       this.draw()
@@ -217,38 +186,44 @@ export default {
 </script>
 
 <template>
-  <svg id="names" :width="width" :height="height"></svg>
+  <svg id="names" :width="width" :height="height">
+    <component is="style" type="text/css">
+      <!-- prettier-ignore -->
+      <template v-if="hoverRowIndex !== null">
+        #names rect[data-index="{{ hoverRowIndex }}"] {
+          fill: {{ colors.hover }} !important;
+        }
+        
+        #names text[data-index="{{ hoverRowIndex }}"] {
+          fill: {{ colors.hover }} !important;
+        }
+      </template>
+    </component>
+  </svg>
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 #names {
   rect {
     pointer-events: none;
-    fill: darkgrey;
+    fill: $gray-7;
     fill-opacity: 0.2;
 
     &[data-selected='true'] {
-      fill: #333;
-    }
-
-    &[data-hovered='true'] {
-      fill: #1890ff !important;
+      fill: $selection;
     }
   }
 
   text {
-    fill: darkgrey;
+    fill: $gray-7;
     font-size: 9px;
     cursor: crosshair;
 
     &[data-selected='true'] {
-      fill: #333;
+      fill: $selection;
     }
-  }
-
-  text.hover {
-    pointer-events: none;
-    fill: #1890ff;
   }
 
   flex: 0 0 auto;

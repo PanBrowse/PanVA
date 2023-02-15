@@ -465,6 +465,8 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+@import '@/assets/colors.module.scss';
+
 .heatmap-tooltip-virtual-element {
   pointer-events: none;
   position: absolute;
@@ -474,7 +476,7 @@ export default {
 
 .heatmap-cell-hover {
   pointer-events: none;
-  border: 1px solid #1890ff;
+  border: 1px solid $hover;
   position: absolute;
   width: 10px;
   height: 10px;
@@ -482,8 +484,8 @@ export default {
 
 .heatmap-row-hover {
   pointer-events: none;
-  border-top: 1px solid #1890ff;
-  border-bottom: 1px solid #1890ff;
+  border-top: 1px solid $hover;
+  border-bottom: 1px solid $hover;
   position: absolute;
   height: 10px;
 }
