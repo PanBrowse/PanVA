@@ -20,7 +20,12 @@ export const registerErrorHandlers = (app: App) => {
   }
 
   // Generic Javascript errors.
-  window.onerror = () => {
+  window.onerror = (error) => {
+    const err = error.toString()
+
+    if (err === 'ResizeObserver loop completed with undelivered notifications.')
+      return
+
     showError(defaultError)
   }
 

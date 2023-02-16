@@ -290,6 +290,10 @@ export default {
 <style lang="scss">
 @import '@/assets/colors.module.scss';
 
+#geneOverview {
+  vertical-align: bottom;
+}
+
 .gene-overview {
   .brush .selection {
     stroke-width: 0;
