@@ -122,14 +122,20 @@ The frontend needs to be [configured](../../frontend/docs/config.md) to filter o
 
 This optional file is only used for Eukaryotic pangenomes. It specifies the gene models matched to each gene sequences of reference genomes (for which GFF files are available). For example:
 
-| `mRNA_id`           | `position` | `feature` |
-|---------------------|------------|-----------|
-| 5_1_ATERI-1G45130.1 | 1          | cds       |
-| 5_1_ATERI-1G45130.2 | 1          | cds       |
+| `mRNA_id`           | `position` | `cds` | `exon` |
+|---------------------|------------|-------|--------|
+| 5_1_ATERI-1G45130.1 | 1          | True  | False  |
+| 5_1_ATERI-1G45130.2 | 1          | False | False  |
 
 * `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
 * `position`: The position in the alignment (_integer_).
-* `feature`: Is position in the coding regions (cds) (_boolean_).
+
+This file can be extended with additional columns to be used as annotations. For example:
+
+* `cds`: Does position have this feature in nucleotide alignment (_boolean_).
+* `exon`: Does position have this feature in nucleotide alignment (_boolean_).
+
+The frontend needs to be [configured](../../frontend/docs/config.md) to display these annotations.
 
 
 ### `metadata.csv` (OPTIONAL)

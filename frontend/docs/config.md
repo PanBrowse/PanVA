@@ -6,13 +6,27 @@ The PanVA application can be configured with a runtime configuration file `confi
 
 All fields are optional.
 
-| Field               | Type       | Default value                                 |
-|---------------------|------------|-----------------------------------------------|
-| `apiUrl`            | string     | `"/api/"`                                     |
-| `defaultHomologyId` | integer    | The first homology id in the homologies list. |
-| `filters`           | Filter[]   | `[]`                                          |
-| `metadata`          | Metadata[] | `[]`                                          |
-| `title`             | string     | `"PanVA"`                                     |
+| Field               | Type         | Default value                                 |
+|---------------------|--------------|-----------------------------------------------|
+| `annotations`       | Annotation[] | `[]`                                          |
+| `apiUrl`            | string       | `"/api/"`                                     |
+| `defaultHomologyId` | integer      | The first homology id in the homologies list. |
+| `filters`           | Filter[]     | `[]`                                          |
+| `metadata`          | Metadata[]   | `[]`                                          |
+| `title`             | string       | `"PanVA"`                                     |
+
+
+## Annotation
+
+Positions can be annotated with one or more features. You can configure which annotations should be displayed.
+
+Each column should be configured as a JSON object with the following options:
+
+| Field   | Type   | Required           | Notes                                                                                                                                   |
+|---------|--------|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `field` | string | :heavy_check_mark: | CSV column in [`annotations.csv`](../../api/docs/data-format.md#annotationscsv-optional).                                               |
+| `label` | string | :heavy_check_mark: | Description of the annotation.                                                                                                          |
+| `color` | string |                    | Color used when drawing the annotation. You can use [HTML color names](https://www.w3schools.com/tags/ref_colornames.asp) or hex codes. |
 
 
 ## Filter
@@ -24,7 +38,7 @@ Each column should be configured as a JSON object with the following options:
 | Field   | Type   | Notes                                                                      |
 |---------|--------|----------------------------------------------------------------------------|
 | `field` | string | CSV column in [`variable.csv`](../../api/docs/data-format.md#variablecsv). |
-| `label` | string | Shown in the position filter options.                                      |
+| `label` | string | Description of the property.                                               |
 
 
 ## Metadata
@@ -83,6 +97,13 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
 {
   "apiUrl": "/pecto/",
   "defaultHomologyId": 13803671,
+  "annotations": [
+    {
+      "field": "cds",
+      "label": "CDS",
+      "color": "pink"
+    }
+  ],
   "filters": [
     {
       "field": "pheno_specific",
