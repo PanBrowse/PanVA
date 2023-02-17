@@ -121,7 +121,7 @@ export const useDataStore = defineStore('data', {
     sorting: DEFAULT_SORTING,
     /**
      * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c].
-     * This field returns a mapping of `draw position` => `data index`, which
+     * This variable returns a mapping of `draw position` => `data index`, which
      * can be used when you iterate over draw positions.
      * [
      *   0 => 4, // on draw position 0 is data index 4 (this.mrnaIds[4] = e)
@@ -135,6 +135,7 @@ export const useDataStore = defineStore('data', {
 
     // User options.
     cellTheme: 'default' as CellThemeName,
+    visibleMetadataColumns: [] as string[],
     tree: 'dendroDefault' as TreeOption,
     homologyId: null as number | null,
     reference: null as Reference | null,
@@ -237,12 +238,12 @@ export const useDataStore = defineStore('data', {
     filterPositions() {
       return (positions: number[]) => {
         if (this.positionFilter !== 'all') {
-          const field = this.positionFilter
+          const column = this.positionFilter
           return positions.filter((pos) => {
             const varPos = this.variablePositions[pos - 1]
             if (!varPos) return false
-            if (field === 'variable') return true
-            return varPos.properties[field]
+            if (column === 'variable') return true
+            return varPos.properties[column]
           })
         }
 
@@ -335,6 +336,18 @@ export const useDataStore = defineStore('data', {
       // Array.includes is O(n) while Set.has is O(1).
       return new Set(this.selectedDataIndices)
     },
+    metadataConfigLookup() {
+      const config = useConfigStore()
+      return Object.fromEntries(
+        config.metadata.map((metadata) => [metadata.column, metadata])
+      )
+    },
+    visibleMetadata(): ConfigMetadata[] {
+      // Maintain selection order.
+      return this.visibleMetadataColumns.map(
+        (column) => this.metadataConfigLookup[column]
+      )
+    },
   },
   actions: {
     changeSorting(sorting: Sorting) {
@@ -343,7 +356,7 @@ export const useDataStore = defineStore('data', {
         sorting.name === this.sorting.name &&
         sortingPayload(sorting) === sortingPayload(this.sorting)
       ) {
-        // Same field and parameter, so we reverse the current sorting.
+        // Same name and payload, so we reverse the current sorting.
         // But we don't do this for the tree, that is static.
         if (
           !['dendroDefault', 'dendroCustom', 'coreSNP'].includes(sorting.name)
@@ -359,7 +372,7 @@ export const useDataStore = defineStore('data', {
         return
       }
 
-      // First we update the sorting field to a new value.
+      // First we update the sorting to a new value.
       this.sorting = sorting
 
       // Sorting by custom dendrogram should not take current sorting into account.
@@ -402,18 +415,12 @@ export const useDataStore = defineStore('data', {
 
       // Sorting by quantitative metadata should not take current sorting into account.
       if (sorting.name === 'metadata') {
-        // Look for *any* metadata column for this field with type quantitative.
-        const config = useConfigStore()
-        const column = config.metadata.find(
-          ({ field, type }) =>
-            field === sorting.field && type === 'quantitative'
-        )
-
-        if (column) {
+        const metadataConfig = this.metadataConfigLookup[sorting.column]
+        if (metadataConfig.type === 'quantitative') {
           this.sortedDataIndices = sortBy(
             this.sortedDataIndices,
             (index) =>
-              this.metadata[index][sorting.field] as MetadataQuantitative
+              this.metadata[index][sorting.column] as MetadataQuantitative
           )
           return
         }
@@ -422,10 +429,10 @@ export const useDataStore = defineStore('data', {
       // Get the array of values in the currently sorted order.
       const values = (() => {
         if (this.sorting.name === 'metadata') {
-          const field = this.sorting.field
+          const column = this.sorting.column
           // Get the array of values in the currently sorted order.
           return this.sortedDataIndices.map(
-            (index) => this.metadata[index][field]
+            (index) => this.metadata[index][column]
           )
         }
 
@@ -473,7 +480,7 @@ export const useDataStore = defineStore('data', {
         const response = await axios.get<Homology[]>(
           `${this.apiUrl}homologies.json`
         )
-        this.homologies = sortBy(response.data, 'name')
+        this.homologies = sortBy(response.data, ['name', 'homology_id'])
       } catch (err) {
         this.setError({
           message: 'Unable to fetch or parse homology ids from API.',
@@ -594,29 +601,29 @@ export const useDataStore = defineStore('data', {
         const data = await d3.csv<Data, MetadataCSVColumns | string>(
           `${this.apiUrl}${this.homologyId}/metadata.csv`,
           ({ mRNA_id, ...rest }) => {
-            // Common fields.
+            // Common columns.
             const data: Data = {
               mrnaId: parseString(mRNA_id),
               metadata: {},
             }
 
-            // Dataset specific fields.
-            config.metadata.forEach((column: ConfigMetadata) => {
-              const { field, type } = column
+            // Dataset specific columns.
+            config.metadata.forEach((metadataConfig: ConfigMetadata) => {
+              const { column, type } = metadataConfig
 
               if (type === 'categorical') {
-                data.metadata[field] = parseMetadataCategorical(rest[field])
+                data.metadata[column] = parseMetadataCategorical(rest[column])
               }
 
               if (type === 'boolean') {
-                data.metadata[field] = parseMetadataBoolean(
-                  rest[field],
-                  column.values
+                data.metadata[column] = parseMetadataBoolean(
+                  rest[column],
+                  metadataConfig.values
                 )
               }
 
               if (type === 'quantitative') {
-                data.metadata[field] = parseOptionalNumber(rest[field])
+                data.metadata[column] = parseOptionalNumber(rest[column])
               }
             })
 
@@ -667,7 +674,7 @@ export const useDataStore = defineStore('data', {
 
             const conservation = Math.max(A, C, G, T, gap)
 
-            // Common fields.
+            // Common columns.
             const data: Data = {
               position: parseNumber(position),
               A,
@@ -681,11 +688,10 @@ export const useDataStore = defineStore('data', {
               },
             }
 
-            // Dataset specific fields.
+            // Configured additional columns.
             config.filters.forEach((filter: ConfigFilter) => {
-              const { field } = filter
-
-              data.properties[field] = parseBool(rest[field])
+              const { column } = filter
+              data.properties[column] = parseBool(rest[column])
             })
 
             return data

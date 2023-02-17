@@ -18,7 +18,7 @@
         "ConfigMetadataBoolean": {
             "additionalProperties": false,
             "properties": {
-                "field": {
+                "column": {
                     "type": "string"
                 },
                 "label": {
@@ -63,7 +63,7 @@
         "ConfigMetadataCategorical": {
             "additionalProperties": false,
             "properties": {
-                "field": {
+                "column": {
                     "type": "string"
                 },
                 "label": {
@@ -84,17 +84,20 @@
         "ConfigMetadataQuantitative": {
             "additionalProperties": false,
             "properties": {
+                "column": {
+                    "type": "string"
+                },
                 "decimals": {
                     "type": "number"
-                },
-                "field": {
-                    "type": "string"
                 },
                 "label": {
                     "type": "string"
                 },
                 "maxValue": {
                     "type": "number"
+                },
+                "suffix": {
+                    "type": "string"
                 },
                 "type": {
                     "enum": [
@@ -116,11 +119,17 @@
         "defaultHomologyId": {
             "type": "number"
         },
+        "defaultMetadataColumns": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
         "filters": {
             "items": {
                 "additionalProperties": false,
                 "properties": {
-                    "field": {
+                    "column": {
                         "type": "string"
                     },
                     "label": {

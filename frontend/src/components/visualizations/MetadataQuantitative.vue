@@ -32,17 +32,7 @@ type GroupValue = {
 
 export default {
   props: {
-    /**
-     * Since a field can be reused in multiple columns, for different
-     * visualizations of the same data, we use the index in the
-     * `metadata` configuration option in the unique identifier
-     * for this component.
-     */
-    id: {
-      type: Number,
-      required: true,
-    },
-    field: {
+    column: {
       type: String,
       required: true,
     },
@@ -88,13 +78,13 @@ export default {
       if (this.maxValue) return this.maxValue
       const maximum = max(
         this.metadata
-          .map((data) => data[this.field] as MetadataQuantitative)
+          .map((data) => data[this.column] as MetadataQuantitative)
           .filter((value) => value !== null)
       )
       return maximum || 0
     },
     name(): string {
-      return `metadata-${this.id}-${this.field}`
+      return `metadata-${this.column}`
     },
     rowValues(): (MetadataQuantitative | GroupValue)[] {
       const decimals = this.decimals || 0
@@ -171,7 +161,7 @@ export default {
       return this.rowColors[data] || ''
     },
     valueAtDataIndex(dataIndex: number): MetadataQuantitative {
-      return this.metadata[dataIndex][this.field] as MetadataQuantitative
+      return this.metadata[dataIndex][this.column] as MetadataQuantitative
     },
     textY(index: number) {
       return (index + 1) * CELL_SIZE - 2
@@ -345,6 +335,8 @@ export default {
 @import '@/assets/colors.module.scss';
 
 .metadata-quantitative {
+  margin-left: 4px;
+
   flex: 0 0 auto;
 
   rect.bar {

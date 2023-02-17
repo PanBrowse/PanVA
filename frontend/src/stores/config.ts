@@ -10,6 +10,7 @@ export const useConfigStore = defineStore('config', {
   state: () => ({
     apiUrl: '/api/' as string,
     defaultHomologyId: null as number | null,
+    defaultMetadataColumns: [] as string[],
     filters: [] as ConfigFilter[],
     metadata: [] as ConfigMetadata[],
     title: '' as string,

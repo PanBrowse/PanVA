@@ -12,7 +12,6 @@ import MetadataQuantitative from '@/components/visualizations/MetadataQuantitati
 import ScrollSync from '@/components/common/ScrollSync.vue'
 import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
-import { useConfigStore } from '@/stores/config'
 import { useTooltipStore } from '@/stores/tooltip'
 import { Card } from 'ant-design-vue'
 
@@ -32,7 +31,7 @@ export default {
     TreeLabels,
   },
   computed: {
-    ...mapState(useConfigStore, ['metadata']),
+    ...mapState(useDataStore, ['visibleMetadata']),
   },
   methods: {
     ...mapActions(useDataStore, ['dragEnd']),
@@ -84,25 +83,22 @@ export default {
         >
           <Heatmap />
         </scroll-sync>
-        <template v-for="(column, index) in metadata">
+        <template v-for="column in visibleMetadata">
           <MetadataBoolean
-            v-bind:key="column.field"
-            :id="index"
-            :field="column.field"
+            v-bind:key="column.column"
+            :column="column.column"
             :labels="column.labels"
             v-if="column.type === 'boolean'"
           />
           <MetadataCategorical
-            v-bind:key="column.field"
-            :id="index"
-            :field="column.field"
+            v-bind:key="column.column"
+            :column="column.column"
             :width="column.width"
             v-if="column.type === 'categorical'"
           />
           <MetadataQuantitative
-            v-bind:key="column.field"
-            :id="index"
-            :field="column.field"
+            v-bind:key="column.column"
+            :column="column.column"
             :suffix="column.suffix"
             :decimals="column.decimals"
             :maxValue="column.maxValue"
@@ -110,6 +106,9 @@ export default {
             v-if="column.type === 'quantitative'"
           />
         </template>
+
+        <!-- MetadataLabels padding-right, to prevent labels from being cut off. -->
+        <div style="min-width: 32px"></div>
       </div>
     </div>
   </ACard>
@@ -130,6 +129,8 @@ export default {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+
+    padding-right: 0 !important;
   }
 
   .header {

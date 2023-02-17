@@ -45,15 +45,23 @@ export default {
     ]),
   },
   computed: {
-    ...mapState(useConfigStore, ['defaultHomologyId', 'title']),
     ...mapState(useDataStore, ['homologies']),
-    ...mapWritableState(useDataStore, ['homologyId']),
+    ...mapWritableState(useDataStore, ['homologyId', 'visibleMetadataColumns']),
+    ...mapState(useConfigStore, [
+      'defaultHomologyId',
+      'defaultMetadataColumns',
+      'metadata',
+      'title',
+    ]),
   },
   async created() {
     if (await this.loadConfig()) {
       await this.fetchHomologies()
 
       this.fetchCoreSNP()
+
+      // Change the visible metadata columns to the configured default.
+      this.visibleMetadataColumns = this.defaultMetadataColumns
 
       // Use the configured defaultHomologyId or default to the first homology from `homologies`.
       this.homologyId = this.defaultHomologyId || this.homologies[0].homology_id
