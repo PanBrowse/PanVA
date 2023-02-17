@@ -357,7 +357,7 @@ export default {
                       <BooleanIndicator :value="varPos.properties.informative" />
                     </ADescriptionsItem>
                     <ADescriptionsItem :label="property.label" v-for="property in properties">
-                      <BooleanIndicator :value="varPos.properties[property.field]" />
+                      <BooleanIndicator :value="varPos.properties[property.column]" />
                     </ADescriptionsItem>
                   </template>
                 </ADescriptions>

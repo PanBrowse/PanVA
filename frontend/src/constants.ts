@@ -12,6 +12,8 @@ export const CELL_SIZE = 10
 
 export const TRANSITION_TIME = 2000
 
+export const METADATA_GAP = 8
+
 // When there are more groups, the colors will be cycled.
 export const GROUP_COLORS = [
   '#38c7a6',

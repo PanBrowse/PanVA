@@ -33,7 +33,7 @@ type SortingCommon = {
 
 type SortingMetadata = {
   name: 'metadata'
-  field: string
+  column: string
 }
 
 type SortingPosition = {
@@ -144,7 +144,7 @@ export type CellTheme = {
  */
 
 type ConfigMetadataBase = {
-  field: string
+  column: string
   label: string
 }
 
@@ -154,7 +154,7 @@ export type ConfigMetadataBoolean = ConfigMetadataBase & {
     true: string
     false: string
   }
-  labels: {
+  labels?: {
     true: string
     false: string
     null: string
@@ -180,14 +180,15 @@ export type ConfigMetadata =
   | ConfigMetadataQuantitative
 
 export type ConfigFilter = {
-  field: string
+  column: string
   label: string
 }
 
 export type Config = {
-  title?: string // Default constants.DEFAULT_TITLE
   apiUrl?: string // Default: '/'
   defaultHomologyId?: number // Default: First homology in homologies.
-  metadata?: ConfigMetadata[] // Default: []
+  defaultMetadataColumns?: string[] // Default: []
   filters?: ConfigFilter[] // Default: []
+  metadata?: ConfigMetadata[] // Default: []
+  title?: string // Default constants.DEFAULT_TITLE
 }

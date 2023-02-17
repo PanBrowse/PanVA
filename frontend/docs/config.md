@@ -22,11 +22,11 @@ Positions can be annotated with one or more features. You can configure which an
 
 Each column should be configured as a JSON object with the following options:
 
-| Field   | Type     | Required           | Notes                                                                                                                                   |
-|---------|----------|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `field` | `string` | :heavy_check_mark: | CSV column in [`annotations.csv`](../../api/docs/data-format.md#annotationscsv-optional).                                               |
-| `label` | `string` | :heavy_check_mark: | Description of the annotation.                                                                                                          |
-| `color` | `string` |                    | Color used when drawing the annotation. You can use [HTML color names](https://www.w3schools.com/tags/ref_colornames.asp) or hex codes. |
+| Field    | Type     | Required           | Notes                                                                                                                                   |
+|----------|----------|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `column` | `string` | :heavy_check_mark: | CSV column in [`annotations.csv`](../../api/docs/data-format.md#annotationscsv-optional).                                               |
+| `label`  | `string` | :heavy_check_mark: | Description of the annotation.                                                                                                          |
+| `color`  | `string` |                    | Color used when drawing the annotation. You can use [HTML color names](https://www.w3schools.com/tags/ref_colornames.asp) or hex codes. |
 
 
 ## Filter
@@ -35,10 +35,10 @@ Positions can be filtered based on variable position properties. You can configu
 
 Each column should be configured as a JSON object with the following options:
 
-| Field   | Type     | Notes                                                                      |
-|---------|----------|----------------------------------------------------------------------------|
-| `field` | `string` | CSV column in [`variable.csv`](../../api/docs/data-format.md#variablecsv). |
-| `label` | `string` | Description of the property.                                               |
+| Field    | Type     | Notes                                                                      |
+|----------|----------|----------------------------------------------------------------------------|
+| `column` | `string` | CSV column in [`variable.csv`](../../api/docs/data-format.md#variablecsv). |
+| `label`  | `string` | Description of the property.                                               |
 
 
 ## Metadata
@@ -47,22 +47,22 @@ Metadata can be visualized in a number of different ways. You can configure whic
 
 Each column should be configured as a JSON object with the following options:
 
-| Field   | Type                                           | Notes                                                                               |
-|---------|------------------------------------------------|-------------------------------------------------------------------------------------|
-| `field` | `string`                                       | CSV column in [`metadata.csv`](../../api/docs/data-format.md#metadatacsv-optional). |
-| `label` | `string`                                       | Shown above the column.                                                             |
-| `type`  | `"boolean" \| "categorical" \| "quantitative"` |                                                                                     |
+| Field    | Type                                           | Notes                                                                               |
+|----------|------------------------------------------------|-------------------------------------------------------------------------------------|
+| `column` | `string`                                       | CSV column in [`metadata.csv`](../../api/docs/data-format.md#metadatacsv-optional). |
+| `label`  | `string`                                       | Shown above the column.                                                             |
+| `type`   | `"boolean" \| "categorical" \| "quantitative"` |                                                                                     |
 
 Based on the value of `type` these options are extended with the options as defined below.
 
-Note: A column from [`metadata.csv`](../../api/docs/data-format.md#metadatacsv-optional) can be used multiple times in different columns.
+**Important:** The `column` property must be unique across all Metadata objects; a column from [`metadata.csv`](../../api/docs/data-format.md#metadatacsv-optional) can not be used multiple times.
 
 
 ### Boolean
 
 | Field          | Type     | Required           | Notes                                  |
 |----------------|----------|--------------------|----------------------------------------|
-| `labels`       | `object` | :heavy_check_mark: | Displayed in tooltip over column.      |
+| `labels`       | `object` |                    | Displayed in tooltip over column.      |
 | `labels.true`  | `string` | :heavy_check_mark: |                                        |
 | `labels.false` | `string` | :heavy_check_mark: |                                        |
 | `labels.null`  | `string` | :heavy_check_mark: |                                        |
@@ -99,26 +99,26 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
   "defaultHomologyId": 13803671,
   "annotations": [
     {
-      "field": "cds",
+      "column": "cds",
       "label": "CDS",
       "color": "pink"
     }
   ],
   "filters": [
     {
-      "field": "pheno_specific",
+      "column": "pheno_specific",
       "label": "Phenotype specific"
     }
   ],
   "metadata": [
     {
-      "field": "ft16",
+      "column": "ft16",
       "label": "FT16",
       "type": "quantitative",
       "width": 80
     },
     {
-      "field": "virulence",
+      "column": "virulence",
       "label": "Virulence",
       "labels": {
         "true": "Virulent",
@@ -132,13 +132,13 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
       }
     },
     {
-      "field": "species",
+      "column": "species",
       "label": "Species",
       "type": "categorical",
       "width": 80
     },
     {
-      "field": "strain_name",
+      "column": "strain_name",
       "label": "Strain",
       "type": "categorical",
       "width": 120

@@ -17,6 +17,7 @@ import {
   SelectOption,
   Switch,
 } from 'ant-design-vue'
+import { sortBy } from 'lodash'
 
 type SortOption = {
   label: string
@@ -54,6 +55,7 @@ export default {
       'reference',
       'transitionsEnabled',
       'tree',
+      'visibleMetadataColumns',
     ]),
     ...mapState(useConfigStore, ['filters', 'metadata']),
     referenceValue(): string | undefined {
@@ -77,7 +79,7 @@ export default {
     },
     sortValue(): string {
       if (this.sorting.name === 'metadata') {
-        return `metadata:${this.sorting.field}`
+        return `metadata:${this.sorting.column}`
       }
       return this.sorting.name
     },
@@ -109,8 +111,8 @@ export default {
       ]
 
       const metadataSortOptions: SortOption[] = this.metadata.map(
-        ({ field, label }) => ({
-          value: `metadata:${field}`,
+        ({ column, label }) => ({
+          value: `metadata:${column}`,
           label,
         })
       )
@@ -127,6 +129,15 @@ export default {
     },
     cellThemeOptions() {
       return CELL_THEMES
+    },
+    metadataOptions(): SortOption[] {
+      return sortBy(
+        this.metadata.map(({ column, label }) => ({
+          value: column,
+          label,
+        })),
+        'label'
+      )
     },
   },
   methods: {
@@ -160,11 +171,11 @@ export default {
           position: this.defaultSortPosition,
         })
       } else if (value.startsWith('metadata:')) {
-        const field = value.split(':')[1]
+        const column = value.split(':')[1]
 
         this.changeSorting({
           name: 'metadata',
-          field: field,
+          column,
         })
       } else {
         this.changeSorting({
@@ -193,9 +204,9 @@ export default {
           <ASelectOption value="variable">Variable</ASelectOption>
           <ASelectOption value="informative">Informative</ASelectOption>
           <ASelectOption
-            :value="filter.field"
+            :value="filter.column"
             v-for="filter in filters"
-            v-bind:key="filter.field"
+            v-bind:key="filter.column"
           >
             {{ filter.label }}
           </ASelectOption>
@@ -278,6 +289,23 @@ export default {
           >
             {{ theme.name }}
           </ASelectOption>
+        </ASelect>
+      </AFormItem>
+
+      <AFormItem label="Metadata">
+        <ASelect
+          placeholder="0 selected"
+          v-model:value="visibleMetadataColumns"
+          mode="multiple"
+          :options="metadataOptions"
+          :dropdownMatchSelectWidth="false"
+          :maxTagCount="0"
+          show-search
+        >
+          <template #maxTagPlaceholder="omittedValues">
+            {{ omittedValues.length }} selected
+          </template>
+          <template #tagRender></template>
         </ASelect>
       </AFormItem>
 

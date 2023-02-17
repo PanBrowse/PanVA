@@ -32,23 +32,20 @@ type GroupAggregates = Record<
 
 export default {
   props: {
-    /**
-     * Since a field can be reused in multiple columns, for different
-     * visualizations of the same data, we use the index in the
-     * `metadata` configuration option in the unique identifier
-     * for this component.
-     */
-    id: {
-      type: Number,
-      required: true,
-    },
-    field: {
+    column: {
       type: String,
       required: true,
     },
     labels: {
       type: Object as PropType<ConfigMetadataBoolean['labels']>,
-      required: true,
+      required: false,
+      default() {
+        return {
+          true: 'Yes',
+          false: 'No',
+          null: 'Unknown',
+        }
+      },
     },
   },
   data() {
@@ -77,7 +74,7 @@ export default {
       return this.sequenceCount * CELL_SIZE
     },
     name(): string {
-      return `metadata-${this.id}-${this.field}`
+      return `metadata-${this.column}`
     },
     width(): number {
       return this.padding * 2 + CELL_SIZE
@@ -101,13 +98,13 @@ export default {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
     valueAtDataIndex(dataIndex: number): MetadataBoolean {
-      return this.metadata[dataIndex][this.field] as MetadataBoolean
+      return this.metadata[dataIndex][this.column] as MetadataBoolean
     },
     svg() {
       return d3.select(`#${this.name}`)
     },
     labelForValue(value: MetadataBoolean) {
-      return this.labels[`${value}`]
+      return this.labels ? this.labels[`${value}`] : `${value}`
     },
     circleRadius(values: MetadataBoolean[]) {
       if (values.length === 1) {
@@ -329,6 +326,8 @@ export default {
 @import '@/assets/colors.module.scss';
 
 .metadata-boolean {
+  margin-left: 4px;
+
   flex: 0 0 auto;
 
   rect {

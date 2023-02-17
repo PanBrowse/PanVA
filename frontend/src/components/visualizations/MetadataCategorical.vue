@@ -27,17 +27,7 @@ type GroupAggregates = Record<
 
 export default {
   props: {
-    /**
-     * Since a field can be reused in multiple columns, for different
-     * visualizations of the same data, we use the index in the
-     * `metadata` configuration option in the unique identifier
-     * for this component.
-     */
-    id: {
-      type: Number,
-      required: true,
-    },
-    field: {
+    column: {
       type: String,
       required: true,
     },
@@ -67,7 +57,7 @@ export default {
       return this.sequenceCount * CELL_SIZE
     },
     name(): string {
-      return `metadata-${this.id}-${this.field}`
+      return `metadata-${this.column}`
     },
     rowValues(): (MetadataCategorical | null)[] {
       // Value `null` is used to indicate multiple values.
@@ -85,7 +75,7 @@ export default {
     valueIndexLookup() {
       const map = new Map()
       let lastIndex = 0
-      this.metadata.forEach(({ [this.field]: value }) => {
+      this.metadata.forEach(({ [this.column]: value }) => {
         if (!map.has(value)) {
           map.set(value, ++lastIndex)
         }
@@ -118,7 +108,7 @@ export default {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
     valueAtDataIndex(dataIndex: number): MetadataCategorical {
-      return this.metadata[dataIndex][this.field] as MetadataCategorical
+      return this.metadata[dataIndex][this.column] as MetadataCategorical
     },
     svg() {
       return d3.select(`#${this.name}`)
@@ -136,7 +126,7 @@ export default {
           (enter) =>
             enter
               .append('text')
-              .attr('x', 3)
+              .attr('x', 0)
               .attr('y', (data, index) => this.textY(index)),
           (update) =>
             update
@@ -260,6 +250,8 @@ export default {
 @import '@/assets/colors.module.scss';
 
 .metadata-categorical {
+  margin-left: 4px;
+
   flex: 0 0 auto;
 
   text {
