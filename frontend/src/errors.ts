@@ -14,23 +14,23 @@ export const registerErrorHandlers = (app: App) => {
   }
 
   // Errors from Vue components.
-  app.config.errorHandler = (err) => {
+  app.config.errorHandler = (error) => {
     showError(defaultError)
-    throw err
+    throw error
   }
 
   // Generic Javascript errors.
-  window.onerror = (error) => {
-    const err = error.toString()
+  // window.onerror = (error) => {
+  //   const err = error.toString()
 
-    if (err === 'ResizeObserver loop completed with undelivered notifications.')
-      return
+  //   if (err === 'ResizeObserver loop completed with undelivered notifications.')
+  //     return
 
-    showError(defaultError)
-  }
+  //   showError(defaultError)
+  // }
 
   // Unhandled reject promises.
-  window.addEventListener('unhandledrejection', () => {
-    showError(defaultError)
-  })
+  // window.addEventListener('unhandledrejection', () => {
+  //   showError(defaultError)
+  // })
 }
