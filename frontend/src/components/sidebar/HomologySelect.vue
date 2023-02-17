@@ -94,7 +94,7 @@ export default {
         )
         .map(({ homology_id, name }) => ({
           value: homology_id,
-          label: name || `${homology_id}`,
+          label: name ? `${name} - ${homology_id}` : `${homology_id}`,
         }))
     },
   },
@@ -128,7 +128,10 @@ export default {
       v-if="homologies.length !== 0 && homologyId"
     >
       <template #dropdownRender="{ menuNode }">
-        <div style="padding: 8px" @mousedown="(e) => e.preventDefault()">
+        <div
+          class="homology-filter-tree"
+          @mousedown="(e) => e.preventDefault()"
+        >
           <ATree
             :tree-data="filterTree"
             v-model:expandedKeys="expandedKeys"
@@ -150,3 +153,11 @@ export default {
     <LoadingBox :height="32" v-else />
   </SidebarItem>
 </template>
+
+<style lang="scss">
+.homology-filter-tree {
+  padding: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+</style>
