@@ -28,9 +28,6 @@ export default {
       'transitionTime',
     ]),
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
-    hasAllData(): boolean {
-      return this.sortedDataIndicesCollapsed.length !== 0
-    },
     height(): number {
       return this.sequenceCount * CELL_SIZE
     },
@@ -76,8 +73,6 @@ export default {
       return (index + 1) * CELL_SIZE - 2
     },
     draw() {
-      if (!this.hasAllData) return
-
       // Only draw rects for groups.
       this.svg()
         .selectAll('rect')
@@ -167,9 +162,6 @@ export default {
     this.draw()
   },
   watch: {
-    hasAllData() {
-      this.draw()
-    },
     selectedDataIndicesSet() {
       this.draw()
     },

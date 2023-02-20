@@ -1,6 +1,4 @@
-import axios from 'axios'
 import { defineStore } from 'pinia'
-import { parse_newick } from 'biojs-io-newick'
 import * as d3 from 'd3'
 
 import {
@@ -9,16 +7,8 @@ import {
   DEFAULT_SELECTED_REGION,
   TRANSITION_TIME,
 } from '@/constants'
-import {
-  parseNumber,
-  parseMetadataBoolean,
-  parseMetadataCategorical,
-  parseString,
-  parseBool,
-  parseOptionalNumber,
-} from '@/helpers/parse'
+import { h } from 'vue'
 import type {
-  AlignmentCSVColumns,
   DataIndexCollapsed,
   TreeNode,
   Group,
@@ -26,18 +16,15 @@ import type {
   mRNAid,
   Nucleotide,
   Metadata,
-  MetadataCSVColumns,
   Range,
   Sorting,
   VariablePosition,
-  VariablePositionCSVColumns,
   AppError,
   FilterPosition,
   TreeOption,
   Reference,
   GroupReference,
   DataReference,
-  ConfigFilter,
   ConfigMetadata,
   MetadataQuantitative,
 } from '@/types'
@@ -52,6 +39,13 @@ import {
   times,
   union,
 } from 'lodash'
+import { Button as AButton, Progress as AProgress } from 'ant-design-vue'
+import {
+  CheckCircleOutlined,
+  Loading3QuartersOutlined,
+} from '@ant-design/icons-vue'
+
+import { notification } from 'ant-design-vue'
 import arrayFlip from '@/helpers/arrayFlip'
 import { medianRight } from '@/helpers/medianRight'
 import { zipEqual } from '@/helpers/zipEqual'
@@ -59,9 +53,19 @@ import { naturalSort, sortingPayload } from '@/helpers/sorting'
 import { leafNodes } from '@/helpers/tree'
 import { arraySlice } from '@/helpers/arraySlice'
 import { isGroup } from '@/helpers/isGroup'
-import { toRaw } from 'vue'
 import { useConfigStore } from './config'
 import { sortNucleotideString } from '@/helpers/nucleotide'
+import {
+  fetchAlignments,
+  fetchCoreSNP,
+  fetchDendrogramCustom,
+  fetchDendrogramDefault,
+  fetchHomologies,
+  fetchMetadata,
+  fetchVariablePositions,
+} from '@/helpers/api'
+import { homologyName } from '@/helpers/homology'
+import { ProgressPromise } from '@prezly/progress-promise'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -140,12 +144,16 @@ export const useDataStore = defineStore('data', {
     homologyId: null as number | null,
     reference: null as Reference | null,
     transitionsEnabled: true,
+
+    // Indicates if the data store contains all data to render the layout with all views.
+    isInitialized: false,
+
+    // Increments on each homology group load, and is used to determine if a load result
+    // should still be used and presented to the user, or if they have already requested
+    // another homology group.
+    homologyLoadId: 0,
   }),
   getters: {
-    apiUrl(): string {
-      const config = useConfigStore()
-      return config.apiUrl
-    },
     sortedDataIndicesCollapsed(): DataIndexCollapsed[] {
       /**
        * This returns the same mapping as `sortedDataIndices`, but with collapsed
@@ -368,7 +376,11 @@ export const useDataStore = defineStore('data', {
 
       // Sorting by dendrogram is the default sorting, so we reset everything.
       if (sorting.name === 'dendroDefault') {
-        this.resetSorting()
+        // Reset to default sorting as defined by dendrogram.
+        this.$patch({
+          sorting: DEFAULT_SORTING,
+          sortedDataIndices: range(this.sequenceCount),
+        })
         return
       }
 
@@ -475,287 +487,6 @@ export const useDataStore = defineStore('data', {
       // Pull out the mrna indices.
       this.sortedDataIndices = sorted.map(([index]) => index)
     },
-    async fetchHomologies() {
-      try {
-        const response = await axios.get<Homology[]>(
-          `${this.apiUrl}homologies.json`
-        )
-        this.homologies = sortBy(response.data, ['name', 'homology_id'])
-      } catch (err) {
-        this.setError({
-          message: 'Unable to fetch or parse homology ids from API.',
-          isFatal: true,
-        })
-        throw err
-      }
-    },
-    async fetchCoreSNP() {
-      try {
-        const response = await axios.get<string>(`${this.apiUrl}core_snp.txt`)
-        this.coreSNP = parse_newick(response.data)
-      } catch (err) {
-        this.setError({
-          message: 'Unable to fetch or parse coreSNP from API.',
-          isFatal: true,
-        })
-        throw err
-      }
-    },
-    async fetchAlignments() {
-      if (this.mrnaIds.length === 0) {
-        throw new Error(
-          'Order of mRNA ids must be known (by fetching dendrogram) before fetching aligned positions.'
-        )
-      }
-
-      try {
-        // Temporary type that also holds data needed for sorting,
-        // but that is removed before aligned positions are stored.
-        type Data = {
-          mRNA_id: mRNAid
-          genome_nr: number
-          position: number
-          nucleotide: Nucleotide
-        }
-
-        const data = sortBy(
-          await d3.csv<Data, AlignmentCSVColumns>(
-            `${this.apiUrl}${this.homologyId}/alignments.csv`,
-            ({ genome_nr, mRNA_id, nucleotide, position }) => ({
-              genome_nr: parseNumber(genome_nr),
-              mRNA_id: parseString(mRNA_id),
-              nucleotide: parseString(nucleotide) as Nucleotide,
-              position: parseNumber(position),
-            })
-          ),
-          // 1. Sort by mRNA id in the order as defined by the dendrogram.
-          // 2. Sort by the position within each mRNA id.
-          [({ mRNA_id }) => this.mrnaIdsLookup[mRNA_id], 'position']
-        )
-
-        this.genomeNrs = range(
-          0,
-          this.geneLength * this.sequenceCount,
-          this.geneLength
-        ).map((index) => data[index].genome_nr)
-        this.alignedPositions = data.map(({ nucleotide }) => nucleotide)
-      } catch (err) {
-        this.setError({
-          message: 'Unable to fetch or parse aligned positions from API.',
-          isFatal: true,
-        })
-        throw err
-      }
-    },
-    async fetchDendrogramDefault() {
-      try {
-        const data = await d3.json<TreeNode>(
-          `${this.apiUrl}${this.homologyId}/dendrogram.json`
-        )
-        if (!data) {
-          throw new Error('Empty dendrogram default data.')
-        }
-        this.dendroDefault = data
-        this.mrnaIds = leafNodes(data)
-      } catch (err) {
-        this.setError({
-          message: 'Unable to fetch or parse default dendrogram from API.',
-          isFatal: true,
-        })
-        throw err
-      }
-    },
-    async fetchDendrogramCustom() {
-      try {
-        const response = await axios.post<TreeNode>(
-          `${this.apiUrl}${this.homologyId}/dendrogram.json`,
-          {
-            positions: toRaw(this.selectedPositions),
-          }
-        )
-        this.dendroCustom = response.data
-        this.dendroCustomForSelectedPositions = this.selectedPositions
-      } catch (err) {
-        this.setError({
-          message: 'Unable to fetch or parse custom dendrogram from API.',
-          isFatal: false,
-        })
-        throw err
-      }
-    },
-    async fetchMetadata() {
-      const config = useConfigStore()
-
-      // No metadata columns defined, no need to load data.
-      if (config.metadata.length === 0) {
-        return
-      }
-
-      try {
-        // Temporary type that also holds data needed for sorting,
-        // but that is removed before metadata is stored.
-        type Data = {
-          mrnaId: mRNAid
-          metadata: Metadata
-        }
-        const data = await d3.csv<Data, MetadataCSVColumns | string>(
-          `${this.apiUrl}${this.homologyId}/metadata.csv`,
-          ({ mRNA_id, ...rest }) => {
-            // Common columns.
-            const data: Data = {
-              mrnaId: parseString(mRNA_id),
-              metadata: {},
-            }
-
-            // Dataset specific columns.
-            config.metadata.forEach((metadataConfig: ConfigMetadata) => {
-              const { column, type } = metadataConfig
-
-              if (type === 'categorical') {
-                data.metadata[column] = parseMetadataCategorical(rest[column])
-              }
-
-              if (type === 'boolean') {
-                data.metadata[column] = parseMetadataBoolean(
-                  rest[column],
-                  metadataConfig.values
-                )
-              }
-
-              if (type === 'quantitative') {
-                data.metadata[column] = parseOptionalNumber(rest[column])
-              }
-            })
-
-            return data
-          }
-        )
-
-        // Sort by mRNA id in the order as defined by the dendrogram.
-        this.metadata = sortBy(
-          data,
-          ({ mrnaId }) => this.mrnaIdsLookup[mrnaId]
-        ).map(({ metadata }) => metadata)
-      } catch (err) {
-        this.setError({
-          message: 'Unable to fetch or parse metadata from API.',
-          isFatal: true,
-        })
-        throw err
-      }
-    },
-    async fetchVariablePositions() {
-      const config = useConfigStore()
-
-      try {
-        // Temporary type that also holds data needed for sorting,
-        // but that is removed before variable positions are stored.
-        type Data = VariablePosition & {
-          position: number
-        }
-
-        const data = await d3.csv<Data, VariablePositionCSVColumns | string>(
-          `${this.apiUrl}${this.homologyId}/variable.csv`,
-          ({
-            informative,
-            position,
-            A: As,
-            C: Cs,
-            G: Gs,
-            T: Ts,
-            gap: Gaps,
-            ...rest
-          }) => {
-            const A = parseNumber(As)
-            const C = parseNumber(Cs)
-            const G = parseNumber(Gs)
-            const T = parseNumber(Ts)
-            const gap = parseNumber(Gaps)
-
-            const conservation = Math.max(A, C, G, T, gap)
-
-            // Common columns.
-            const data: Data = {
-              position: parseNumber(position),
-              A,
-              C,
-              G,
-              T,
-              gap,
-              conservation,
-              properties: {
-                informative: parseBool(informative),
-              },
-            }
-
-            // Configured additional columns.
-            config.filters.forEach((filter: ConfigFilter) => {
-              const { column } = filter
-              data.properties[column] = parseBool(rest[column])
-            })
-
-            return data
-          }
-        )
-
-        // Convert sparse array to array containing VariablePosition and null.
-        this.variablePositions = times(this.geneLength, constant(null))
-        data.forEach(({ position, ...varPos }) => {
-          this.variablePositions[position - 1] = varPos
-        })
-      } catch (err) {
-        this.setError({
-          message:
-            'Unable to fetch or parse variable position counts from API.',
-          isFatal: true,
-        })
-        throw err
-      }
-    },
-    async fetchHomology() {
-      this.$patch({
-        // Reset data
-        alignedPositions: [],
-        dendroCustom: null,
-        dendroDefault: null,
-        metadata: [],
-        variablePositions: [],
-
-        // Reset groups and selections that contain references to data.
-        tree: 'dendroDefault',
-        dendroCustomForSelectedPositions: [],
-        groups: [],
-        lastGroupId: 0,
-        selectedDataIndices: [],
-      })
-
-      // Fetch new data for now selected homology id.
-      // We fetch the dendrogram first, as it will define the order in which the other data will be stored.
-      await this.fetchDendrogramDefault()
-
-      this.resetSorting()
-      this.resetPositionRegion()
-
-      // The remaining requests are performed concurrently to speed up loading.
-      await Promise.all([
-        this.fetchAlignments(),
-        this.fetchMetadata(),
-        this.fetchVariablePositions(),
-      ])
-    },
-    resetPositionRegion() {
-      // Reset to default selection, clamped to gene length.
-      this.positionRegion = DEFAULT_SELECTED_REGION.map((val) =>
-        clamp(val, this.geneLength)
-      ) as Range
-    },
-    resetSorting() {
-      this.$patch({
-        // Reset to default sorting as defined by dendrogram.
-        sorting: DEFAULT_SORTING,
-        sortedDataIndices: range(this.sequenceCount),
-      })
-    },
     dragStart(index: number, isCumulative = false) {
       this.dragInitialSelectedRowIndices = this.selectedDataIndices
       this.dragStartRowIndex = index
@@ -825,6 +556,245 @@ export const useDataStore = defineStore('data', {
       }
 
       this.error = error
+    },
+    async initializeApp() {
+      const config = useConfigStore()
+
+      if (await config.loadConfig()) {
+        const homologies = sortBy(await fetchHomologies(), [
+          'name',
+          'homology_id',
+        ])
+        const coreSNP = await fetchCoreSNP()
+
+        // Use the configured default metadata columns.
+        const visibleMetadataColumns = config.defaultMetadataColumns
+
+        // Update the store.
+        this.$patch({
+          coreSNP,
+          homologies,
+          visibleMetadataColumns,
+        })
+
+        // Use the configured defaultHomologyId or default to the first homology from `homologies`.
+        const homologyId =
+          config.defaultHomologyId !== null &&
+          // Make sure the configured homology id exists.
+          homologies.find(
+            ({ homology_id }) => homology_id === config.defaultHomologyId
+          )
+            ? config.defaultHomologyId
+            : homologies[0].homology_id
+
+        this.loadHomologyGroup(homologyId)
+      }
+    },
+    async loadHomologyGroup(homologyId: number) {
+      // Remember the load id for this call.
+      const loadId = ++this.homologyLoadId
+
+      const homology = this.homologies.find(
+        ({ homology_id }) => homology_id === homologyId
+      )!
+
+      const showNotification = (percent: number = 0) => {
+        // User as already switched to a different homology group.
+        if (this.homologyLoadId !== loadId) return
+
+        // Don't show notifications on initial load.
+        if (!this.isInitialized) return
+
+        if (percent < 100) {
+          notification.open({
+            key: 'homology',
+            message: `Loading homology group ${homologyName(homology)}.`,
+            description: () => h(AProgress, { percent, showInfo: false }),
+            btn: () =>
+              h(
+                AButton,
+                {
+                  onClick: () => {
+                    // Increment the load id so the result of the
+                    // current load is not handled anymore.
+                    this.homologyLoadId++
+
+                    notification.close('homology')
+                  },
+                },
+                { default: () => 'Cancel' }
+              ),
+            placement: 'bottomRight',
+            duration: null,
+            closeIcon: () => null,
+            icon: () =>
+              h(Loading3QuartersOutlined, {
+                style: 'color: var(--ant-primary-color)',
+                spin: true,
+              }),
+          })
+        } else {
+          notification.open({
+            key: 'homology',
+            message: `Loaded homology group ${homologyName(homology)}.`,
+            description: () => h(AProgress, { percent, showInfo: false }),
+            btn: () =>
+              h(
+                AButton,
+                { onClick: () => notification.close('homology') },
+                { default: () => 'Close' }
+              ),
+            placement: 'bottomRight',
+            duration: 1,
+            closeIcon: () => null,
+            icon: () =>
+              h(CheckCircleOutlined, {
+                style: 'color: var(--ant-success-color)',
+              }),
+          })
+        }
+      }
+
+      // Open notification and show initial progress.
+      showNotification()
+
+      await ProgressPromise.all([
+        fetchDendrogramDefault(homologyId),
+        fetchAlignments(homologyId),
+        fetchMetadata(homologyId),
+        fetchVariablePositions(homologyId),
+      ])
+        .then(
+          ([dendroDefault, alignments, meta, varPos]) => {
+            // User as already switched to a different homology group.
+            if (this.homologyLoadId !== loadId) return
+
+            const geneLength = homology.alignment_length
+            const sequenceCount = homology.members
+
+            // Get mRNA id order from default dendrogram.
+            const mrnaIds = leafNodes(dendroDefault)
+            const mrnaIdsLookup = Object.fromEntries(
+              mrnaIds.map((mrnaId, dataIndex) => [mrnaId, dataIndex])
+            )
+
+            // Extract genomeNrs and nucleotides from alignments.
+            const sortedAlignments = sortBy(
+              alignments,
+              // 1. Sort by mRNA id in the order as defined by the dendrogram.
+              // 2. Sort by the position within each mRNA id.
+              [({ mRNA_id }) => mrnaIdsLookup[mRNA_id], 'position']
+            )
+            const genomeNrs = range(
+              0,
+              geneLength * sequenceCount,
+              geneLength
+            ).map((index) => sortedAlignments[index].genome_nr)
+            const alignedPositions = sortedAlignments.map(
+              ({ nucleotide }) => nucleotide
+            )
+
+            // Sort metadata.
+            const metadata = sortBy(
+              meta,
+              ({ mrnaId }) => mrnaIdsLookup[mrnaId]
+            ).map(({ metadata }) => metadata)
+
+            // Convert sparse array to array containing VariablePosition and null.
+            const variablePositions: (VariablePosition | null)[] = times(
+              geneLength,
+              constant(null)
+            )
+            varPos.forEach(({ position, ...varPos }) => {
+              variablePositions[position - 1] = varPos
+            })
+
+            // User as already switched to a different homology group.
+            if (this.homologyLoadId !== loadId) return
+
+            const positionRegion = DEFAULT_SELECTED_REGION.map((val) =>
+              clamp(val, geneLength)
+            ) as Range
+
+            this.$patch({
+              alignedPositions,
+              dendroCustom: null,
+              dendroCustomForSelectedPositions: [],
+              dendroDefault,
+              genomeNrs,
+              groups: [],
+              homologyId,
+              isInitialized: true,
+              lastGroupId: 0,
+              metadata,
+              mrnaIds,
+              positionFilter: 'all',
+              positionRegion,
+              reference: null,
+              selectedDataIndices: [],
+              selectedPositions: [],
+              sortedDataIndices: range(sequenceCount),
+              sorting: DEFAULT_SORTING,
+              tree: 'dendroDefault',
+              variablePositions,
+            })
+          },
+          () => {
+            // User as already switched to a different homology group.
+            if (this.homologyLoadId !== loadId) return
+
+            notification.close('homology')
+
+            this.setError({
+              message: `Unable to load the data for homology group ${homologyName(
+                homology
+              )}.`,
+              isFatal: !this.isInitialized,
+            })
+          },
+          (percent) => showNotification(percent)
+        )
+        .catch((error) => {
+          // User as already switched to a different homology group.
+          if (this.homologyLoadId !== loadId) return
+
+          this.setError({
+            message: `There was an error processing the data for homology group ${homologyName(
+              homology
+            )}.`,
+            isFatal: true,
+          })
+          throw error
+        })
+    },
+    async loadCustomDendrogram() {
+      if (this.homologyId === null) return
+
+      // Store current homology id.
+      const homologyId = this.homologyId
+
+      try {
+        const data = await fetchDendrogramCustom(
+          this.homologyId,
+          this.selectedPositions
+        )
+
+        // Make sure user didn't switch homology groups in the mean time.
+        if (homologyId !== this.homologyId) return
+
+        this.dendroCustom = data
+        this.dendroCustomForSelectedPositions = this.selectedPositions
+
+        // Automatically switch to the custom dendrogram.
+        this.tree = 'dendroCustom'
+        this.changeSorting({ name: 'dendroCustom' })
+      } catch (err) {
+        this.setError({
+          message: 'Unable to fetch or parse custom dendrogram from API.',
+          isFatal: false,
+        })
+        throw err
+      }
     },
   },
 })

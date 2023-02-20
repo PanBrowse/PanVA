@@ -65,12 +65,6 @@ export default {
       'transitionTime',
     ]),
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
-    hasAllData(): boolean {
-      return (
-        this.metadata.length !== 0 &&
-        this.sortedDataIndicesCollapsed.length !== 0
-      )
-    },
     height(): number {
       return this.sequenceCount * CELL_SIZE
     },
@@ -170,8 +164,6 @@ export default {
       return d3.select(`#${this.name}`)
     },
     draw() {
-      if (!this.hasAllData) return
-
       this.svg()
         .selectAll('rect.bar')
         .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
@@ -301,9 +293,6 @@ export default {
     this.draw()
   },
   watch: {
-    hasAllData() {
-      this.draw()
-    },
     sortedDataIndicesCollapsed() {
       this.draw()
     },

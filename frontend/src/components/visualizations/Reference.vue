@@ -19,9 +19,6 @@ export default {
       'referenceNucleotides',
       'transitionTime',
     ]),
-    hasAllData(): boolean {
-      return this.alignedPositions.length !== 0
-    },
     width(): number {
       return this.filteredPositionsCount * CELL_SIZE
     },
@@ -37,8 +34,6 @@ export default {
         .getContext('2d')
     },
     draw() {
-      if (!this.hasAllData) return
-
       const scaleFactor = 2.0
 
       const canvas = d3
@@ -77,9 +72,6 @@ export default {
     this.draw()
   },
   watch: {
-    hasAllData() {
-      this.draw()
-    },
     filteredPositions() {
       this.draw()
     },

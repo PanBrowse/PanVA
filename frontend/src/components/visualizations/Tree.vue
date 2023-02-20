@@ -25,13 +25,9 @@ export default {
       'mrnaIdsLookup',
       'rowColors',
       'sequenceCount',
-      'transitionTime',
       'tree',
     ]),
     ...mapWritableState(useDataStore, ['selectedDataIndices']),
-    hasAllData(): boolean {
-      return this.treeData !== null && this.sequenceCount !== 0
-    },
     treeSource(): TreeOption {
       if (this.tree === 'coreSNP' && this.coreSNP) {
         return 'coreSNP'
@@ -82,18 +78,12 @@ export default {
       return `M${sx},${sy}V${ty}H${tx}`
     },
     draw() {
-      if (!this.hasAllData) return
-
       this.svg()
         .selectAll('path')
         .data(this.links)
         .join(
           (enter) => enter.append('path').attr('d', (d) => this.linkPath(d)),
-          (update) =>
-            update
-              .transition()
-              .duration(this.transitionTime)
-              .attr('d', (d) => this.linkPath(d)),
+          (update) => update.attr('d', (d) => this.linkPath(d)),
           (exit) => exit.remove()
         )
 
@@ -109,8 +99,6 @@ export default {
               .attr('r', this.circleRadius),
           (update) =>
             update
-              .transition()
-              .duration(this.transitionTime)
               .attr('cx', (d) => this.circleRadius + d.y)
               .attr('cy', (d) => d.x),
           (exit) => exit.remove()
@@ -146,9 +134,6 @@ export default {
     this.draw()
   },
   watch: {
-    hasAllData() {
-      this.draw()
-    },
     rowColors() {
       this.draw()
     },

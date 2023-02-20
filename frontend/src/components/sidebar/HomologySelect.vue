@@ -1,11 +1,11 @@
 <script lang="ts">
-import { mapState, mapWritableState } from 'pinia'
+import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '@/stores/data'
 
-import LoadingBox from '@/components/common/LoadingBox.vue'
 import SidebarItem from '@/components/common/SidebarItem.vue'
 import { Divider, Select, Tree, type TreeProps } from 'ant-design-vue'
 import { sortBy } from 'lodash'
+import { homologyName } from '@/helpers/homology'
 
 type Option = {
   value: number
@@ -22,7 +22,6 @@ export default {
     ADivider: Divider,
     ASelect: Select,
     ATree: Tree,
-    LoadingBox,
     SidebarItem,
     VNodes: (_, { attrs }) => {
       return attrs.vnodes
@@ -35,8 +34,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(useDataStore, ['homologies']),
-    ...mapWritableState(useDataStore, ['homologyId']),
+    ...mapState(useDataStore, ['homologies', 'homologyId']),
     filterOptions(): FilterOption[] {
       const map = new Map<string, Set<any>>()
       this.homologies.forEach(({ metadata }) => {
@@ -92,13 +90,14 @@ export default {
             )
           )
         )
-        .map(({ homology_id, name }) => ({
-          value: homology_id,
-          label: name ? `${name} - ${homology_id}` : `${homology_id}`,
+        .map((homology) => ({
+          value: homology.homology_id,
+          label: homologyName(homology),
         }))
     },
   },
   methods: {
+    ...mapActions(useDataStore, ['loadHomologyGroup']),
     filterOption(input: string, option: Option) {
       return option.label.toLowerCase().includes(input.toLowerCase())
     },
@@ -112,6 +111,9 @@ export default {
         }
       })
     },
+    onHomologySelect(homologyId: any) {
+      this.loadHomologyGroup(homologyId)
+    },
   },
 }
 </script>
@@ -123,9 +125,10 @@ export default {
       :dropdownMatchSelectWidth="false"
       :filterOption="filterOption"
       :options="options"
-      v-model:value="homologyId"
+      :value="homologyId"
+      @select="onHomologySelect"
       style="width: 100%"
-      v-if="homologies.length !== 0 && homologyId"
+      v-if="homologyId"
     >
       <template #dropdownRender="{ menuNode }">
         <div
@@ -150,14 +153,13 @@ export default {
         <v-nodes :vnodes="menuNode" />
       </template>
     </ASelect>
-    <LoadingBox :height="32" v-else />
   </SidebarItem>
 </template>
 
 <style lang="scss">
 .homology-filter-tree {
   padding: 8px;
-  max-height: 200px;
+  max-height: 256px;
   overflow-y: auto;
 }
 </style>

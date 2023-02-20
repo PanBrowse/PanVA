@@ -15,7 +15,7 @@ export default {
   },
   data() {
     return {
-      isFetchingCustomDendro: false,
+      isLoadingCustomDendro: false,
     }
   },
   computed: {
@@ -27,11 +27,12 @@ export default {
       'filteredPositionsCount',
       'filterPositions',
       'geneLength',
+      'homologyId',
       'positionFilter',
       'positionRegion',
       'transitionTime',
     ]),
-    ...mapWritableState(useDataStore, ['tree', 'selectedPositions']),
+    ...mapWritableState(useDataStore, ['selectedPositions']),
     positionsLabel(): string {
       if (this.positionFilter !== 'all') return 'filtered positions'
       return 'positions'
@@ -69,7 +70,7 @@ export default {
     customDendroButtonDisabled(): boolean {
       return (
         // Already fetching a custom dendro.
-        this.isFetchingCustomDendro ||
+        this.isLoadingCustomDendro ||
         // No selection, nothing to fetch.
         this.selectedCount === 0 ||
         // The
@@ -81,7 +82,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useDataStore, ['changeSorting', 'fetchDendrogramCustom']),
+    ...mapActions(useDataStore, ['loadCustomDendrogram']),
     clearSelection() {
       this.selectedPositions = []
     },
@@ -113,15 +114,16 @@ export default {
     },
     async updateCustomDendro() {
       try {
-        this.isFetchingCustomDendro = true
-        await this.fetchDendrogramCustom()
-
-        // Automatically switch to the custom dendrogram.
-        this.tree = 'dendroCustom'
-        this.changeSorting({ name: 'dendroCustom' })
+        this.isLoadingCustomDendro = true
+        await this.loadCustomDendrogram()
       } finally {
-        this.isFetchingCustomDendro = false
+        this.isLoadingCustomDendro = false
       }
+    },
+  },
+  watch: {
+    homologyId() {
+      this.isLoadingCustomDendro = false
     },
   },
 }
@@ -167,7 +169,7 @@ export default {
       <AFormItem>
         <AButton
           :disabled="customDendroButtonDisabled"
-          :loading="isFetchingCustomDendro"
+          :loading="isLoadingCustomDendro"
           @click="updateCustomDendro"
         >
           <span v-if="dendroCustom">Update custom dendrogram</span>

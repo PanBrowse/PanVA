@@ -22,6 +22,9 @@ export default {
 <template>
   <SidebarItem v-if="homology" title="Homology info" isDefaultCollapsed>
     <ADescriptions size="small" layout="horizontal" :column="1" bordered>
+      <ADescriptionsItem label="Name" v-if="homology.name">
+        {{ homology.name }}
+      </ADescriptionsItem>
       <ADescriptionsItem label="ID">
         {{ homology.homology_id }}
       </ADescriptionsItem>

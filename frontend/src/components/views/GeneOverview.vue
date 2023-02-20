@@ -6,7 +6,6 @@ import { mapState, mapWritableState } from 'pinia'
 import type { D3BrushEvent } from 'd3'
 import { zipEqual } from '@/helpers/zipEqual'
 
-import LoadingBox from '@/components/common/LoadingBox.vue'
 import { Card } from 'ant-design-vue'
 
 type Score = {
@@ -20,7 +19,6 @@ export default {
   },
   components: {
     ACard: Card,
-    LoadingBox,
   },
   data() {
     return {
@@ -52,13 +50,6 @@ export default {
       'variablePositions',
     ]),
     ...mapWritableState(useDataStore, ['positionRegion']),
-    hasAllData(): boolean {
-      return (
-        this.variablePositions.length !== 0 &&
-        this.sequenceCount !== 0 &&
-        this.geneLength !== 0
-      )
-    },
     allScores(): Score[] {
       const positions = range(1, this.geneLength + 1)
       const conservations = positions.map<number>((pos) => {
@@ -242,8 +233,6 @@ export default {
         .call(d3.axisBottom(this.xScale).tickValues(this.ticksXdomain))
     },
     draw() {
-      if (!this.hasAllData) return
-
       // Remove all old child elements from SVG.
       this.svg().html('')
 
@@ -255,14 +244,13 @@ export default {
   mounted() {
     this.resizeObserver = new ResizeObserver(this.onResize)
     this.resizeObserver.observe(this.$el)
+
+    this.draw()
   },
   unmounted() {
     this.resizeObserver?.disconnect()
   },
   watch: {
-    hasAllData() {
-      this.draw()
-    },
     positionRegion() {
       this.draw()
     },
@@ -277,13 +265,7 @@ export default {
     size="small"
     class="gene-overview"
   >
-    <svg
-      v-show="hasAllData"
-      :width="svgWidth"
-      :height="svgHeight"
-      id="geneOverview"
-    ></svg>
-    <LoadingBox v-show="!hasAllData" :height="svgHeight" />
+    <svg :width="svgWidth" :height="svgHeight" id="geneOverview"></svg>
   </ACard>
 </template>
 

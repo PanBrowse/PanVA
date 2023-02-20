@@ -4,8 +4,6 @@ import { useDataStore } from '@/stores/data'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { CELL_SIZE } from '@/constants'
 
-import LoadingBox from '@/components/common/LoadingBox.vue'
-
 import type { DataIndexCollapsed, Nucleotide } from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
@@ -42,9 +40,6 @@ type GroupAggregates = Record<
 >
 
 export default {
-  components: {
-    LoadingBox,
-  },
   data() {
     return {
       customNode: document.createElement('custom:node'),
@@ -72,13 +67,6 @@ export default {
     ]),
     ...mapState(useConfigStore, ['filters']),
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
-    hasAllData(): boolean {
-      return (
-        this.sequenceCount !== 0 &&
-        this.sortedDataIndicesCollapsed.length !== 0 &&
-        this.alignedPositions.length !== 0
-      )
-    },
     width(): number {
       return this.filteredPositionsCount * CELL_SIZE
     },
@@ -177,8 +165,6 @@ export default {
       return false
     },
     draw() {
-      if (!this.hasAllData) return
-
       d3.select(this.customNode)
         .selectAll('c')
         .data<Cell>(
@@ -286,8 +272,6 @@ export default {
       }
     },
     onMouseMove(event: MouseEvent) {
-      if (!this.hasAllData) return
-
       const cell = this.mouseEventToCell(event)
 
       // We are on the canvas, but at a point where there are no cells.
@@ -413,9 +397,6 @@ export default {
     cellTheme() {
       this.updateCanvas()
     },
-    hasAllData() {
-      this.draw()
-    },
     reference() {
       this.updateCanvas()
     },
@@ -442,23 +423,21 @@ export default {
     }"
   >
     <canvas
-      v-show="hasAllData"
       id="heatmap"
       @mousemove="onMouseMove"
       @mouseleave="onMouseLeave"
     ></canvas>
-    <LoadingBox v-show="!hasAllData" :height="120" />
 
     <div
       ref="hoverCell"
       class="heatmap-cell-hover"
-      v-show="hoverColIndex !== null && hasAllData"
+      v-show="hoverColIndex !== null"
       :style="hoverCellStyle"
     />
 
     <div
       class="heatmap-row-hover"
-      v-if="hoverRowIndex !== null && hasAllData"
+      v-if="hoverRowIndex !== null"
       :style="hoverRowStyle"
     />
   </div>

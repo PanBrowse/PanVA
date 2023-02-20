@@ -38,7 +38,7 @@ export default {
 
 <template>
   <ACollapse
-    v-model:activeKey="activeKey"
+    :activeKey="activeKey"
     expandIconPosition="right"
     collapsible="header"
     :ghost="true"

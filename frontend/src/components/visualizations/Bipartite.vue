@@ -35,11 +35,6 @@ export default {
       'transitionTime',
       'tree',
     ]),
-    hasAllData(): boolean {
-      return (
-        this.treeData !== null && this.sortedDataIndicesCollapsed.length !== 0
-      )
-    },
     height(): number {
       if (this.treeData === null) return 0
       return leafNodes(this.treeData).length * CELL_SIZE
@@ -117,8 +112,6 @@ export default {
       )
     },
     draw() {
-      if (!this.hasAllData) return
-
       this.svg()
         .selectAll('path')
         .data(this.links, (d: any) => d.treeIndex)
@@ -141,9 +134,6 @@ export default {
     this.draw()
   },
   watch: {
-    hasAllData() {
-      this.draw()
-    },
     sortedDataIndicesCollapsed() {
       this.draw()
     },

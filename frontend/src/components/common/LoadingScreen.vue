@@ -12,22 +12,30 @@ export default {
 </script>
 
 <template>
-  <div class="loading-box" :style="{ height: height ? height + 'px' : 'auto' }">
+  <div class="loading-screen">
     <Loading3QuartersOutlined spin />
+    <div class="loading-screen__text">
+      The application is loading, please wait...
+    </div>
   </div>
 </template>
 
 <style lang="scss">
 @import '@/assets/colors.module.scss';
 
-.loading-box {
+.loading-screen {
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+
+  color: $gray-8;
 
   .anticon-loading-3-quarters {
     font-size: 40px;
-    color: $gray-8;
+    color: var(--ant-primary-color);
   }
 }
 </style>

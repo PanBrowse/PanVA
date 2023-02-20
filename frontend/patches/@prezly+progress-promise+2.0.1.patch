@@ -1,0 +1,13 @@
+diff --git a/node_modules/@prezly/progress-promise/build/types/ProgressPromise.d.ts b/node_modules/@prezly/progress-promise/build/types/ProgressPromise.d.ts
+index 53a2aae..bb5b287 100644
+--- a/node_modules/@prezly/progress-promise/build/types/ProgressPromise.d.ts
++++ b/node_modules/@prezly/progress-promise/build/types/ProgressPromise.d.ts
+@@ -21,7 +21,7 @@ export declare class ProgressPromise<T, P extends any = undefined> implements Pr
+         P1 extends undefined ? T1 | PromiseLike<T1> | ProgressPromise<T1> : ProgressPromise<T1, P1 | undefined>,
+         P2 extends undefined ? T2 | PromiseLike<T2> | ProgressPromise<T2> : ProgressPromise<T2, P2 | undefined>,
+         P3 extends undefined ? T3 | PromiseLike<T3> | ProgressPromise<T3> : ProgressPromise<T3, P3 | undefined>,
+-        P4 extends undefined ? T4 | PromiseLike<T1> | ProgressPromise<T1> : ProgressPromise<T1, P1 | undefined>
++        P4 extends undefined ? T4 | PromiseLike<T4> | ProgressPromise<T4> : ProgressPromise<T4, P4 | undefined>
+     ]): ProgressPromise<[T1, T2, T3, T4], [P1, P2, P3, P4]>;
+     then<TResult1 = T, TResult2 = never>(onFulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>, onRejected?: (reason: any) => TResult2 | PromiseLike<TResult2>, onProgress?: (progress: number, details: P) => void): ProgressPromise<TResult1 | TResult2, P>;
+     done: <TResult1 = T>(onFulfilled: (value: T) => TResult1 | PromiseLike<TResult1>) => ProgressPromise<TResult1, P>;
