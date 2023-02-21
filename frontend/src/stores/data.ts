@@ -559,13 +559,29 @@ export const useDataStore = defineStore('data', {
     },
     async initializeApp() {
       const config = useConfigStore()
-
       if (await config.loadConfig()) {
-        const homologies = sortBy(await fetchHomologies(), [
-          'name',
-          'homology_id',
-        ])
-        const coreSNP = await fetchCoreSNP()
+        let homologies: Homology[]
+        let coreSNP: TreeNode
+
+        try {
+          homologies = sortBy(await fetchHomologies(), ['name', 'homology_id'])
+        } catch (error) {
+          this.setError({
+            message: 'Could not load or parse homologies.',
+            isFatal: true,
+          })
+          throw error
+        }
+
+        try {
+          coreSNP = await fetchCoreSNP()
+        } catch (error) {
+          this.setError({
+            message: 'Could not load or parse coreSNP.',
+            isFatal: true,
+          })
+          throw error
+        }
 
         // Use the configured default metadata columns.
         const visibleMetadataColumns = config.defaultMetadataColumns
@@ -587,7 +603,7 @@ export const useDataStore = defineStore('data', {
             ? config.defaultHomologyId
             : homologies[0].homology_id
 
-        this.loadHomologyGroup(homologyId)
+        await this.loadHomologyGroup(homologyId)
       }
     },
     async loadHomologyGroup(homologyId: number) {

@@ -1,3 +1,5 @@
+import type { VNode } from 'vue'
+
 /**
  * Common.
  */
@@ -20,7 +22,7 @@ export type DataReference = {
 export type Reference = GroupReference | DataReference
 
 export type AppError = {
-  message: string
+  message: string | VNode
   isFatal?: boolean
 }
 
