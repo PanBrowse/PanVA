@@ -110,12 +110,13 @@ export default {
         { value: 'position', label: `Nucleotide (pos ${sortPosition})` },
       ]
 
-      const metadataSortOptions: SortOption[] = this.metadata.map(
-        ({ column, label }) => ({
-          value: `metadata:${column}`,
-          label,
-        })
-      )
+      const metadataSortOptions: SortOption[] = sortBy(
+        this.metadata,
+        'label'
+      ).map(({ column, label }) => ({
+        value: `metadata:${column}`,
+        label,
+      }))
 
       if (metadataSortOptions.length) {
         options.push({
@@ -138,6 +139,18 @@ export default {
         })),
         'label'
       )
+    },
+    filterPositionOptions(): SortOption[] {
+      const options = [
+        { value: 'all', label: 'All' },
+        { value: 'variable', label: 'Variable' },
+        { value: 'informative', label: 'Informative' },
+      ]
+      this.filters.forEach(({ column, label }) =>
+        options.push({ value: column, label })
+      )
+      // Alphabetical, but 'all' always first.
+      return sortBy(options, [({ value }) => value !== 'all', 'label'])
     },
   },
   methods: {
@@ -199,18 +212,9 @@ export default {
         <ASelect
           :dropdownMatchSelectWidth="false"
           v-model:value="positionFilter"
-        >
-          <ASelectOption value="all">All</ASelectOption>
-          <ASelectOption value="variable">Variable</ASelectOption>
-          <ASelectOption value="informative">Informative</ASelectOption>
-          <ASelectOption
-            :value="filter.column"
-            v-for="filter in filters"
-            v-bind:key="filter.column"
-          >
-            {{ filter.label }}
-          </ASelectOption>
-        </ASelect>
+          :options="filterPositionOptions"
+          show-search
+        />
       </AFormItem>
 
       <AFormItem label="Sorting">
@@ -218,6 +222,7 @@ export default {
           :dropdownMatchSelectWidth="false"
           v-model:value="sortValue"
           @change="onSortChange"
+          show-search
         >
           <template v-for="option in sortOptions" v-bind:key="option.value">
             <ASelectOptGroup :label="option.label" v-if="option.options">
