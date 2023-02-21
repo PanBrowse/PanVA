@@ -54,7 +54,7 @@ export default {
       'filteredPositions',
       'filteredPositionsCount',
       'geneLength',
-      'groups',
+      'groupsFiltered',
       'homologyId',
       'mrnaIds',
       'nucleotideColor',
@@ -94,7 +94,7 @@ export default {
     },
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
-        this.groups.map(({ id, dataIndices }) => {
+        this.groupsFiltered.map(({ id, dataIndices }) => {
           const aggregates = this.filteredPositions.map((position) => {
             const counts: GroupCounts = {
               A: 0,

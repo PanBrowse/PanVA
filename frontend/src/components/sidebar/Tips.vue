@@ -28,5 +28,9 @@ export default {
       Tooltips with a <PushpinOutlined /> icon in the title can be pinned by
       pressing <ATypographyText keyboard>T</ATypographyText>.
     </p>
+    <p>
+      Hold <ATypographyText keyboard>Shift</ATypographyText> and click on a
+      categorical or boolean metadata value to filter sequences by that value.
+    </p>
   </SidebarItem>
 </template>

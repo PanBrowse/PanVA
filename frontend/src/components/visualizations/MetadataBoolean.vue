@@ -33,19 +33,8 @@ type GroupAggregates = Record<
 export default {
   props: {
     column: {
-      type: String,
+      type: Object as PropType<ConfigMetadataBoolean>,
       required: true,
-    },
-    labels: {
-      type: Object as PropType<ConfigMetadataBoolean['labels']>,
-      required: false,
-      default() {
-        return {
-          true: 'Yes',
-          false: 'No',
-          null: 'Unknown',
-        }
-      },
     },
   },
   data() {
@@ -55,7 +44,7 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
-      'groups',
+      'groupsFiltered',
       'mrnaIds',
       'metadata',
       'selectedDataIndicesSet',
@@ -68,14 +57,14 @@ export default {
       return this.sequenceCount * CELL_SIZE
     },
     name(): string {
-      return `metadata-${this.column}`
+      return `metadata-${this.column.column}`
     },
     width(): number {
       return this.padding * 2 + CELL_SIZE
     },
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
-        this.groups.map(({ id, dataIndices }) => {
+        this.groupsFiltered.map(({ id, dataIndices }) => {
           const allValues = dataIndices.map(this.valueAtDataIndex)
           const counts = mapCountBy(allValues)
           const values = uniq(allValues)
@@ -90,15 +79,25 @@ export default {
   },
   methods: {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
-    ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
+    ...mapActions(useDataStore, [
+      'addSequenceFilter',
+      'dragEnd',
+      'dragStart',
+      'dragUpdate',
+    ]),
     valueAtDataIndex(dataIndex: number): MetadataBoolean {
-      return this.metadata[dataIndex][this.column] as MetadataBoolean
+      return this.metadata[dataIndex][this.column.column] as MetadataBoolean
     },
     svg() {
       return d3.select(`#${this.name}`)
     },
     labelForValue(value: MetadataBoolean) {
-      return this.labels ? this.labels[`${value}`] : `${value}`
+      const labels = this.column.labels || {
+        true: 'Yes',
+        false: 'No',
+        null: 'Unknown',
+      }
+      return labels[`${value}`]
     },
     circleRadius(values: MetadataBoolean[]) {
       if (values.length === 1) {
@@ -203,6 +202,24 @@ export default {
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
           if (index === null) return
+
+          // Shift key is pressed, consider this to be a sequence filter.
+          if (event.shiftKey) {
+            const data = this.sortedDataIndicesCollapsed[index]
+
+            // Can't filter on groups.
+            if (isGroup(data)) return
+
+            const value = this.valueAtDataIndex(data)
+
+            this.addSequenceFilter({
+              column: this.column.column,
+              value,
+              label: this.column.label,
+              formattedValue: this.labelForValue(value),
+            })
+            return
+          }
 
           this.dragStart(index, event.ctrlKey || event.altKey)
         })

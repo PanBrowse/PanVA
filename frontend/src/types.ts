@@ -46,6 +46,19 @@ type SortingPosition = {
 export type Sorting = SortingCommon | SortingMetadata | SortingPosition
 
 /**
+ * Filtering
+ */
+export type SequenceFilter = {
+  // Used for filtering.
+  column: string
+  value: MetadataValue
+
+  // Used for displaying current filters.
+  label: string
+  formattedValue: string
+}
+
+/**
  * Grouping.
  */
 export type Group = {
@@ -97,10 +110,11 @@ export type MetadataBoolean = boolean | null
 export type MetadataCategorical = string
 export type MetadataQuantitative = number | null
 
-export type Metadata = Record<
-  string,
-  MetadataBoolean | MetadataCategorical | MetadataQuantitative
->
+export type MetadataValue =
+  | MetadataBoolean
+  | MetadataCategorical
+  | MetadataQuantitative
+export type Metadata = Record<string, MetadataValue>
 
 /**
  * Raw API data.

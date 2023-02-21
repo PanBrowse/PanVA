@@ -3,7 +3,11 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
-import type { DataIndexCollapsed, MetadataCategorical } from '@/types'
+import type {
+  ConfigMetadataCategorical,
+  DataIndexCollapsed,
+  MetadataCategorical,
+} from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
@@ -12,6 +16,7 @@ import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import { mapCountBy } from '@/helpers/mapCountBy'
 import colors from '@/assets/colors.module.scss'
+import type { PropType } from 'vue'
 
 type GroupCounts = Map<MetadataCategorical, number>
 
@@ -28,17 +33,13 @@ type GroupAggregates = Record<
 export default {
   props: {
     column: {
-      type: String,
-      required: true,
-    },
-    width: {
-      type: Number,
+      type: Object as PropType<ConfigMetadataCategorical>,
       required: true,
     },
   },
   computed: {
     ...mapState(useDataStore, [
-      'groups',
+      'groupsFiltered',
       'rowColors',
       'metadata',
       'selectedDataIndicesSet',
@@ -51,7 +52,7 @@ export default {
       return this.sequenceCount * CELL_SIZE
     },
     name(): string {
-      return `metadata-${this.column}`
+      return `metadata-${this.column.column}`
     },
     rowValues(): (MetadataCategorical | null)[] {
       // Value `null` is used to indicate multiple values.
@@ -69,7 +70,7 @@ export default {
     valueIndexLookup() {
       const map = new Map()
       let lastIndex = 0
-      this.metadata.forEach(({ [this.column]: value }) => {
+      this.metadata.forEach(({ [this.column.column]: value }) => {
         if (!map.has(value)) {
           map.set(value, ++lastIndex)
         }
@@ -85,7 +86,7 @@ export default {
     },
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
-        this.groups.map(({ id, dataIndices }) => {
+        this.groupsFiltered.map(({ id, dataIndices }) => {
           const allValues = dataIndices.map(this.valueAtDataIndex)
           const counts = mapCountBy(allValues)
           const values = uniq(allValues)
@@ -100,9 +101,14 @@ export default {
   },
   methods: {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
-    ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
+    ...mapActions(useDataStore, [
+      'addSequenceFilter',
+      'dragEnd',
+      'dragStart',
+      'dragUpdate',
+    ]),
     valueAtDataIndex(dataIndex: number): MetadataCategorical {
-      return this.metadata[dataIndex][this.column] as MetadataCategorical
+      return this.metadata[dataIndex][this.column.column] as MetadataCategorical
     },
     svg() {
       return d3.select(`#${this.name}`)
@@ -153,6 +159,24 @@ export default {
         .on('mousedown', (event: MouseEvent) => {
           const index = eventIndex(event)
           if (index === null) return
+
+          // Shift key is pressed, consider this to be a sequence filter.
+          if (event.shiftKey) {
+            const data = this.sortedDataIndicesCollapsed[index]
+
+            // Can't filter on groups.
+            if (isGroup(data)) return
+
+            const value = this.valueAtDataIndex(data)
+
+            this.addSequenceFilter({
+              column: this.column.column,
+              value,
+              label: this.column.label,
+              formattedValue: value,
+            })
+            return
+          }
 
           this.dragStart(index, event.ctrlKey || event.altKey)
         })
@@ -219,7 +243,12 @@ export default {
 </script>
 
 <template>
-  <svg :id="name" :width="width" :height="height" class="metadata-categorical">
+  <svg
+    :id="name"
+    :width="column.width"
+    :height="height"
+    class="metadata-categorical"
+  >
     <component is="style" type="text/css">
       <!-- prettier-ignore -->
       <template v-if="hoverRowIndex !== null">

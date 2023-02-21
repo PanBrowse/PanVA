@@ -27,6 +27,7 @@ import type {
   DataReference,
   ConfigMetadata,
   MetadataQuantitative,
+  SequenceFilter,
 } from '@/types'
 import {
   clamp,
@@ -117,6 +118,9 @@ export const useDataStore = defineStore('data', {
     // Filter positions based on position metadata.
     positionFilter: 'all' as FilterPosition,
 
+    // Filter sequences based on sequence metadata.
+    sequenceFilters: [] as SequenceFilter[],
+
     // Grouping.
     groups: [] as Group[],
     lastGroupId: 0,
@@ -154,51 +158,82 @@ export const useDataStore = defineStore('data', {
     homologyLoadId: 0,
   }),
   getters: {
+    sortedDataIndicesFiltered(): number[] {
+      /**
+       * Filters `sortedDataIndices` and removes data indices that don't match.
+       */
+      return this.sortedDataIndices.filter((dataIndex) =>
+        this.sequenceFilters.every(
+          ({ column, value }) => this.metadata[dataIndex][column] === value
+        )
+      )
+    },
+    groupsFiltered(): Group[] {
+      /**
+       * Filters `groups` and removes data indices that don't match the current sequence filters.
+       * Groups that are left without any data indices are not returned.
+       */
+      const lookup = arrayFlip(this.sortedDataIndicesFiltered)
+
+      return this.groups
+        .map((group) => {
+          const dataIndices = group.dataIndices.filter(
+            (dataIndex) => lookup[dataIndex] !== undefined
+          )
+          return {
+            ...group,
+            dataIndices,
+          }
+        })
+        .filter(({ dataIndices }) => dataIndices.length !== 0)
+    },
     sortedDataIndicesCollapsed(): DataIndexCollapsed[] {
       /**
-       * This returns the same mapping as `sortedDataIndices`, but with collapsed
-       * groups as a Group object in the correct drawing position.
+       * This returns the same mapping as `sortedDataIndicesFiltered`, but with
+       * collapsed groups as a Group object in the correct row index.
        *
        * Given a list of unsorted mRNA ids [a,b,c,d,e] and a target order of [e,b,d,a,c],
        * but with a group containing [b,d,c] this function returns:
        * [
-       *   0 => 4,     // on draw position 0 is data index 4
-       *   1 => Group, // on draw position 1 is Group with indices [1,3,2] (b,d,c)
-       *   2 => 0,     // on draw position 2 is mRNA ids index 0 (a)
+       *   0 => 4,     // on row index 0 is data index 4
+       *   1 => Group, // on row index 1 is Group with indices [1,3,2] (b,d,c)
+       *   2 => 0,     // on row index 2 is mRNA ids index 0 (a)
        * ]
        *
-       * The group is placed at drawing position 1 because that is the median drawing
-       * position in `sortedDataIndices` after removing empty rows:
+       * The group is placed at row index 1 because that is the median row index
+       * in `sortedDataIndicesFiltered` after removing empty rows:
        */
 
       // Work on a copy of the original `sortedDataIndices`.
-      const indices: (DataIndexCollapsed | null)[] = [...this.sortedDataIndices]
+      const indices: (DataIndexCollapsed | null)[] = [
+        ...this.sortedDataIndicesFiltered,
+      ]
 
-      // Lookup table for mRNA ids index => draw position.
-      const lookup = arrayFlip(this.sortedDataIndices)
+      // Lookup table for mRNA ids index => row index.
+      const lookup = arrayFlip(this.sortedDataIndicesFiltered)
 
       // For each collapsed group.
-      filter(this.groups, 'isCollapsed').forEach((group) => {
+      filter(this.groupsFiltered, 'isCollapsed').forEach((group) => {
         const { dataIndices } = group
 
-        // Determine all draw positions for this group's data indices.
-        const positions = dataIndices.map((dataIndex) => lookup[dataIndex])
+        // Determine all row indices for this group's data indices.
+        const rowIndices = dataIndices.map((dataIndex) => lookup[dataIndex])
 
-        // Determine the median draw position where to draw this group.
-        const medianPosition = medianRight(positions)
+        // Determine the median row index where to draw this group.
+        const medianRowIndex = medianRight(rowIndices)
 
-        // Set draw position to null for all data indices of this group.
-        positions.forEach((position) => {
-          indices[position] = null
+        // Set row index to null for all data indices of this group.
+        rowIndices.forEach((rowIndex) => {
+          indices[rowIndex] = null
         })
 
-        // Add group at correct draw position.
-        indices[medianPosition] = group
+        // Add group at correct row index.
+        indices[medianRowIndex] = group
       })
 
-      // Remove null values. Any gaps in draw positions will be removed.
+      // Remove null values. Any gaps in row indices will be removed.
       const condenced = indices.filter(
-        (value): value is DataIndexCollapsed => value !== null
+        (dataIndex): dataIndex is DataIndexCollapsed => dataIndex !== null
       )
 
       return condenced
@@ -557,6 +592,9 @@ export const useDataStore = defineStore('data', {
 
       this.error = error
     },
+    addSequenceFilter(filter: SequenceFilter) {
+      this.sequenceFilters.push(filter)
+    },
     async initializeApp() {
       const config = useConfigStore()
       if (await config.loadConfig()) {
@@ -749,6 +787,7 @@ export const useDataStore = defineStore('data', {
               reference: null,
               selectedDataIndices: [],
               selectedPositions: [],
+              sequenceFilters: [],
               sortedDataIndices: range(sequenceCount),
               sorting: DEFAULT_SORTING,
               tree: 'dendroDefault',

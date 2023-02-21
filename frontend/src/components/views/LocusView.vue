@@ -87,23 +87,17 @@ export default {
         <template v-for="column in visibleMetadata">
           <MetadataBoolean
             v-bind:key="column.column"
-            :column="column.column"
-            :labels="column.labels"
+            :column="column"
             v-if="column.type === 'boolean'"
           />
           <MetadataCategorical
             v-bind:key="column.column"
-            :column="column.column"
-            :width="column.width"
+            :column="column"
             v-if="column.type === 'categorical'"
           />
           <MetadataQuantitative
             v-bind:key="column.column"
-            :column="column.column"
-            :suffix="column.suffix"
-            :decimals="column.decimals"
-            :maxValue="column.maxValue"
-            :width="column.width"
+            :column="column"
             v-if="column.type === 'quantitative'"
           />
         </template>

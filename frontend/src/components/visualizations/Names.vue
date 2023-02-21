@@ -19,7 +19,7 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
-      'groups',
+      'groupsFiltered',
       'mrnaIds',
       'rowColors',
       'sequenceCount',
@@ -33,7 +33,7 @@ export default {
     },
     maximumGroupSize(): number {
       const maximum = max(
-        this.groups.map(({ dataIndices }) => dataIndices.length)
+        this.groupsFiltered.map(({ dataIndices }) => dataIndices.length)
       )
       return maximum || 0
     },

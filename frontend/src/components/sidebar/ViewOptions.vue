@@ -16,8 +16,10 @@ import {
   SelectOptGroup,
   SelectOption,
   Switch,
+  Tag,
+  TypographyText,
 } from 'ant-design-vue'
-import { sortBy } from 'lodash'
+import { map, sortBy } from 'lodash'
 
 type SortOption = {
   label: string
@@ -36,6 +38,8 @@ export default {
     ASelectOption: SelectOption,
     ASelectOptGroup: SelectOptGroup,
     ASwitch: Switch,
+    ATag: Tag,
+    ATypographyText: TypographyText,
     SidebarItem,
   },
   computed: {
@@ -53,6 +57,7 @@ export default {
       'cellTheme',
       'positionFilter',
       'reference',
+      'sequenceFilters',
       'transitionsEnabled',
       'tree',
       'visibleMetadataColumns',
@@ -129,7 +134,7 @@ export default {
       return options
     },
     cellThemeOptions() {
-      return CELL_THEMES
+      return map(CELL_THEMES, ({ name }, key) => ({ value: key, label: name }))
     },
     metadataOptions(): SortOption[] {
       return sortBy(
@@ -196,6 +201,9 @@ export default {
         })
       }
     },
+    removeSequenceFilter(index: number) {
+      this.sequenceFilters.splice(index, 1)
+    },
   },
 }
 </script>
@@ -215,6 +223,25 @@ export default {
           :options="filterPositionOptions"
           show-search
         />
+      </AFormItem>
+
+      <AFormItem label="Filter sequences">
+        <ATypographyText type="secondary" v-if="sequenceFilters.length === 0">
+          None
+        </ATypographyText>
+        <div class="sequence-filters" v-else>
+          <ATag
+            closable
+            v-for="(filter, index) in sequenceFilters"
+            :title="`${filter.label}: ${filter.formattedValue}`"
+            v-bind:key="index"
+            @close="() => removeSequenceFilter(index)"
+          >
+            <div>
+              {{ filter.label }}: <em>{{ filter.formattedValue }}</em>
+            </div>
+          </ATag>
+        </div>
       </AFormItem>
 
       <AFormItem label="Sorting">
@@ -285,18 +312,6 @@ export default {
         </ASelect>
       </AFormItem>
 
-      <AFormItem label="Color scheme">
-        <ASelect v-model:value="cellTheme" :dropdownMatchSelectWidth="false">
-          <ASelectOption
-            v-for="(theme, id) in cellThemeOptions"
-            :value="id"
-            v-bind:key="id"
-          >
-            {{ theme.name }}
-          </ASelectOption>
-        </ASelect>
-      </AFormItem>
-
       <AFormItem label="Metadata">
         <ASelect
           placeholder="0 selected"
@@ -314,6 +329,14 @@ export default {
         </ASelect>
       </AFormItem>
 
+      <AFormItem label="Color scheme">
+        <ASelect
+          v-model:value="cellTheme"
+          :dropdownMatchSelectWidth="false"
+          :options="cellThemeOptions"
+        />
+      </AFormItem>
+
       <AFormItem
         label="Transitions"
         extra="Disable for improved performance on slower computers."
@@ -328,6 +351,32 @@ export default {
 .view-options {
   .ant-form-item {
     margin-bottom: 8px;
+  }
+
+  .sequence-filters {
+    padding: 5px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    overflow: hidden;
+
+    .ant-tag {
+      display: inline-grid;
+      grid-template-columns: 1fr min-content;
+      align-items: center;
+      padding: 0 4px 0 7px;
+
+      & > div {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      & > span {
+        margin-left: 5px;
+        flex: 0 0 auto;
+      }
+    }
   }
 }
 </style>

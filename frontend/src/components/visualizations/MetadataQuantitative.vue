@@ -3,7 +3,11 @@ import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
-import type { DataIndexCollapsed, MetadataQuantitative } from '@/types'
+import type {
+  ConfigMetadataQuantitative,
+  DataIndexCollapsed,
+  MetadataQuantitative,
+} from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
@@ -12,6 +16,7 @@ import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import { mapCountBy } from '@/helpers/mapCountBy'
 import colors from '@/assets/colors.module.scss'
+import type { PropType } from 'vue'
 
 type GroupCounts = Map<MetadataQuantitative, number>
 
@@ -33,30 +38,13 @@ type GroupValue = {
 export default {
   props: {
     column: {
-      type: String,
-      required: true,
-    },
-    decimals: {
-      type: Number,
-      required: false,
-    },
-    suffix: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    maxValue: {
-      type: Number,
-      required: false,
-    },
-    width: {
-      type: Number,
+      type: Object as PropType<ConfigMetadataQuantitative>,
       required: true,
     },
   },
   computed: {
     ...mapState(useDataStore, [
-      'groups',
+      'groupsFiltered',
       'rowColors',
       'metadata',
       'selectedDataIndicesSet',
@@ -69,19 +57,19 @@ export default {
       return this.sequenceCount * CELL_SIZE
     },
     maximumValue(): number {
-      if (this.maxValue) return this.maxValue
+      if (this.column.maxValue) return this.column.maxValue
       const maximum = max(
         this.metadata
-          .map((data) => data[this.column] as MetadataQuantitative)
+          .map((data) => data[this.column.column] as MetadataQuantitative)
           .filter((value) => value !== null)
       )
       return maximum || 0
     },
     name(): string {
-      return `metadata-${this.column}`
+      return `metadata-${this.column.column}`
     },
     rowValues(): (MetadataQuantitative | GroupValue)[] {
-      const decimals = this.decimals || 0
+      const decimals = this.column.decimals || 0
       return this.sortedDataIndicesCollapsed.map((data) => {
         if (isGroup(data)) {
           const { values } = this.groupAggregates[data.id]
@@ -106,7 +94,7 @@ export default {
     },
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
-        this.groups.map(({ id, dataIndices }) => {
+        this.groupsFiltered.map(({ id, dataIndices }) => {
           const allValues = dataIndices.map(this.valueAtDataIndex)
           const counts = mapCountBy(allValues)
           const values = uniq(allValues)
@@ -123,8 +111,8 @@ export default {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
     widthForIndex(value: number): number {
-      if (value >= this.maximumValue) return this.width
-      return (value * this.width) / this.maximumValue
+      if (value >= this.maximumValue) return this.column.width
+      return (value * this.column.width) / this.maximumValue
     },
     barWidth(data: DataIndexCollapsed, index: number): number {
       const value = this.rowValues[index]
@@ -141,11 +129,11 @@ export default {
       if (isGroup(data)) {
         const { meanValue, nullCount } = value as GroupValue
         if (nullCount === data.dataIndices.length) return '?'
-        if (nullCount) return `${meanValue}${this.suffix} +${nullCount}?`
-        return `${meanValue}${this.suffix}`
+        if (nullCount) return `${meanValue}${this.column.suffix} +${nullCount}?`
+        return `${meanValue}${this.column.suffix}`
       }
       if (value === null) return '?'
-      return `${value}${this.suffix}`
+      return `${value}${this.column.suffix}`
     },
     fillColor(data: DataIndexCollapsed): string {
       if (isGroup(data)) {
@@ -155,7 +143,9 @@ export default {
       return this.rowColors[data] || ''
     },
     valueAtDataIndex(dataIndex: number): MetadataQuantitative {
-      return this.metadata[dataIndex][this.column] as MetadataQuantitative
+      return this.metadata[dataIndex][
+        this.column.column
+      ] as MetadataQuantitative
     },
     textY(index: number) {
       return (index + 1) * CELL_SIZE - 2
@@ -228,7 +218,7 @@ export default {
               .attr('class', 'events')
               .attr('x', 0)
               .attr('y', (data, index) => index * CELL_SIZE)
-              .attr('width', this.width)
+              .attr('width', this.column.width)
               .attr('height', CELL_SIZE),
           (update) => update.attr('y', (data, index) => index * CELL_SIZE),
 
@@ -304,7 +294,12 @@ export default {
 </script>
 
 <template>
-  <svg :id="name" :width="width" :height="height" class="metadata-quantitative">
+  <svg
+    :id="name"
+    :width="column.width"
+    :height="height"
+    class="metadata-quantitative"
+  >
     <component is="style" type="text/css">
       <!-- prettier-ignore -->
       <template v-if="hoverRowIndex !== null">

@@ -41,6 +41,7 @@ This document describes the improvements of the PanVA application compared to th
 * Configurable position filters.
 * Configurable metadata columns.
 * Homology groups can be filtered by metadata.
+* Sequences can be filtered by metadata.
 
 ## Code cleanup
 

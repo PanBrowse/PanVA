@@ -58,7 +58,7 @@ export default {
       :trigger="null"
       collapsible
       :collapsedWidth="0"
-      :width="360"
+      :width="380"
     >
       <ACard
         :title="title || defaultTitle"
