@@ -15,7 +15,7 @@ export default {
   <div class="loading-screen">
     <Loading3QuartersOutlined spin />
     <div class="loading-screen__text">
-      The application is loading, please wait...
+      Loading application and data, please wait...
     </div>
   </div>
 </template>
