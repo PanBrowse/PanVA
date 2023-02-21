@@ -7,6 +7,9 @@ This document describes the improvements of the PanVA application compared to th
 * Make both API and Frontend runtime configurable. \
   Instead of forks/branches for different configurations.
 * Added single Dockerfile to run both API + Frontend.
+* Added necessary documentation.
+* Removed duplicated data from data format.
+* Allow dynamic metadata in variable positions, annotations, homology groups.
 
 
 # API
@@ -17,7 +20,6 @@ This document describes the improvements of the PanVA application compared to th
   Bypass Python entirely in production using Apache.
 * Refactor recursive functions to be non-recursive. \
   Removes necessity for `sys.setrecursionlimit` to prevent hitting limit.
-* Removed duplicated data from data format.
 
 
 # Frontend
@@ -34,6 +36,11 @@ This document describes the improvements of the PanVA application compared to th
 * Searchable dropdowns where applicable.
 * Collapsable sidebar blocks.
 * Natural sorting of mRNA ids.
+* User feedback while loading dataset.
+* Prevent mixed data from multiple datasets between loads.
+* Configurable position filters.
+* Configurable metadata columns.
+* Homology groups can be filtered by metadata.
 
 ## Code cleanup
 
@@ -41,6 +48,7 @@ This document describes the improvements of the PanVA application compared to th
 * Use TypeScript. \
   Prevent many bugs by adding static typing.
 * Restructure application using best practices:
+  * Move repeated hard-coded values to single constants file.
   * Separation of concerns.
   * Modular design.
   * Reusable, small components.
@@ -58,3 +66,4 @@ This document describes the improvements of the PanVA application compared to th
 * Debounced lazy-loaded tooltips.
 * Draw Heatmap using single `canvas` element. \
   Instead of 100.000+ DOM elements that slow down the browser.
+* Don't redraw `svg`/`canvas` for hover effect, use `css` instead.
