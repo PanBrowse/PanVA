@@ -59,27 +59,28 @@ export default {
 
 <template>
   <ACard class="locus-view" title="Locus view" :bordered="false" size="small">
-    <div class="header">
+    <scroll-sync horizontal group="locus-view" class="header scrollbars-hidden">
       <TreeLabels />
       <scroll-sync
         horizontal
-        style="overflow: auto hidden; min-width: 120px"
-        class="custom-scrollbar"
+        group="locus-heatmap"
+        style="overflow: auto hidden; min-width: 200px"
       >
         <HeatmapHeader />
       </scroll-sync>
       <MetadataLabels />
-    </div>
+    </scroll-sync>
 
-    <div class="content-wrapper">
+    <scroll-sync horizontal group="locus-view" class="content-wrapper">
       <div class="content">
         <Tree />
         <Bipartite />
         <Names />
         <scroll-sync
           horizontal
-          style="overflow: auto hidden; min-width: 120px"
-          class="custom-scrollbar"
+          group="locus-heatmap"
+          style="overflow: auto hidden; min-width: 200px"
+          class="scrollbars-hidden"
         >
           <Heatmap />
         </scroll-sync>
@@ -110,7 +111,7 @@ export default {
         <!-- MetadataLabels padding-right, to prevent labels from being cut off. -->
         <div style="min-width: 32px"></div>
       </div>
-    </div>
+    </scroll-sync>
   </ACard>
 </template>
 
@@ -130,24 +131,33 @@ export default {
     flex-direction: column;
     overflow: hidden;
 
-    padding-right: 0 !important;
+    padding: 12px 0 0 12px !important;
   }
 
   .header {
     display: flex;
     flex: 0 0 auto;
-    overflow: hidden;
+    overflow: auto hidden;
     align-items: flex-end;
   }
 
   .content-wrapper {
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: auto;
+    padding-bottom: 12px;
   }
 
   .content {
     display: flex;
     align-items: stretch;
+  }
+
+  .scrollbars-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 }
 </style>
