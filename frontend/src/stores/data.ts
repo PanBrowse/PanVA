@@ -6,6 +6,7 @@ import {
   DEFAULT_SORTING,
   DEFAULT_SELECTED_REGION,
   TRANSITION_TIME,
+  ANNOTATIONS_GRADIENT_COLORS,
 } from '@/constants'
 import { h } from 'vue'
 import type {
@@ -28,6 +29,7 @@ import type {
   ConfigMetadata,
   MetadataQuantitative,
   SequenceFilter,
+  Annotation,
 } from '@/types'
 import {
   clamp,
@@ -58,6 +60,7 @@ import { useConfigStore } from './config'
 import { sortNucleotideString } from '@/helpers/nucleotide'
 import {
   fetchAlignments,
+  fetchAnnotations,
   fetchCoreSNP,
   fetchDendrogramCustom,
   fetchDendrogramDefault,
@@ -67,6 +70,7 @@ import {
 } from '@/helpers/api'
 import { homologyName } from '@/helpers/homology'
 import { ProgressPromise } from '@prezly/progress-promise'
+import colorInterpolate from 'color-interpolate'
 
 type NucleotideColorFunc = (nucleotide: Nucleotide) => string
 type CellThemeName = keyof typeof CELL_THEMES
@@ -80,6 +84,7 @@ export const useDataStore = defineStore('data', {
     // Data that is fetched from the API using `homologyId`.
     // We don't keep data for previous homology ids because of memory consumption.
     alignedPositions: [] as Nucleotide[],
+    annotations: [] as Annotation[],
     dendroCustom: null as TreeNode | null,
     dendroDefault: null as TreeNode | null,
     metadata: [] as Metadata[],
@@ -142,12 +147,13 @@ export const useDataStore = defineStore('data', {
     sortedDataIndices: [] as number[],
 
     // User options.
+    annotationMrnaId: null as mRNAid | null,
     cellTheme: 'default' as CellThemeName,
-    visibleMetadataColumns: [] as string[],
-    tree: 'dendroDefault' as TreeOption,
     homologyId: null as number | null,
     reference: null as Reference | null,
     transitionsEnabled: true,
+    tree: 'dendroDefault' as TreeOption,
+    visibleMetadataColumns: [] as string[],
 
     // Indicates if the data store contains all data to render the layout with all views.
     isInitialized: false,
@@ -315,6 +321,13 @@ export const useDataStore = defineStore('data', {
         .domain(['A', 'C', 'G', 'T', 'a', 'c', 'g', 't', '-'])
         .range(colors)
     },
+    annotationColors(): string[] {
+      const config = useConfigStore()
+      const count = config.annotations.length
+      const interpolation = colorInterpolate(ANNOTATIONS_GRADIENT_COLORS)
+      if (count === 1) return [interpolation(0)]
+      return range(count).map((index) => interpolation(index / (count - 1)))
+    },
     transitionTime(): number {
       return this.transitionsEnabled ? TRANSITION_TIME : 0
     },
@@ -390,6 +403,14 @@ export const useDataStore = defineStore('data', {
       return this.visibleMetadataColumns.map(
         (column) => this.metadataConfigLookup[column]
       )
+    },
+    annotation(): Annotation | null {
+      if (this.annotationMrnaId) {
+        return this.annotations.find(
+          ({ mRNA_id }) => mRNA_id === this.annotationMrnaId
+        )!
+      }
+      return null
     },
   },
   actions: {
@@ -651,6 +672,8 @@ export const useDataStore = defineStore('data', {
       const homology = this.homologies.find(
         ({ homology_id }) => homology_id === homologyId
       )!
+      const geneLength = homology.alignment_length
+      const sequenceCount = homology.members
 
       const showNotification = (percent: number = 0) => {
         // User as already switched to a different homology group.
@@ -713,19 +736,20 @@ export const useDataStore = defineStore('data', {
       showNotification()
 
       await ProgressPromise.all([
-        fetchDendrogramDefault(homologyId),
         fetchAlignments(homologyId),
+        fetchAnnotations(homologyId, geneLength),
+        fetchDendrogramDefault(homologyId),
         fetchMetadata(homologyId),
-        fetchVariablePositions(homologyId),
+        fetchVariablePositions(homologyId, geneLength),
       ])
         .then(
-          ([dendroDefault, alignments, meta, varPos]) => {
-            // User as already switched to a different homology group.
-            if (this.homologyLoadId !== loadId) return
-
-            const geneLength = homology.alignment_length
-            const sequenceCount = homology.members
-
+          ([
+            alignments,
+            annotations,
+            dendroDefault,
+            meta,
+            variablePositions,
+          ]) => {
             // Get mRNA id order from default dendrogram.
             const mrnaIds = leafNodes(dendroDefault)
             const mrnaIdsLookup = Object.fromEntries(
@@ -754,23 +778,16 @@ export const useDataStore = defineStore('data', {
               ({ mrnaId }) => mrnaIdsLookup[mrnaId]
             ).map(({ metadata }) => metadata)
 
-            // Convert sparse array to array containing VariablePosition and null.
-            const variablePositions: (VariablePosition | null)[] = times(
-              geneLength,
-              constant(null)
-            )
-            varPos.forEach(({ position, ...varPos }) => {
-              variablePositions[position - 1] = varPos
-            })
-
-            // User as already switched to a different homology group.
-            if (this.homologyLoadId !== loadId) return
-
             const positionRegion = DEFAULT_SELECTED_REGION.map((val) =>
               clamp(val, geneLength)
             ) as Range
 
+            // User as already switched to a different homology group.
+            if (this.homologyLoadId !== loadId) return
+
             this.$patch({
+              annotationMrnaId: null,
+              annotations,
               alignedPositions,
               dendroCustom: null,
               dendroCustomForSelectedPositions: [],

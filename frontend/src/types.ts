@@ -99,6 +99,12 @@ export type VariablePosition = {
   properties: Record<string, boolean | null>
 }
 
+export type Annotation = {
+  mRNA_id: mRNAid
+  // Per position an object with a boolean for each configured annotation column.
+  features: Record<string, boolean>[]
+}
+
 export type TreeNode = {
   name: string
   children?: TreeNode[]
@@ -124,6 +130,8 @@ export type AlignmentCSVColumns =
   | 'genome_nr'
   | 'position'
   | 'nucleotide'
+
+export type AnnotationCSVColumns = 'mRNA_id' | 'position'
 
 export type MetadataCSVColumns = 'mRNA_id'
 
@@ -158,6 +166,16 @@ export type CellTheme = {
  * When making changes, be sure to update the config validator by running:
  *   npm run generate:config-validator
  */
+
+export type ConfigAnnotation = {
+  column: string
+  label: string
+}
+
+export type ConfigFilter = {
+  column: string
+  label: string
+}
 
 type ConfigMetadataBase = {
   column: string
@@ -195,12 +213,8 @@ export type ConfigMetadata =
   | ConfigMetadataCategorical
   | ConfigMetadataQuantitative
 
-export type ConfigFilter = {
-  column: string
-  label: string
-}
-
 export type Config = {
+  annotations?: ConfigAnnotation[] // Default: []
   apiUrl?: string // Default: '/'
   defaultHomologyId?: number // Default: First homology in homologies.
   defaultMetadataColumns?: string[] // Default: []

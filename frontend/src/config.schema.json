@@ -113,6 +113,22 @@
         }
     },
     "properties": {
+        "annotations": {
+            "items": {
+                "additionalProperties": false,
+                "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate:config-validator",
+                "properties": {
+                    "column": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "type": "array"
+        },
         "apiUrl": {
             "type": "string"
         },

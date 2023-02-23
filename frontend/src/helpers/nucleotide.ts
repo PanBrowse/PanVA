@@ -1,4 +1,4 @@
-import { CELL_SIZE } from '@/constants'
+import { EMPTY_CELL_COLOR, CELL_SIZE } from '@/constants'
 import type { Nucleotide } from '@/types'
 import { sortBy } from 'lodash'
 
@@ -28,7 +28,7 @@ export const drawNucleotide = ({
 
   // No nucleotide or matches with reference.
   if (nucleotides.length === 0) {
-    ctx.fillStyle = colors['gray-4']
+    ctx.fillStyle = EMPTY_CELL_COLOR
     ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
   }
   // Single nucleotide or group with the same nucleotide; solid color square.

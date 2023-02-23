@@ -44,6 +44,7 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
+      'annotations',
       'coreSNP',
       'dendroCustom',
       'filteredPositions',
@@ -54,6 +55,7 @@ export default {
       'sorting',
     ]),
     ...mapWritableState(useDataStore, [
+      'annotationMrnaId',
       'cellTheme',
       'positionFilter',
       'reference',
@@ -63,6 +65,9 @@ export default {
       'visibleMetadataColumns',
     ]),
     ...mapState(useConfigStore, ['filters', 'metadata']),
+    annotationValue(): string | undefined {
+      return this.annotationMrnaId || undefined
+    },
     referenceValue(): string | undefined {
       if (!this.reference) return undefined
 
@@ -157,10 +162,19 @@ export default {
       // Alphabetical, but 'all' always first.
       return sortBy(options, [({ value }) => value !== 'all', 'label'])
     },
+    annotationOptions(): SortOption[] {
+      return naturalSort(map(this.annotations, 'mRNA_id')).map((mrnaId) => ({
+        value: mrnaId,
+        label: mrnaId,
+      }))
+    },
   },
   methods: {
     ...mapActions(useDataStore, ['changeSorting']),
     groupName,
+    onAnnotationChange(value: any) {
+      this.annotationMrnaId = value || null
+    },
     onReferenceChange(value: any) {
       if (value) {
         const [type, indexString] = value.split(':')
@@ -226,10 +240,7 @@ export default {
       </AFormItem>
 
       <AFormItem label="Filter sequences">
-        <ATypographyText type="secondary" v-if="sequenceFilters.length === 0">
-          None
-        </ATypographyText>
-        <div class="sequence-filters" v-else>
+        <div class="sequence-filters" v-if="sequenceFilters.length !== 0">
           <ATag
             closable
             v-for="(filter, index) in sequenceFilters"
@@ -242,6 +253,7 @@ export default {
             </div>
           </ATag>
         </div>
+        <ATypographyText type="secondary" v-else>None</ATypographyText>
       </AFormItem>
 
       <AFormItem label="Sorting">
@@ -287,7 +299,7 @@ export default {
         <ASelect
           show-search
           :dropdownMatchSelectWidth="false"
-          v-model:value="referenceValue"
+          :value="referenceValue"
           @change="onReferenceChange"
           placeholder="None"
           allowClear
@@ -310,6 +322,20 @@ export default {
             {{ mrnaId }}
           </ASelectOption>
         </ASelect>
+      </AFormItem>
+
+      <AFormItem label="Annotation ref">
+        <ASelect
+          show-search
+          :dropdownMatchSelectWidth="false"
+          :value="annotationValue"
+          :options="annotationOptions"
+          @change="onAnnotationChange"
+          :placeholder="`${annotations.length} available`"
+          allowClear
+          v-if="annotations.length !== 0"
+        />
+        <ATypographyText type="secondary" v-else> Unavailable </ATypographyText>
       </AFormItem>
 
       <AFormItem label="Metadata">

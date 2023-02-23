@@ -19,12 +19,16 @@ export const GROUP_COLORS = [
   '#38c7a6',
   '#766aaf',
   '#ff7f00',
-  '#226F54',
+  '#226f54',
   '#fb9a99',
   '#1f78b4',
   '#b15928',
   '#fbdb5a',
 ]
+
+export const ANNOTATIONS_GRADIENT_COLORS = ['#eb2f96', '#2f54eb']
+
+export const EMPTY_CELL_COLOR = '#f0f0f0'
 
 // Different themes for coloring the nucleotide cells.
 // The order of the colors is `ACGTacgt-`.

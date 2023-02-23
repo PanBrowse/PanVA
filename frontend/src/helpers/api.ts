@@ -21,23 +21,11 @@ import type {
   VariablePositionCSVColumns,
   ConfigFilter,
   ConfigMetadata,
+  AnnotationCSVColumns,
+  Annotation,
 } from '@/types'
 import { useConfigStore } from '@/stores/config'
-
-export const fetchHomologies = async () => {
-  const config = useConfigStore()
-  const data = await d3.json<Homology[]>(`${config.apiUrl}homologies.json`)
-  if (data === undefined) {
-    throw new Error('Received empty homologies.')
-  }
-  return data
-}
-
-export const fetchCoreSNP = async () => {
-  const config = useConfigStore()
-  const data = await d3.text(`${config.apiUrl}core_snp.txt`)
-  return parse_newick(data)
-}
+import { constant, times, values } from 'lodash'
 
 // Temporary type that also holds data needed for sorting,
 // but that is removed before aligned positions are stored.
@@ -61,15 +49,76 @@ export const fetchAlignments = async (homologyId: number) => {
   )
 }
 
-export const fetchDendrogramDefault = async (homologyId: number) => {
+// Temporary type that also holds data needed for sorting,
+// but that is removed before variable positions are stored.
+type FetchedAnnotations = {
+  mRNA_id: mRNAid
+  position: number
+  features: Record<string, boolean>
+}
+
+export const fetchAnnotations = async (
+  homologyId: number,
+  geneLength: number
+) => {
   const config = useConfigStore()
-  const data = await d3.json<TreeNode>(
-    `${config.apiUrl}${homologyId}/dendrogram.json`
-  )
-  if (data === undefined) {
-    throw new Error('Received empty dendrogram.')
+
+  // No annotations configured, no need to fetch data.
+  if (config.annotations.length === 0) return []
+
+  try {
+    const data = await d3.csv<
+      FetchedAnnotations,
+      AnnotationCSVColumns | string
+    >(
+      `${config.apiUrl}${homologyId}/annotations.csv`,
+      ({ mRNA_id, position, ...rest }) => {
+        // Common columns.
+        const data: FetchedAnnotations = {
+          mRNA_id: parseString(mRNA_id),
+          position: parseNumber(position),
+          features: {},
+        }
+
+        // Configured additional columns.
+        config.annotations.forEach((filter: ConfigFilter) => {
+          const { column } = filter
+          data.features[column] = parseBool(rest[column])
+        })
+
+        return data
+      }
+    )
+
+    // Default to all configured columns false.
+    // The annotations.csv file should not be sparse, but we allow it.
+    const emptyAnnotation = Object.fromEntries(
+      config.annotations.map(({ column }) => [column, false])
+    )
+
+    const result: Record<mRNAid, Annotation> = {}
+    data.forEach(({ mRNA_id, position, features }) => {
+      const annotation = result[mRNA_id] || {
+        mRNA_id,
+        features: times(geneLength, constant(emptyAnnotation)),
+      }
+      annotation.features[position - 1] = features
+      result[mRNA_id] = annotation
+    })
+
+    return values(result)
+  } catch (error) {
+    // Instead of failing on errors (such as file not found), we simply
+    // return no annotations, but do display the error in console.
+    console.error(error)
+    return []
   }
-  return data
+}
+
+export const fetchCoreSNP = async () => {
+  const config = useConfigStore()
+  const data = await d3.text(`${config.apiUrl}core_snp.txt`)
+  return parse_newick(data)
 }
 
 export const fetchDendrogramCustom = async (
@@ -90,6 +139,26 @@ export const fetchDendrogramCustom = async (
   )
   if (data === undefined) {
     throw new Error('Received empty dendrogram.')
+  }
+  return data
+}
+
+export const fetchDendrogramDefault = async (homologyId: number) => {
+  const config = useConfigStore()
+  const data = await d3.json<TreeNode>(
+    `${config.apiUrl}${homologyId}/dendrogram.json`
+  )
+  if (data === undefined) {
+    throw new Error('Received empty dendrogram.')
+  }
+  return data
+}
+
+export const fetchHomologies = async () => {
+  const config = useConfigStore()
+  const data = await d3.json<Homology[]>(`${config.apiUrl}homologies.json`)
+  if (data === undefined) {
+    throw new Error('Received empty homologies.')
   }
   return data
 }
@@ -144,10 +213,13 @@ type FetchedVariablePositions = VariablePosition & {
   position: number
 }
 
-export const fetchVariablePositions = async (homologyId: number) => {
+export const fetchVariablePositions = async (
+  homologyId: number,
+  geneLength: number
+) => {
   const config = useConfigStore()
 
-  return await d3.csv<
+  const data = await d3.csv<
     FetchedVariablePositions,
     VariablePositionCSVColumns | string
   >(
@@ -193,4 +265,11 @@ export const fetchVariablePositions = async (homologyId: number) => {
       return data
     }
   )
+
+  const result: (VariablePosition | null)[] = times(geneLength, constant(null))
+  data.forEach(({ position, ...varPos }) => {
+    result[position - 1] = varPos
+  })
+
+  return result
 }

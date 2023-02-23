@@ -7,10 +7,17 @@ import type { D3BrushEvent } from 'd3'
 import { zipEqual } from '@/helpers/zipEqual'
 
 import { Card } from 'ant-design-vue'
+import { useConfigStore } from '@/stores/config'
+import type { Range } from '@/types'
 
 type Score = {
   x: number
   y: number
+}
+
+type FeatureRange = {
+  region: Range
+  value: boolean
 }
 
 export default {
@@ -24,8 +31,8 @@ export default {
     return {
       // Initial value, is resized dynamically.
       svgWidth: 100,
-      // Fixed value.
-      svgHeight: 72,
+      // Value without added annotations.
+      geneHeight: 40,
 
       // How much should the brush extend above the graph.
       brushExtendTop: 5,
@@ -44,12 +51,15 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
+      'annotation',
+      'annotationColors',
       'geneLength',
       'homology',
       'sequenceCount',
       'variablePositions',
     ]),
     ...mapWritableState(useDataStore, ['positionRegion']),
+    ...mapState(useConfigStore, ['annotations']),
     allScores(): Score[] {
       const positions = range(1, this.geneLength + 1)
       const conservations = positions.map<number>((pos) => {
@@ -72,7 +82,7 @@ export default {
       return d3
         .scaleLinear()
         .domain([0, 100]) // percent
-        .range([this.svgHeight - this.margin.bottom, this.margin.top])
+        .range([this.margin.top + this.geneHeight, this.margin.top])
     },
     ticksXdomain() {
       const stepFactor = this.geneLength / 1000
@@ -80,6 +90,7 @@ export default {
       const ticks = range(stepSize, this.geneLength, stepSize).concat([
         this.geneLength,
       ])
+      ticks.unshift(1)
 
       // If the last "rounded" tick and the "geneLength" tick are too close together.
       const [beforeLast, last] = ticks.slice(-2)
@@ -90,6 +101,13 @@ export default {
 
       return ticks
     },
+    svgHeight() {
+      const baseHeight = this.margin.top + this.geneHeight + this.margin.bottom
+      if (this.annotation) {
+        return baseHeight + this.annotations.length * 10 + 3
+      }
+      return baseHeight
+    },
   },
   methods: {
     onResize() {
@@ -99,6 +117,44 @@ export default {
     },
     svg() {
       return d3.select('#geneOverview')
+    },
+    featureRanges(column: string): FeatureRange[] {
+      if (!this.annotation) return []
+
+      const ranges: FeatureRange[] = []
+      let currentValue: boolean = false
+      let startIndex = 0
+
+      this.annotation.features.forEach((values, index) => {
+        const value = values[column]
+
+        // Set initial data for first range.
+        if (index === 0) {
+          currentValue = value
+          return
+        }
+
+        // Continue current range.
+        if (currentValue === value) return
+
+        ranges.push({
+          region: [startIndex + 1, index + 1] as Range,
+          value: currentValue,
+        })
+
+        currentValue = value
+        startIndex = index + 1
+      })
+
+      // Add range for tail.
+      if (this.geneLength > startIndex) {
+        ranges.push({
+          region: [startIndex + 1, this.geneLength] as Range,
+          value: currentValue,
+        })
+      }
+
+      return ranges
     },
     onBrush({ selection }: D3BrushEvent<any>) {
       const [x0, x1] = (selection as [number, number])
@@ -154,7 +210,7 @@ export default {
           [this.margin.left, this.margin.top - this.brushExtendTop],
           [
             this.svgWidth - this.margin.right,
-            this.svgHeight - this.margin.bottom,
+            this.margin.top + this.geneHeight,
           ],
         ])
         // Disable keyboard modifiers such as alt, meta, etc.
@@ -170,7 +226,7 @@ export default {
         .attr('class', 'brush-labels')
         .attr(
           'transform',
-          'translate(0, ' + (this.margin.top - this.brushExtendTop) + ')'
+          `translate(0, ${this.margin.top - this.brushExtendTop})`
         )
 
       svgContextLabels
@@ -216,29 +272,75 @@ export default {
         )
     },
     drawAxes() {
-      // Append axes.
+      // Y-axis
       this.svg()
         .append('g')
         .attr('class', 'y-axis')
-        .attr('transform', 'translate(' + this.margin.left + ',0)')
-        .call(d3.axisLeft(this.yScale).ticks(2).tickSizeOuter(0))
+        .attr('transform', `translate(${this.margin.left}, 0)`)
+        .call(
+          d3
+            .axisLeft(this.yScale)
+            .ticks(2)
+            .tickFormat((value) => `${value}%`)
+            .tickSizeOuter(0)
+        )
 
+      // X-axis
       this.svg()
         .append('g')
         .attr('class', 'x-axis')
         .attr(
           'transform',
-          'translate(0,' + (this.svgHeight - this.margin.bottom) + ')'
+          `translate(0, ${this.svgHeight - this.margin.bottom})`
         )
-        .call(d3.axisBottom(this.xScale).tickValues(this.ticksXdomain))
+        .call(
+          d3
+            .axisBottom(this.xScale)
+            .tickValues(this.ticksXdomain)
+            .tickSizeOuter(0)
+        )
+
+      // Vertical line gap.
+      // this.svg()
+      //   .append('line')
+      //   .attr('x1', this.margin.left + 0.5)
+      //   .attr('y1', this.margin.top + this.geneHeight)
+      //   .attr('x2', this.margin.left + 0.5)
+      //   .attr('y2', this.svgHeight - this.margin.bottom + 10)
+      //   .attr('stroke', 'currentColor')
+
+      // Horizontal line gap.
+      this.svg()
+        .append('line')
+        .attr('x1', this.margin.left + 0.5)
+        .attr('y1', this.margin.top + this.geneHeight + 0.5)
+        .attr('x2', this.svgWidth - this.margin.right + 1)
+        .attr('y2', this.margin.top + this.geneHeight + 0.5)
+        .attr('stroke', 'currentColor')
+    },
+    drawAnnotations() {
+      if (!this.annotation) return
+
+      this.annotations.forEach(({ column }, index) => {
+        this.featureRanges(column).forEach(({ region, value }) => {
+          this.svg()
+            .append('rect')
+            .attr('width', this.xScale(region[1]) - this.xScale(region[0]))
+            .attr('height', 8)
+            .attr('x', this.xScale(region[0]))
+            .attr('y', this.margin.top + this.geneHeight + index * 10 + 3)
+            .attr('fill', value ? this.annotationColors[index] : 'transparent')
+        })
+      })
     },
     draw() {
       // Remove all old child elements from SVG.
       this.svg().html('')
 
       this.drawExons()
-      this.drawBrush()
       this.drawAxes()
+      this.drawAnnotations()
+      this.drawBrush()
     },
   },
   mounted() {
@@ -252,6 +354,9 @@ export default {
   },
   watch: {
     positionRegion() {
+      this.draw()
+    },
+    annotation() {
       this.draw()
     },
   },
@@ -287,6 +392,10 @@ export default {
     fill: $gray-3;
     stroke: $gray-7;
     stroke-width: 0.5;
+  }
+
+  .annotation-label {
+    font-size: 9px;
   }
 
   .brush-labels {

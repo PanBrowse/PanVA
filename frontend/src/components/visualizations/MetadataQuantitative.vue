@@ -129,11 +129,12 @@ export default {
       if (isGroup(data)) {
         const { meanValue, nullCount } = value as GroupValue
         if (nullCount === data.dataIndices.length) return '?'
-        if (nullCount) return `${meanValue}${this.column.suffix} +${nullCount}?`
-        return `${meanValue}${this.column.suffix}`
+        if (nullCount)
+          return `${meanValue}${this.column.suffix || ''} +${nullCount}?`
+        return `${meanValue}${this.column.suffix || ''}`
       }
       if (value === null) return '?'
-      return `${value}${this.column.suffix}`
+      return `${value}${this.column.suffix || ''}`
     },
     fillColor(data: DataIndexCollapsed): string {
       if (isGroup(data)) {

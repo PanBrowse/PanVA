@@ -26,6 +26,7 @@
     "ajv": "^8.12.0",
     "ant-design-vue": "^3.2.15",
     "biojs-io-newick": "^1.5.0",
+    "color-interpolate": "^1.0.5",
     "combinations": "^1.0.0",
     "d3": "^7.6.1",
     "fast-deep-equal": "^3.1.3",

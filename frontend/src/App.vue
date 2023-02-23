@@ -9,6 +9,7 @@ import Groups from '@/components/sidebar/Groups.vue'
 import HomologyInfo from '@/components/sidebar/HomologyInfo.vue'
 import HomologySelect from '@/components/sidebar/HomologySelect.vue'
 import Layout from '@/components/common/Layout.vue'
+import Legends from '@/components/sidebar/Legends.vue'
 import LoadingScreen from '@/components/common/LoadingScreen.vue'
 import LocusView from '@/components/views/LocusView.vue'
 import Tips from '@/components/sidebar/Tips.vue'
@@ -27,6 +28,7 @@ export default {
     HomologyInfo,
     HomologySelect,
     Layout,
+    Legends,
     LoadingScreen,
     LocusView,
     Tips,
@@ -56,6 +58,7 @@ export default {
     <template #sidebar>
       <HomologySelect />
       <HomologyInfo />
+      <Legends />
       <Groups />
       <ViewOptions />
       <CustomDendrogram />

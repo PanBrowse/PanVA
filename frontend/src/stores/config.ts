@@ -1,4 +1,9 @@
-import type { Config, ConfigMetadata, ConfigFilter } from '@/types'
+import type {
+  Config,
+  ConfigMetadata,
+  ConfigFilter,
+  ConfigAnnotation,
+} from '@/types'
 import { defineStore } from 'pinia'
 
 // @ts-ignore
@@ -8,6 +13,7 @@ import { useDataStore } from './data'
 
 export const useConfigStore = defineStore('config', {
   state: () => ({
+    annotations: [] as ConfigAnnotation[],
     apiUrl: '/api/' as string,
     defaultHomologyId: null as number | null,
     defaultMetadataColumns: [] as string[],
@@ -19,7 +25,8 @@ export const useConfigStore = defineStore('config', {
     async loadConfig() {
       const { setError } = useDataStore()
 
-      const resp = await fetch('config.json')
+      // Fetch config.json, but bypass the browser cache.
+      const resp = await fetch('config.json', { cache: 'no-store' })
 
       // No custom config, so we are done.
       if (!resp.ok) return true

@@ -1,340 +1,29 @@
 {
   "apiUrl": "http://localhost:5001/",
+  "annotations": [
+    {
+      "column": "cds",
+      "label": "CDS"
+    },
+    {
+      "column": "exon",
+      "label": "Exon"
+    }
+  ],
+  "defaultHomologyId": 13803671,
   "defaultMetadataColumns": [
-    "host",
     "virulence",
-    "collection_year",
-    "strain"
+    "species",
+    "growth_rate",
+    "strain_name"
   ],
   "filters": [
     {
-      "column": "host_specific_var",
-      "label": "Host specific"
-    },
-    {
-      "column": "SpeciesName_specific_var",
-      "label": "Species name specific"
-    },
-    {
-      "column": "virulence_specific_var",
-      "label": "Virulence specific"
-    },
-    {
-      "column": "sample_type_specific_var",
-      "label": "Sample type specific"
-    },
-    {
-      "column": "geo_loc_country_specific_var",
-      "label": "Country specific"
+      "column": "pheno_specific",
+      "label": "Phenotype specific"
     }
   ],
   "metadata": [
-    {
-      "type": "categorical",
-      "column": "pheno_node_id",
-      "label": "Pheno node id",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "collection_year_binned",
-      "label": "Collection year (binned)",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "strain_binned",
-      "label": "Strain (binned)",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "source",
-      "label": "Source",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "sampleName",
-      "label": "Sample name",
-      "width": 120
-    },
-    {
-      "type": "boolean",
-      "column": "atrosepticum_clade",
-      "label": "Atrosepticum clade",
-      "values": {
-        "true": "atrosepticum_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "peruviense_clade",
-      "label": "Peruviense clade",
-      "values": {
-        "true": "peruviense_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "zantedeschiae_clade",
-      "label": "Zantedeschiae clade",
-      "values": {
-        "true": "zantedeschiae_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "betavasculorum_clade",
-      "label": "Betavasculorum clade",
-      "values": {
-        "true": "betavasculorum_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "parmentieri_clade",
-      "label": "Parmentieri clade",
-      "values": {
-        "true": "parmentieri_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "wasabiae_clade",
-      "label": "Wasabiae clade",
-      "values": {
-        "true": "wasabiae_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "punjabense_clade",
-      "label": "Punjabense clade",
-      "values": {
-        "true": "punjabense_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "polonicum_clade",
-      "label": "Polonicum clade",
-      "values": {
-        "true": "polonicum_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "odoriferum_clade",
-      "label": "Odoriferum clade",
-      "values": {
-        "true": "odoriferum_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "actinidiae_clade",
-      "label": "Actinidiae clade",
-      "values": {
-        "true": "actinidiae_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "aroidearum_clade",
-      "label": "Aroidearum clade",
-      "values": {
-        "true": "aroidearum_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "new_specie_clade",
-      "label": "New specie clade",
-      "values": {
-        "true": "new_specie_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "versatile_clade",
-      "label": "Versatile clade",
-      "values": {
-        "true": "versatile_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "versatile_clade2",
-      "label": "Versatile clade 2",
-      "values": {
-        "true": "versatile_clade2",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "carotovorum_clade",
-      "label": "Carotovorum_ lade",
-      "values": {
-        "true": "carotovorum_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "NL_clade_vs_rest_Pbr",
-      "label": "NL clade vs rest Pbr",
-      "values": {
-        "true": "NL_clade_vs_rest_Pbr",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "polaris_clade",
-      "label": "Polaris clade",
-      "values": {
-        "true": "polaris_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "quasiaquaticum_clade",
-      "label": "Quasiaquaticum clade",
-      "values": {
-        "true": "quasiaquaticum_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "aquaticum_clade",
-      "label": "Aquaticum clade",
-      "values": {
-        "true": "aquaticum_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "categorical",
-      "column": "collection_year",
-      "label": "Collection year",
-      "width": 120
-    },
-    {
-      "type": "boolean",
-      "column": "virulent_Pbrasiliense",
-      "label": "Virulent Pbrasiliense",
-      "values": {
-        "true": "virulent_Pbrasiliense",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "assay_FN",
-      "label": "Assay FN",
-      "values": {
-        "true": "assay_FN",
-        "false": "N"
-      }
-    },
-    {
-      "type": "boolean",
-      "column": "brasiliense_clade",
-      "label": "Brasiliense clade",
-      "values": {
-        "true": "brasiliense_clade",
-        "false": "N"
-      }
-    },
-    {
-      "type": "categorical",
-      "column": "sampleId",
-      "label": "Sample id",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "env_broad_scale",
-      "label": "Environment broad scale",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "type_material",
-      "label": "Type material",
-      "width": 120
-    },
-    {
-      "type": "boolean",
-      "column": "representative_status",
-      "label": "Representative genome",
-      "values": {
-        "true": "representative_genome",
-        "false": "N"
-      }
-    },
-    {
-      "type": "categorical",
-      "column": "sample_type",
-      "label": "Sample type",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "isolation_source",
-      "label": "Isolation source",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "collected_by",
-      "label": "Collected by",
-      "width": 120
-    },
-    {
-      "type": "boolean",
-      "column": "virulence_pcr",
-      "label": "Virulence PCR",
-      "values": {
-        "true": "positive",
-        "false": "negative"
-      }
-    },
-    {
-      "type": "categorical",
-      "column": "geo_loc_country",
-      "label": "Location country",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "host",
-      "label": "Host",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "strain",
-      "label": "Strain",
-      "width": 120
-    },
     {
       "type": "boolean",
       "column": "virulence",
@@ -342,32 +31,32 @@
       "values": {
         "true": "virulent",
         "false": "avirulent"
+      },
+      "labels": {
+        "true": "Virulent",
+        "false": "Avirulent",
+        "null": "Unknown"
       }
     },
     {
       "type": "categorical",
-      "column": "AssemblyName",
-      "label": "Assembly name",
-      "width": 120
+      "column": "species",
+      "label": "Species",
+      "width": 80
+    },
+    {
+      "type": "quantitative",
+      "column": "growth_rate",
+      "label": "Growth rate",
+      "decimals": 1,
+      "width": 100
     },
     {
       "type": "categorical",
-      "column": "SpeciesName",
-      "label": "Species name",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "AssemblyAccession",
-      "label": "Assembly accession",
-      "width": 120
-    },
-    {
-      "type": "categorical",
-      "column": "taxonomy_check_status",
-      "label": "Taxonomy check status",
+      "column": "strain_name",
+      "label": "Strain",
       "width": 120
     }
   ],
-  "title": "PanVA: Pectobacterium 205"
+  "title": "PanVA: Pectobacterium"
 }

@@ -22,11 +22,10 @@ Positions can be annotated with one or more features. You can configure which an
 
 Each column should be configured as a JSON object with the following options:
 
-| Field    | Type     | Required           | Notes                                                                                                                                   |
-|----------|----------|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `column` | `string` | :heavy_check_mark: | CSV column in [`annotations.csv`](../../api/docs/data-format.md#annotationscsv-optional).                                               |
-| `label`  | `string` | :heavy_check_mark: | Description of the annotation.                                                                                                          |
-| `color`  | `string` |                    | Color used when drawing the annotation. You can use [HTML color names](https://www.w3schools.com/tags/ref_colornames.asp) or hex codes. |
+| Field    | Type     | Required           | Notes                                                                                     |
+|----------|----------|--------------------|-------------------------------------------------------------------------------------------|
+| `column` | `string` | :heavy_check_mark: | CSV column in [`annotations.csv`](../../api/docs/data-format.md#annotationscsv-optional). |
+| `label`  | `string` | :heavy_check_mark: | Description of the annotation.                                                            |
 
 
 ## Filter
@@ -100,8 +99,7 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
   "annotations": [
     {
       "column": "cds",
-      "label": "CDS",
-      "color": "pink"
+      "label": "CDS"
     }
   ],
   "filters": [

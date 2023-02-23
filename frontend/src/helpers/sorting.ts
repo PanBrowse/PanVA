@@ -7,7 +7,7 @@ export const sortingPayload = (sorting: Sorting) => {
   return undefined
 }
 
-const naturalCompare = (a: string, b: string) =>
+export const naturalCompare = (a: string, b: string) =>
   snc(a, b, { caseInsensitive: true })
 
 export const naturalSort = (arr: string[]) => {
