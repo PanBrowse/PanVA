@@ -4,6 +4,24 @@ set -e
 # Apache gets grumpy about PID files pre-existing
 rm -f /usr/local/apache2/logs/httpd.pid
 
+# Change UID/GID when requested.
+# See https://github.com/docker-library/php/issues/14
+WANTED_GID=${APACHE_GID:-33}
+WANTED_UID=${APACHE_UID:-33}
+
+if [ "$WANTED_GID" != "33" ]; then
+  echo "Updating www-data GID to $WANTED_GID"
+  groupmod --non-unique -g $WANTED_GID www-data
+fi
+
+if [ "$WANTED_UID" != "33" ]; then
+  echo "Updating www-data UID to $WANTED_UID"
+  usermod --non-unique --uid $WANTED_UID www-data
+
+  chown -R www-data /run/apache2 /run/lock/apache2 /var/cache/apache2/mod_cache_disk
+fi
+
+
 # Bootstrap environment variables.
 APACHE_CONFDIR=/etc/apache2
 APACHE_ENVVARS="$APACHE_CONFDIR/envvars"

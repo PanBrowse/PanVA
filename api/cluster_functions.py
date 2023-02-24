@@ -3,6 +3,7 @@ from scipy.cluster.hierarchy import linkage, to_tree
 from scipy.spatial.distance import squareform
 import numpy as np
 import os
+import sys
 import tanglegram as tg
 
 
@@ -22,7 +23,13 @@ def save_linkage_matrix(linkage_matrix_path, sequences):
         sequences, list(range(1, len(sequences["nuc_trimmed_seq"][0]) + 1))
     )
     linkage_matrix = create_linkage_matrix(data_matrix)
-    np.save(linkage_matrix_path, linkage_matrix)
+
+    # Instead of raising an error when we can't write the cache file,
+    # just print a warning but let the app keep working (albeit slow).
+    try:
+        np.save(linkage_matrix_path, linkage_matrix)
+    except:
+        print("WARNING: Could not write %s" % linkage_matrix_path, file=sys.stderr)
 
     return linkage_matrix
 
