@@ -176,10 +176,6 @@ export default {
 <style lang="scss" scoped>
 @import '@/assets/colors.module.scss';
 
-h4 {
-  font-weight: 500;
-}
-
 svg.aggregated-nucleotide {
   width: 32px;
   height: 32px;

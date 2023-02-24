@@ -49,13 +49,18 @@ export type Sorting = SortingCommon | SortingMetadata | SortingPosition
  * Filtering
  */
 export type SequenceFilter = {
-  // Used for filtering.
+  type: ConfigMetadata['type']
   column: string
-  value: MetadataValue
-
-  // Used for displaying current filters.
-  label: string
-  formattedValue: string
+  operator:
+    | 'in'
+    | 'not-in'
+    | 'equals'
+    | 'between'
+    | 'greater-than'
+    | 'greater-than-equal'
+    | 'less-than'
+    | 'less-than-equal'
+  values: (string | number)[]
 }
 
 /**

@@ -121,7 +121,7 @@ export default {
 <template>
   <SidebarItem title="Homology">
     <ASelect
-      show-search
+      showSearch
       :dropdownMatchSelectWidth="false"
       :filterOption="filterOption"
       :options="options"

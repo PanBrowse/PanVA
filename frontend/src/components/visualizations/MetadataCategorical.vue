@@ -171,9 +171,9 @@ export default {
 
             this.addSequenceFilter({
               column: this.column.column,
-              value,
-              label: this.column.label,
-              formattedValue: value,
+              type: 'boolean',
+              values: [value],
+              operator: 'in',
             })
             return
           }

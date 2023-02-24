@@ -2,7 +2,7 @@
 import * as d3 from 'd3'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
-import { CELL_SIZE } from '@/constants'
+import { CELL_SIZE, DEFAULT_METADATA_BOOLEAN_LABELS } from '@/constants'
 import type {
   DataIndexCollapsed,
   ConfigMetadataBoolean,
@@ -92,11 +92,7 @@ export default {
       return d3.select(`#${this.name}`)
     },
     labelForValue(value: MetadataBoolean) {
-      const labels = this.column.labels || {
-        true: 'Yes',
-        false: 'No',
-        null: 'Unknown',
-      }
+      const labels = this.column.labels || DEFAULT_METADATA_BOOLEAN_LABELS
       return labels[`${value}`]
     },
     circleRadius(values: MetadataBoolean[]) {
@@ -214,9 +210,9 @@ export default {
 
             this.addSequenceFilter({
               column: this.column.column,
-              value,
-              label: this.column.label,
-              formattedValue: this.labelForValue(value),
+              type: 'boolean',
+              values: [`${value}`],
+              operator: 'in',
             })
             return
           }

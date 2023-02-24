@@ -31,6 +31,9 @@ export default {
   },
   computed: {
     ...mapState(useConfigStore, ['title']),
+    hasSidebar(): boolean {
+      return !!this.$slots.sidebar
+    },
   },
 }
 </script>
@@ -43,6 +46,7 @@ export default {
         class="collapse-trigger"
         shape="circle"
         @click="() => (collapsed = !collapsed)"
+        v-if="hasSidebar"
       >
         <template #icon>
           <MenuFoldOutlined v-if="collapsed" />
@@ -59,6 +63,7 @@ export default {
       collapsible
       :collapsedWidth="0"
       :width="380"
+      v-if="hasSidebar"
     >
       <ACard
         :title="title || defaultTitle"
