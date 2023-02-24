@@ -9,6 +9,8 @@ export default ({ mode }: any) => {
 
   // https://vitejs.dev/config/
   return defineConfig({
+    // We want relative paths in our generated index.html.
+    base: './',
     plugins: [vue(), vueJsx()],
     resolve: {
       alias: {
