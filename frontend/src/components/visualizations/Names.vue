@@ -122,6 +122,12 @@ export default {
         )
         .text((data) => {
           if (isGroup(data)) {
+            // Sequences are filtered, we show the original group size as well.
+            if (data.size > data.dataIndices.length) {
+              return `${groupName(data)} (${data.dataIndices.length}/${
+                data.size
+              })`
+            }
             return `${groupName(data)} (${data.dataIndices.length})`
           }
           return this.mrnaIds[data]

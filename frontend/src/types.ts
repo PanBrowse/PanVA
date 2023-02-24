@@ -68,6 +68,8 @@ export type Group = {
   isCollapsed: boolean
   isColorized: boolean
   dataIndices: number[]
+  // Will match `dataIndices.length`, unless `dataIndices` is filter by sequence filters.
+  size: number
 }
 
 /**

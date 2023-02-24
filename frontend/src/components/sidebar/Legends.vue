@@ -37,7 +37,7 @@ export default {
 </script>
 
 <template>
-  <SidebarItem title="Legend">
+  <SidebarItem title="Legend" isDefaultCollapsed>
     <ASpace direction="vertical" size="middle">
       <div>
         <h4>Nucleotides</h4>

@@ -15,7 +15,7 @@ import { GROUP_COLORS } from '@/constants'
 import { chain, cloneDeep, difference, map } from 'lodash'
 import { Button, Col, Divider, Input, Row } from 'ant-design-vue'
 
-type FormGroup = Omit<Group, 'id' | 'dataIndices'>
+type FormGroup = Omit<Group, 'id' | 'dataIndices' | 'size'>
 
 export default {
   components: {
@@ -41,16 +41,18 @@ export default {
     }
   },
   methods: {
-    ...mapActions(useDataStore, ['createGroup', 'deleteGroup']),
+    ...mapActions(useDataStore, ['createGroup', 'deleteGroup', 'expandGroup']),
     onCreate() {
       if (!this.newGroup) return
 
       this.createGroup(this.newGroup)
-      this.clearSelection()
       this.newGroup = null
     },
     onDelete(id: number) {
       this.deleteGroup(id)
+    },
+    onExpand(id: number) {
+      this.expandGroup(id)
     },
     clearSelection() {
       this.selectedDataIndices = []
@@ -117,7 +119,7 @@ export default {
         <ColorSelect v-model="group.color" @change="updateGroups()" />
       </ACol>
       <!-- -->
-      <ACol flex="0 0 188px">
+      <ACol flex="1 1 auto" style="width: min-content">
         <AInput
           :placeholder="`Group ${group.id}`"
           v-model:value="group.name"
@@ -147,6 +149,15 @@ export default {
           <template #icon><DeleteOutlined /></template>
         </AButton>
       </ACol>
+      <ACol flex="0 0 auto">
+        <AButton
+          type="text"
+          @click="onExpand(group.id)"
+          :disabled="selectedDataIndices.length === 0"
+        >
+          <template #icon><PlusOutlined /></template>
+        </AButton>
+      </ACol>
     </ARow>
 
     <ADivider v-if="groups.length !== 0" />
@@ -173,7 +184,7 @@ export default {
         <ColorSelect v-model="newGroup.color" />
       </ACol>
       <!-- -->
-      <ACol flex="1 1 auto">
+      <ACol flex="1 1 auto" style="width: min-content">
         <AInput
           v-model:value="newGroup.name"
           :placeholder="`Group ${lastGroupId + 1}`"

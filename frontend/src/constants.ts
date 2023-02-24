@@ -26,7 +26,7 @@ export const GROUP_COLORS = [
   '#fbdb5a',
 ]
 
-export const ANNOTATIONS_GRADIENT_COLORS = ['#eb2f96', '#2f54eb']
+export const ANNOTATIONS_GRADIENT_COLORS = ['#f759ab', '#597ef7']
 
 export const EMPTY_CELL_COLOR = '#f0f0f0'
 

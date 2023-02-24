@@ -65,6 +65,7 @@ export default {
       'visibleMetadataColumns',
     ]),
     ...mapState(useConfigStore, ['filters', 'metadata']),
+    ...mapState(useConfigStore, { configAnnotations: 'annotations' }),
     annotationValue(): string | undefined {
       return this.annotationMrnaId || undefined
     },
@@ -324,7 +325,7 @@ export default {
         </ASelect>
       </AFormItem>
 
-      <AFormItem label="Annotation ref">
+      <AFormItem label="Annotation ref" v-if="configAnnotations.length !== 0">
         <ASelect
           show-search
           :dropdownMatchSelectWidth="false"

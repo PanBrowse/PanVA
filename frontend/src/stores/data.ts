@@ -583,15 +583,17 @@ export const useDataStore = defineStore('data', {
       this.dragStartRowIndex = null
       this.dragIsCumulative = false
     },
-    createGroup(group: Omit<Group, 'id' | 'dataIndices'>) {
+    createGroup(group: Omit<Group, 'id' | 'dataIndices' | 'size'>) {
       this.groups = [
         ...this.groups,
         {
           ...group,
           dataIndices: this.selectedDataIndices,
+          size: this.selectedDataIndices.length,
           id: ++this.lastGroupId,
         },
       ]
+      this.selectedDataIndices = []
     },
     deleteGroup(id: number) {
       // Reset reference it is is set to the group we are deleting.
@@ -600,6 +602,14 @@ export const useDataStore = defineStore('data', {
       }
 
       this.groups = this.groups.filter((group) => group.id !== id)
+    },
+    expandGroup(id: number) {
+      const group = this.groups.find((group) => group.id === id)
+      if (group) {
+        group.dataIndices = [...group.dataIndices, ...this.selectedDataIndices]
+        group.size = group.dataIndices.length
+        this.selectedDataIndices = []
+      }
     },
     setError(error: AppError | null) {
       // We have an old and new error.
