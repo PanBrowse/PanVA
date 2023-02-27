@@ -150,6 +150,7 @@ export const useDataStore = defineStore('data', {
     annotationMrnaId: null as mRNAid | null,
     cellTheme: 'default' as CellThemeName,
     homologyId: null as number | null,
+    keepSequenceFilters: false,
     reference: null as Reference | null,
     transitionsEnabled: true,
     tree: 'dendroDefault' as TreeOption,
@@ -169,9 +170,27 @@ export const useDataStore = defineStore('data', {
        * Filters `sortedDataIndices` and removes data indices that don't match.
        */
       return this.sortedDataIndices.filter((dataIndex) =>
-        this.sequenceFilters.every(
-          ({ column, value }) => this.metadata[dataIndex][column] === value
-        )
+        this.sequenceFilters.every(({ column, operator, values }): boolean => {
+          const value = this.metadata[dataIndex][column]
+          switch (operator) {
+            case 'between':
+              return value !== null && value >= values[0] && value <= values[1]
+            case 'equals':
+              return value !== null && value === values[0]
+            case 'greater-than':
+              return value !== null && value > values[0]
+            case 'less-than':
+              return value !== null && value < values[0]
+            case 'greater-than-equal':
+              return value !== null && value >= values[0]
+            case 'less-than-equal':
+              return value !== null && value <= values[0]
+            case 'in':
+              return values.includes(`${value}`)
+            case 'not-in':
+              return !values.includes(`${value}`)
+          }
+        })
       )
     },
     groupsFiltered(): Group[] {
@@ -792,6 +811,11 @@ export const useDataStore = defineStore('data', {
               clamp(val, geneLength)
             ) as Range
 
+            // Optionally keep sequence filters between homology groups.
+            const sequenceFilters = this.keepSequenceFilters
+              ? this.sequenceFilters
+              : []
+
             // User as already switched to a different homology group.
             if (this.homologyLoadId !== loadId) return
 
@@ -814,7 +838,7 @@ export const useDataStore = defineStore('data', {
               reference: null,
               selectedDataIndices: [],
               selectedPositions: [],
-              sequenceFilters: [],
+              sequenceFilters,
               sortedDataIndices: range(sequenceCount),
               sorting: DEFAULT_SORTING,
               tree: 'dendroDefault',

@@ -27,6 +27,11 @@ body {
   height: 100%;
 }
 
+
+h1, h2, h3, h4, h5 {
+  font-weight: 500;
+}
+
 /**
  * The default appear animation includes a slide from off-screen.
  * Because a lot is happening, this is a bit janky so we stick to

@@ -3,21 +3,25 @@ import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { naturalSort } from '@/helpers/sorting'
 import { CELL_THEMES } from '@/constants'
+import { EditOutlined, PushpinOutlined } from '@ant-design/icons-vue'
 
 import SidebarItem from '@/components/common/SidebarItem.vue'
+import SequenceFiltersModal from '@/components/sidebar/SequenceFiltersModal.vue'
 import { useConfigStore } from '@/stores/config'
 
 import { groupName } from '@/helpers/groupName'
 import type { mRNAid, Reference } from '@/types'
 import {
+  Button,
   Form,
   FormItem,
+  Input,
+  InputGroup,
   Select,
   SelectOptGroup,
   SelectOption,
   Switch,
-  Tag,
-  TypographyText,
+  Tooltip,
 } from 'ant-design-vue'
 import { map, sortBy } from 'lodash'
 
@@ -32,15 +36,25 @@ type SortOption = {
 
 export default {
   components: {
+    AButton: Button,
     AForm: Form,
     AFormItem: FormItem,
+    AInput: Input,
+    AInputGroup: InputGroup,
     ASelect: Select,
-    ASelectOption: SelectOption,
     ASelectOptGroup: SelectOptGroup,
+    ASelectOption: SelectOption,
     ASwitch: Switch,
-    ATag: Tag,
-    ATypographyText: TypographyText,
+    ATooltip: Tooltip,
+    EditOutlined,
+    PushpinOutlined,
+    SequenceFiltersModal,
     SidebarItem,
+  },
+  data() {
+    return {
+      showSequenceFilterModal: false,
+    }
   },
   computed: {
     ...mapState(useDataStore, [
@@ -57,6 +71,7 @@ export default {
     ...mapWritableState(useDataStore, [
       'annotationMrnaId',
       'cellTheme',
+      'keepSequenceFilters',
       'positionFilter',
       'reference',
       'sequenceFilters',
@@ -139,7 +154,7 @@ export default {
 
       return options
     },
-    cellThemeOptions() {
+    cellThemeOptions(): SortOption[] {
       return map(CELL_THEMES, ({ name }, key) => ({ value: key, label: name }))
     },
     metadataOptions(): SortOption[] {
@@ -168,6 +183,11 @@ export default {
         value: mrnaId,
         label: mrnaId,
       }))
+    },
+    filterSequencesValue(): string | undefined {
+      if (this.sequenceFilters.length === 0) return
+      if (this.sequenceFilters.length === 1) return '1 filter'
+      return `${this.sequenceFilters.length} filters`
     },
   },
   methods: {
@@ -219,6 +239,12 @@ export default {
     removeSequenceFilter(index: number) {
       this.sequenceFilters.splice(index, 1)
     },
+    editSequenceFilters(event: FocusEvent) {
+      this.showSequenceFilterModal = true
+
+      const target = event.target as HTMLElement
+      target.blur()
+    },
   },
 }
 </script>
@@ -236,25 +262,34 @@ export default {
           :dropdownMatchSelectWidth="false"
           v-model:value="positionFilter"
           :options="filterPositionOptions"
-          show-search
+          showSearch
         />
       </AFormItem>
 
       <AFormItem label="Filter sequences">
-        <div class="sequence-filters" v-if="sequenceFilters.length !== 0">
-          <ATag
-            closable
-            v-for="(filter, index) in sequenceFilters"
-            :title="`${filter.label}: ${filter.formattedValue}`"
-            v-bind:key="index"
-            @close="() => removeSequenceFilter(index)"
+        <AInputGroup compact>
+          <AInput
+            :value="filterSequencesValue"
+            placeholder="None"
+            @click="editSequenceFilters"
+            @mousedown="(event) => event.preventDefault()"
+          />
+          <AButton @click="editSequenceFilters">
+            <template #icon><EditOutlined /></template>
+          </AButton>
+          <ATooltip
+            title="Keep filter when switching homology groups"
+            placement="topRight"
+            arrowPointAtCenter
           >
-            <div>
-              {{ filter.label }}: <em>{{ filter.formattedValue }}</em>
-            </div>
-          </ATag>
-        </div>
-        <ATypographyText type="secondary" v-else>None</ATypographyText>
+            <AButton
+              @click="keepSequenceFilters = !keepSequenceFilters"
+              :type="keepSequenceFilters ? 'primary' : 'default'"
+            >
+              <template #icon><PushpinOutlined /></template>
+            </AButton>
+          </ATooltip>
+        </AInputGroup>
       </AFormItem>
 
       <AFormItem label="Sorting">
@@ -262,7 +297,7 @@ export default {
           :dropdownMatchSelectWidth="false"
           v-model:value="sortValue"
           @change="onSortChange"
-          show-search
+          showSearch
         >
           <template v-for="option in sortOptions" v-bind:key="option.value">
             <ASelectOptGroup :label="option.label" v-if="option.options">
@@ -298,7 +333,7 @@ export default {
 
       <AFormItem label="Reference">
         <ASelect
-          show-search
+          showSearch
           :dropdownMatchSelectWidth="false"
           :value="referenceValue"
           @change="onReferenceChange"
@@ -327,7 +362,7 @@ export default {
 
       <AFormItem label="Annotation ref" v-if="configAnnotations.length !== 0">
         <ASelect
-          show-search
+          showSearch
           :dropdownMatchSelectWidth="false"
           :value="annotationValue"
           :options="annotationOptions"
@@ -336,24 +371,18 @@ export default {
           allowClear
           v-if="annotations.length !== 0"
         />
-        <ATypographyText type="secondary" v-else> Unavailable </ATypographyText>
+        <AInput v-else placeholder="0 available" style="pointer-events: none" />
       </AFormItem>
 
       <AFormItem label="Metadata">
         <ASelect
-          placeholder="0 selected"
+          placeholder="None"
           v-model:value="visibleMetadataColumns"
           mode="multiple"
           :options="metadataOptions"
           :dropdownMatchSelectWidth="false"
-          :maxTagCount="0"
-          show-search
-        >
-          <template #maxTagPlaceholder="omittedValues">
-            {{ omittedValues.length }} selected
-          </template>
-          <template #tagRender></template>
-        </ASelect>
+          showSearch
+        />
       </AFormItem>
 
       <AFormItem label="Color scheme">
@@ -371,6 +400,11 @@ export default {
         <ASwitch size="small" v-model:checked="transitionsEnabled" />
       </AFormItem>
     </AForm>
+
+    <SequenceFiltersModal
+      :visible="showSequenceFilterModal"
+      @close="showSequenceFilterModal = false"
+    />
   </SidebarItem>
 </template>
 
@@ -378,6 +412,15 @@ export default {
 .view-options {
   .ant-form-item {
     margin-bottom: 8px;
+  }
+
+  .ant-input-group {
+    display: flex !important;
+
+    .ant-btn-icon-only {
+      padding-left: 8px;
+      padding-right: 8px;
+    }
   }
 
   .sequence-filters {
