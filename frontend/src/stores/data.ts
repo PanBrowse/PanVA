@@ -11,7 +11,6 @@ import {
 import { h } from 'vue'
 import type {
   DataIndexCollapsed,
-  TreeNode,
   Group,
   Homology,
   mRNAid,
@@ -31,6 +30,7 @@ import type {
   Annotation,
   Alignment,
   Sequence,
+  Tree,
 } from '@/types'
 import {
   clamp,
@@ -63,11 +63,11 @@ import { sortNucleotideString } from '@/helpers/nucleotide'
 import {
   fetchAlignments,
   fetchAnnotations,
-  fetchCoreSNP,
   fetchDendrogramCustom,
   fetchDendrogramDefault,
   fetchHomologies,
   fetchSequenceMetadata,
+  fetchTrees,
   fetchVariablePositions,
 } from '@/helpers/api'
 import { homologyName } from '@/helpers/homology'
@@ -81,14 +81,14 @@ export const useDataStore = defineStore('data', {
   state: () => ({
     // Data that is fetched once from the API.
     homologies: [] as Homology[],
-    coreSNP: null as TreeNode | null,
+    trees: [] as Tree[],
 
     // Data that is fetched from the API using `homologyId`.
     // We don't keep data for previous homology ids because of memory consumption.
     alignedPositions: [] as Alignment[],
     annotations: [] as Annotation[],
-    dendroCustom: null as TreeNode | null,
-    dendroDefault: null as TreeNode | null,
+    dendroCustom: null as Tree | null,
+    dendroDefault: null as Tree | null,
     sequences: [] as Sequence[],
     variablePositions: [] as (VariablePosition | null)[],
     // mRNA ids in order as defined by the default dendrogram.
@@ -155,7 +155,7 @@ export const useDataStore = defineStore('data', {
     keepSequenceFilters: false,
     reference: null as Reference | null,
     transitionsEnabled: true,
-    tree: 'dendroDefault' as TreeOption,
+    selectedTree: 'dendroDefault' as TreeOption,
     visibleSequenceMetadataColumns: [] as string[],
 
     // Indicates if the data store contains all data to render the layout with all views.
@@ -194,6 +194,31 @@ export const useDataStore = defineStore('data', {
           }
         })
       )
+    },
+    tree(): Tree {
+      if (this.selectedTree === 'dendroCustom') {
+        if (this.dendroCustom === null) {
+          throw new Error('Custom dendrogram is empty.')
+        }
+
+        return this.dendroCustom
+      }
+
+      if (this.selectedTree !== 'dendroDefault') {
+        const tree = this.trees.find((tree) => tree.name === this.selectedTree)
+
+        if (!tree) {
+          throw new Error('Tree is empty.')
+        }
+
+        return tree
+      }
+
+      if (this.dendroDefault === null) {
+        throw new Error('Default dendrogram is empty.')
+      }
+
+      return this.dendroDefault
     },
     groupsFiltered(): Group[] {
       /**
@@ -438,54 +463,50 @@ export const useDataStore = defineStore('data', {
       ) {
         // Same name and payload, so we reverse the current sorting.
         // But we don't do this for the tree, that is static.
-        if (
-          !['dendroDefault', 'dendroCustom', 'coreSNP'].includes(sorting.name)
-        ) {
+        if (sorting.name !== 'tree') {
           this.sortedDataIndices = reverse(this.sortedDataIndices)
         }
         return
       }
 
-      // Sorting by dendrogram is the default sorting, so we reset everything.
-      if (sorting.name === 'dendroDefault') {
-        // Reset to default sorting as defined by dendrogram.
-        this.$patch({
-          sorting: DEFAULT_SORTING,
-          sortedDataIndices: range(this.sequenceCount),
-        })
-        return
-      }
-
-      // First we update the sorting to a new value.
+      // Update the sorting
       this.sorting = sorting
 
-      // Sorting by custom dendrogram should not take current sorting into account.
-      if (sorting.name === 'dendroCustom' && this.dendroCustom) {
-        // The leaf nodes of a dendrogram are mRNA ids.
-        this.sortedDataIndices = leafNodes(this.dendroCustom).map(
-          (mrnaId) => this.mrnaIdsLookup[mrnaId]
-        )
-        return
-      }
+      // Sorting by tree is handled differently.
+      if (sorting.name === 'tree') {
+        if (sorting.tree === 'dendroDefault') {
+          // Reset to default sorting as defined by dendrogram.
+          this.sortedDataIndices = range(this.sequenceCount)
+        } else if (sorting.tree === 'dendroCustom') {
+          if (this.dendroCustom) {
+            // The leaf nodes of a dendrogram are mRNA ids.
+            this.sortedDataIndices = leafNodes(this.dendroCustom.root).map(
+              (mrnaId) => this.mrnaIdsLookup[mrnaId]
+            )
+          }
+        } else {
+          const tree = this.trees.find((tree) => tree.name === sorting.tree)
+          if (tree) {
+            this.sortedDataIndices = flatten(
+              // The leaf nodes of custom trees are genome number strings.
+              leafNodes(tree.root).map((leaf) => {
+                const genomeNr = parseInt(leaf)
 
-      // Sorting by coreSNP should not take current sorting into account.
-      if (sorting.name === 'coreSNP' && this.coreSNP) {
-        this.sortedDataIndices = flatten(
-          // The leaf nodes of coreSNP are genome number strings.
-          leafNodes(this.coreSNP).map((leaf) => {
-            const genomeNr = parseInt(leaf)
+                // Not all genome numbers occur in each homology
+                // group, so lookup could result in undefined.
+                if (genomeNr in this.genomeMrnaIdsLookup) {
+                  return this.genomeMrnaIdsLookup[genomeNr].map(
+                    (mrnaId) => this.mrnaIdsLookup[mrnaId]
+                  )
+                }
 
-            // Not all genome numbers occur in each homology
-            // group, so lookup could result in undefined.
-            if (genomeNr in this.genomeMrnaIdsLookup) {
-              return this.genomeMrnaIdsLookup[genomeNr].map(
-                (mrnaId) => this.mrnaIdsLookup[mrnaId]
-              )
-            }
+                return []
+              })
+            )
+          }
+        }
 
-            return []
-          })
-        )
+        // We are done sorting.
         return
       }
 
@@ -650,7 +671,6 @@ export const useDataStore = defineStore('data', {
       const config = useConfigStore()
       if (await config.loadConfig()) {
         let homologies: Homology[]
-        let coreSNP: TreeNode
 
         try {
           homologies = sortBy(await fetchHomologies(), ['name', 'homology_id'])
@@ -662,14 +682,12 @@ export const useDataStore = defineStore('data', {
           throw error
         }
 
-        try {
-          coreSNP = await fetchCoreSNP()
-        } catch (error) {
+        const trees = await fetchTrees()
+        if (trees.length !== config.trees.length) {
           this.setError({
-            message: 'Could not load or parse coreSNP.',
-            isFatal: true,
+            message: 'Some tree files could not be loaded or parsed.',
+            isFatal: false,
           })
-          throw error
         }
 
         // Use the configured default sequence metadata columns.
@@ -678,7 +696,7 @@ export const useDataStore = defineStore('data', {
 
         // Update the store.
         this.$patch({
-          coreSNP,
+          trees,
           homologies,
           visibleSequenceMetadataColumns,
         })
@@ -777,12 +795,12 @@ export const useDataStore = defineStore('data', {
           ([
             alignments,
             annotations,
-            dendroDefault,
+            dendro,
             sequenceMetadata,
             variablePositions,
           ]) => {
             // Get mRNA id order from default dendrogram.
-            const mrnaIds = leafNodes(dendroDefault)
+            const mrnaIds = leafNodes(dendro)
             const mrnaIdsLookup = Object.fromEntries(
               mrnaIds.map((mrnaId, dataIndex) => [mrnaId, dataIndex])
             )
@@ -820,13 +838,19 @@ export const useDataStore = defineStore('data', {
               ? this.sequenceFilters
               : []
 
+            const dendroDefault: Tree = {
+              name: 'dendroDefault',
+              label: 'Dendrogram',
+              root: dendro,
+            }
+
             // User as already switched to a different homology group.
             if (this.homologyLoadId !== loadId) return
 
             this.$patch({
+              alignedPositions,
               annotationMrnaId: null,
               annotations,
-              alignedPositions,
               dendroCustom: null,
               dendroCustomForSelectedPositions: [],
               dendroDefault,
@@ -841,11 +865,11 @@ export const useDataStore = defineStore('data', {
               reference: null,
               selectedDataIndices: [],
               selectedPositions: [],
-              sequences,
+              selectedTree: 'dendroDefault',
               sequenceFilters,
+              sequences,
               sortedDataIndices: range(sequenceCount),
               sorting: DEFAULT_SORTING,
-              tree: 'dendroDefault',
               variablePositions,
             })
           },
@@ -884,7 +908,7 @@ export const useDataStore = defineStore('data', {
       const homologyId = this.homologyId
 
       try {
-        const data = await fetchDendrogramCustom(
+        const dendro = await fetchDendrogramCustom(
           this.homologyId,
           this.selectedPositions
         )
@@ -892,12 +916,16 @@ export const useDataStore = defineStore('data', {
         // Make sure user didn't switch homology groups in the mean time.
         if (homologyId !== this.homologyId) return
 
-        this.dendroCustom = data
+        this.dendroCustom = {
+          name: 'dendroCustom',
+          label: 'Custom dendrogram',
+          root: dendro,
+        }
         this.dendroCustomForSelectedPositions = this.selectedPositions
 
         // Automatically switch to the custom dendrogram.
-        this.tree = 'dendroCustom'
-        this.changeSorting({ name: 'dendroCustom' })
+        this.selectedTree = 'dendroCustom'
+        this.changeSorting({ name: 'tree', tree: 'dendroCustom' })
       } catch (err) {
         this.setError({
           message: 'Unable to fetch or parse custom dendrogram from API.',

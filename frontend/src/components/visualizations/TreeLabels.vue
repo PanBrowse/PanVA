@@ -5,11 +5,6 @@ import { useDataStore } from '@/stores/data'
 export default {
   computed: {
     ...mapState(useDataStore, ['tree', 'sorting']),
-    treeLabel() {
-      if (this.tree === 'coreSNP') return 'CoreSNP'
-      if (this.tree === 'dendroCustom') return 'Custom dendrogram'
-      return 'Dendrogram'
-    },
   },
   methods: {
     ...mapActions(useDataStore, ['changeSorting']),
@@ -21,10 +16,10 @@ export default {
   <svg id="tree-labels" width="500" height="72">
     <text
       transform="translate(10,67) rotate(-45)"
-      :data-sorted="sorting.name === tree"
-      @click="changeSorting({ name: tree })"
+      :data-sorted="sorting.name === 'tree'"
+      @click="changeSorting({ name: 'tree', tree: tree.name })"
     >
-      {{ treeLabel }}
+      {{ tree.label }}
     </text>
 
     <text

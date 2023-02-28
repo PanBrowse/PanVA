@@ -27,7 +27,7 @@ import { map, sortBy } from 'lodash'
 
 type SortOption = {
   label: string
-  isDisabled?: boolean
+  disabled?: boolean
   // Groups should have a unique value too.
   value: string
   // Having options means this is a group.
@@ -59,7 +59,6 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'annotations',
-      'coreSNP',
       'dendroCustom',
       'filteredPositions',
       'groups',
@@ -67,6 +66,7 @@ export default {
       'mrnaIdsLookup',
       'reference',
       'sorting',
+      'trees',
     ]),
     ...mapWritableState(useDataStore, [
       'annotationMrnaId',
@@ -74,9 +74,9 @@ export default {
       'keepSequenceFilters',
       'positionFilter',
       'reference',
+      'selectedTree',
       'sequenceFilters',
       'transitionsEnabled',
-      'tree',
       'visibleSequenceMetadataColumns',
     ]),
     annotationValue(): string | undefined {
@@ -109,6 +109,9 @@ export default {
       if (this.sorting.name === 'metadata') {
         return `metadata:${this.sorting.column}`
       }
+      if (this.sorting.name === 'tree') {
+        return `tree:${this.sorting.tree}`
+      }
       return this.sorting.name
     },
     defaultSortPosition(): number {
@@ -122,17 +125,12 @@ export default {
 
       const options: SortOption[] = [
         {
-          label: 'Tree',
           value: 'tree',
-          options: [
-            { value: 'dendroDefault', label: 'Dendrogram' },
-            {
-              value: 'dendroCustom',
-              label: 'Custom dendrogram',
-              isDisabled: !this.dendroCustom,
-            },
-            { value: 'coreSNP', label: 'CoreSNP', isDisabled: !this.coreSNP },
-          ],
+          label: 'Tree',
+          options: this.treeOptions.map(({ value, ...rest }) => ({
+            value: `tree:${value}`,
+            ...rest,
+          })),
         },
         { value: 'mrnaId', label: 'mRNA id' },
         { value: 'position', label: `Nucleotide (pos ${sortPosition})` },
@@ -142,7 +140,10 @@ export default {
         options.push({
           value: 'metadata',
           label: 'Metadata',
-          options: this.metadataOptions,
+          options: this.metadataOptions.map(({ value, ...rest }) => ({
+            value: `metadata:${value}`,
+            ...rest,
+          })),
         })
       }
 
@@ -159,6 +160,27 @@ export default {
         })),
         'label'
       )
+    },
+    treeOptions(): SortOption[] {
+      const options = [
+        { value: 'dendroDefault', label: 'Dendrogram' },
+        {
+          value: 'dendroCustom',
+          label: 'Custom dendrogram',
+          disabled: !this.dendroCustom,
+        },
+      ]
+
+      // Add loaded additional trees.
+      const additional: SortOption[] = []
+      this.trees.forEach(({ name, label }) => {
+        additional.push({ value: name, label })
+      })
+
+      // Keep `All` and `Variable` on top, but sort the rest alphabetically.
+      options.push(...sortBy(additional, 'label'))
+
+      return options
     },
     filterPositionOptions(): SortOption[] {
       const options: SortOption[] = [
@@ -231,6 +253,13 @@ export default {
           name: 'metadata',
           column,
         })
+      } else if (value.startsWith('tree:')) {
+        const tree = value.split(':')[1]
+
+        this.changeSorting({
+          name: 'tree',
+          tree,
+        })
       } else {
         this.changeSorting({
           name: value as any,
@@ -296,7 +325,7 @@ export default {
       <AFormItem label="Sorting">
         <ASelect
           :dropdownMatchSelectWidth="false"
-          v-model:value="sortValue"
+          :value="sortValue"
           @change="onSortChange"
           showSearch
         >
@@ -305,7 +334,7 @@ export default {
               <ASelectOption
                 v-for="suboption in option.options"
                 :value="suboption.value"
-                :disabled="suboption.isDisabled"
+                :disabled="suboption.disabled"
                 v-bind:key="suboption.value"
               >
                 {{ suboption.label }}
@@ -314,7 +343,7 @@ export default {
             <ASelectOption
               v-else
               :value="option.value"
-              :disabled="option.isDisabled"
+              :disabled="option.disabled"
             >
               {{ option.label }}
             </ASelectOption>
@@ -323,13 +352,11 @@ export default {
       </AFormItem>
 
       <AFormItem label="Tree">
-        <ASelect :dropdownMatchSelectWidth="false" v-model:value="tree">
-          <ASelectOption value="dendroDefault">Dendrogram</ASelectOption>
-          <ASelectOption value="dendroCustom" :disabled="!dendroCustom">
-            Custom dendrogram
-          </ASelectOption>
-          <ASelectOption value="coreSNP">CoreSNP</ASelectOption>
-        </ASelect>
+        <ASelect
+          :dropdownMatchSelectWidth="false"
+          v-model:value="selectedTree"
+          :options="treeOptions"
+        />
       </AFormItem>
 
       <AFormItem label="Reference">

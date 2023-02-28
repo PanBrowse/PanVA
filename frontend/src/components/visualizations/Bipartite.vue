@@ -5,7 +5,6 @@ import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
 import { isGroup } from '@/helpers/isGroup'
 import { flatten } from 'lodash'
-import type { TreeNode, TreeOption } from '@/types'
 import { leafNodes } from '@/helpers/tree'
 
 import colors from '@/assets/colors.module.scss'
@@ -24,9 +23,6 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
-      'coreSNP',
-      'dendroCustom',
-      'dendroDefault',
       'genomeNrs',
       'hoverRowIndex',
       'mrnaIds',
@@ -36,30 +32,14 @@ export default {
       'tree',
     ]),
     height(): number {
-      if (this.treeData === null) return 0
-      return leafNodes(this.treeData).length * CELL_SIZE
-    },
-    treeSource(): TreeOption {
-      if (this.tree === 'coreSNP' && this.coreSNP) {
-        return 'coreSNP'
-      }
-
-      if (this.tree === 'dendroCustom' && this.dendroCustom) {
-        return 'dendroCustom'
-      }
-
-      return 'dendroDefault'
-    },
-    treeData(): TreeNode | null {
-      if (this.treeSource === 'coreSNP') return this.coreSNP
-      if (this.treeSource === 'dendroCustom') return this.dendroCustom
-      return this.dendroDefault
+      if (this.tree.root === null) return 0
+      return leafNodes(this.tree.root).length * CELL_SIZE
     },
     leafNodes(): string[] {
-      if (this.treeData === null) {
-        throw Error('Bipartite.leafNodes called with missing treeData.')
+      if (this.tree.root === null) {
+        throw Error('Bipartite.leafNodes called with missing tree.')
       }
-      return leafNodes(this.treeData)
+      return leafNodes(this.tree.root)
     },
     leafNodesLookup(): Record<string, number> {
       return Object.fromEntries(
@@ -94,12 +74,12 @@ export default {
       return d3.select('#bipartite')
     },
     getTreeIndex(dataIndex: number): number {
-      let leafNodeValue = this.mrnaIds[dataIndex]
-
-      if (this.treeSource === 'coreSNP') {
-        leafNodeValue = `${this.genomeNrs[dataIndex]}`
+      if (['dendroDefault', 'dendroCustom'].includes(this.tree.name)) {
+        const leafNodeValue = this.mrnaIds[dataIndex]
+        return this.leafNodesLookup[leafNodeValue]
       }
 
+      const leafNodeValue = `${this.genomeNrs[dataIndex]}`
       return this.leafNodesLookup[leafNodeValue]
     },
     linkPath({ treeIndex, rowIndex }: Link): string {
@@ -137,7 +117,7 @@ export default {
     sortedDataIndicesCollapsed() {
       this.draw()
     },
-    treeData() {
+    tree() {
       this.draw()
     },
   },

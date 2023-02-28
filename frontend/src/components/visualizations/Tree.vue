@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 import { mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { CELL_SIZE } from '@/constants'
-import type { TreeNode, TreeOption } from '@/types'
+import type { TreeNode } from '@/types'
 import type { HierarchyNode, HierarchyPointLink, HierarchyPointNode } from 'd3'
 import { leafNodes } from '@/helpers/tree'
 import { flatten } from 'lodash'
@@ -17,9 +17,6 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, [
-      'coreSNP',
-      'dendroCustom',
-      'dendroDefault',
       'genomeMrnaIdsLookup',
       'groupLookup',
       'mrnaIdsLookup',
@@ -28,30 +25,14 @@ export default {
       'tree',
     ]),
     ...mapWritableState(useDataStore, ['selectedDataIndices']),
-    treeSource(): TreeOption {
-      if (this.tree === 'coreSNP' && this.coreSNP) {
-        return 'coreSNP'
-      }
-
-      if (this.tree === 'dendroCustom' && this.dendroCustom) {
-        return 'dendroCustom'
-      }
-
-      return 'dendroDefault'
-    },
-    treeData(): TreeNode | null {
-      if (this.treeSource === 'coreSNP') return this.coreSNP
-      if (this.treeSource === 'dendroCustom') return this.dendroCustom
-      return this.dendroDefault
-    },
     hierarchy(): HierarchyNode<TreeNode> {
-      if (this.treeData === null) {
+      if (this.tree.root === null) {
         throw Error('Tree.hierarchy called with missing treeData.')
       }
-      return d3.hierarchy<TreeNode>(this.treeData)
+      return d3.hierarchy<TreeNode>(this.tree.root)
     },
     height(): number {
-      if (this.treeData === null) return 0
+      if (this.tree.root === null) return 0
       return this.hierarchy.leaves().length * CELL_SIZE
     },
     links(): HierarchyPointLink<TreeNode>[] {
@@ -105,9 +86,14 @@ export default {
         )
         .attr('data-leaf', (d) => d.height === 0 || d.depth === 0)
         .on('mousedown', (event, { data }) => {
-          if (this.treeSource === 'coreSNP') {
+          if (['dendroDefault', 'dendroCustom'].includes(this.tree.name)) {
+            // The leaf nodes of dendrograms are mRNA ids.
+            this.selectedDataIndices = leafNodes(data)
+              .map((mrnaId) => this.mrnaIdsLookup[mrnaId])
+              .filter((dataIndex) => !this.groupLookup[dataIndex])
+          } else {
             this.selectedDataIndices = flatten(
-              // The leaf nodes of coreSNP are genome number strings.
+              // The leaf nodes of custom trees are genome number strings.
               leafNodes(data).map((leaf) => {
                 const genomeNr = parseInt(leaf)
 
@@ -122,10 +108,6 @@ export default {
                 return []
               })
             )
-          } else {
-            this.selectedDataIndices = leafNodes(data)
-              .map((mrnaId) => this.mrnaIdsLookup[mrnaId])
-              .filter((dataIndex) => !this.groupLookup[dataIndex])
           }
         })
     },
@@ -137,7 +119,7 @@ export default {
     rowColors() {
       this.draw()
     },
-    treeData() {
+    tree() {
       this.draw()
     },
   },

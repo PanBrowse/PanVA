@@ -4,6 +4,7 @@ import snc from 'string-natural-compare'
 export const sortingPayload = (sorting: Sorting) => {
   if (sorting.name === 'metadata') return sorting.column
   if (sorting.name === 'position') return sorting.position
+  if (sorting.name === 'tree') return sorting.tree
   return undefined
 }
 

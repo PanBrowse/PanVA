@@ -23,6 +23,7 @@ import type {
   AnnotationCSVColumns,
   Annotation,
   ConfigAnnotation,
+  Tree,
 } from '@/types'
 import { useConfigStore } from '@/stores/config'
 import { constant, times, values } from 'lodash'
@@ -143,12 +144,6 @@ export const fetchAnnotations = async (
   }
 }
 
-export const fetchCoreSNP = async () => {
-  const config = useConfigStore()
-  const data = await d3.text(`${config.apiUrl}core_snp.txt`)
-  return parse_newick(data)
-}
-
 export const fetchDendrogramCustom = async (
   homologyId: number,
   positions: number[]
@@ -221,6 +216,32 @@ export const fetchSequenceMetadata = async (homologyId: number) => {
 
     return data
   })
+}
+
+export const fetchTrees = async () => {
+  const config = useConfigStore()
+  const trees: Tree[] = []
+
+  const promises = config.trees.map(async ({ filename, label }) => {
+    const data = await d3.text(`${config.apiUrl}${filename}`)
+    const root = parse_newick(data)
+    const tree: Tree = {
+      name: filename,
+      label,
+      root,
+    }
+    return tree
+  })
+
+  await Promise.allSettled(promises).then((results) =>
+    results.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        trees.push(result.value)
+      }
+    })
+  )
+
+  return trees
 }
 
 // Temporary type that also holds data needed for sorting,

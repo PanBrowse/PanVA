@@ -7,7 +7,7 @@ export type mRNAid = string
 export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
 export type Range = [number, number]
 export type DataIndexCollapsed = number | Group
-export type TreeOption = 'dendroDefault' | 'dendroCustom' | 'coreSNP'
+export type TreeOption = 'dendroDefault' | 'dendroCustom' | string
 export type FilterPosition = 'all' | 'variable' | string
 
 export type GroupReference = {
@@ -30,7 +30,7 @@ export type AppError = {
  * Sorting.
  */
 type SortingCommon = {
-  name: 'dendroDefault' | 'dendroCustom' | 'coreSNP' | 'mrnaId'
+  name: 'mrnaId'
 }
 
 type SortingMetadata = {
@@ -43,7 +43,16 @@ type SortingPosition = {
   position: number
 }
 
-export type Sorting = SortingCommon | SortingMetadata | SortingPosition
+type SortingTree = {
+  name: 'tree'
+  tree: string
+}
+
+export type Sorting =
+  | SortingCommon
+  | SortingMetadata
+  | SortingPosition
+  | SortingTree
 
 /**
  * Filtering
@@ -117,6 +126,12 @@ export type Annotation = {
   mRNA_id: mRNAid
   // Per position an object with a boolean for each configured annotation column.
   features: Record<string, boolean>[]
+}
+
+export type Tree = {
+  name: string
+  label: string
+  root: TreeNode
 }
 
 export type TreeNode = {

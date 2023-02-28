@@ -74,6 +74,10 @@
     {
       "filename": "core_snp.txt",
       "label": "CoreSNP"
+    },
+    {
+      "filename": "kmer.txt",
+      "label": "K-Mer"
     }
   ],
   "variableMetadata": [

@@ -1,4 +1,9 @@
-import type { Config, ConfigMetadata, ConfigAnnotation } from '@/types'
+import type {
+  Config,
+  ConfigMetadata,
+  ConfigAnnotation,
+  ConfigTree,
+} from '@/types'
 import { defineStore } from 'pinia'
 
 // @ts-ignore
@@ -15,6 +20,7 @@ export const useConfigStore = defineStore('config', {
     defaultSequenceMetadataColumns: [] as string[],
     sequenceMetadata: [] as ConfigMetadata[],
     title: '' as string,
+    trees: [] as ConfigTree[],
     variableMetadata: [] as ConfigMetadata[],
   }),
   getters: {
