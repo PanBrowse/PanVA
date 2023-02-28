@@ -1,5 +1,22 @@
 {
   "apiUrl": "http://localhost:5001/",
+  "alignmentMetadata": [
+    {
+      "type": "boolean",
+      "column": "meta_boolean",
+      "label": "Random boolean"
+    },
+    {
+      "type": "categorical",
+      "column": "meta_string",
+      "label": "Random string"
+    },
+    {
+      "type": "quantitative",
+      "column": "meta_number",
+      "label": "Random number"
+    }
+  ],
   "annotations": [
     {
       "column": "cds",
@@ -11,19 +28,13 @@
     }
   ],
   "defaultHomologyId": 13803671,
-  "defaultMetadataColumns": [
+  "defaultSequenceMetadataColumns": [
     "virulence",
     "species",
     "growth_rate",
     "strain_name"
   ],
-  "filters": [
-    {
-      "column": "pheno_specific",
-      "label": "Phenotype specific"
-    }
-  ],
-  "metadata": [
+  "sequenceMetadata": [
     {
       "type": "boolean",
       "column": "virulence",
@@ -58,5 +69,23 @@
       "width": 120
     }
   ],
-  "title": "PanVA: Pectobacterium"
+  "title": "PanVA: Pectobacterium",
+  "trees": [
+    {
+      "filename": "core_snp.txt",
+      "label": "CoreSNP"
+    }
+  ],
+  "variableMetadata": [
+    {
+      "type": "boolean",
+      "column": "informative",
+      "label": "Informative"
+    },
+    {
+      "type": "boolean",
+      "column": "pheno_specific",
+      "label": "Phenotype specific"
+    }
+  ]
 }

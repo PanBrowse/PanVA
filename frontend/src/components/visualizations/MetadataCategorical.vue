@@ -11,7 +11,7 @@ import type {
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { eventIndex } from '@/helpers/eventIndex'
-import { uniq } from 'lodash'
+import { sortBy, uniq } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import { mapCountBy } from '@/helpers/mapCountBy'
@@ -41,8 +41,8 @@ export default {
     ...mapState(useDataStore, [
       'groupsFiltered',
       'rowColors',
-      'metadata',
       'selectedDataIndicesSet',
+      'sequences',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
       'transitionTime',
@@ -70,7 +70,8 @@ export default {
     valueIndexLookup() {
       const map = new Map()
       let lastIndex = 0
-      this.metadata.forEach(({ [this.column.column]: value }) => {
+      this.sequences.forEach(({ metadata }) => {
+        const value = metadata[this.column.column]
         if (!map.has(value)) {
           map.set(value, ++lastIndex)
         }
@@ -87,7 +88,7 @@ export default {
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
         this.groupsFiltered.map(({ id, dataIndices }) => {
-          const allValues = dataIndices.map(this.valueAtDataIndex)
+          const allValues = sortBy(dataIndices.map(this.valueAtDataIndex))
           const counts = mapCountBy(allValues)
           const values = uniq(allValues)
 
@@ -97,6 +98,9 @@ export default {
     },
     colors() {
       return colors
+    },
+    width(): number {
+      return this.column.width || 120
     },
   },
   methods: {
@@ -108,7 +112,9 @@ export default {
       'dragUpdate',
     ]),
     valueAtDataIndex(dataIndex: number): MetadataCategorical {
-      return this.metadata[dataIndex][this.column.column] as MetadataCategorical
+      return this.sequences[dataIndex].metadata[
+        this.column.column
+      ] as MetadataCategorical
     },
     svg() {
       return d3.select(`#${this.name}`)
@@ -243,12 +249,7 @@ export default {
 </script>
 
 <template>
-  <svg
-    :id="name"
-    :width="column.width"
-    :height="height"
-    class="metadata-categorical"
-  >
+  <svg :id="name" :width="width" :height="height" class="metadata-categorical">
     <component is="style" type="text/css">
       <!-- prettier-ignore -->
       <template v-if="hoverRowIndex !== null">

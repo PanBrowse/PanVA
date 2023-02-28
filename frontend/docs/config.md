@@ -6,14 +6,17 @@ The PanVA application can be configured with a runtime configuration file `confi
 
 All fields are optional.
 
-| Field               | Type           | Default value                                 |
-|---------------------|----------------|-----------------------------------------------|
-| `annotations`       | `Annotation[]` | `[]`                                          |
-| `apiUrl`            | `string`       | `"/api/"`                                     |
-| `defaultHomologyId` | `integer`      | The first homology id in the homologies list. |
-| `filters`           | `Filter[]`     | `[]`                                          |
-| `metadata`          | `Metadata[]`   | `[]`                                          |
-| `title`             | `string`       | `"PanVA"`                                     |
+| Field                            | Type           | Default                                       |
+|----------------------------------|----------------|-----------------------------------------------|
+| `alignmentMetadata`              | `Metadata[]`   | `[]`                                          |
+| `annotations`                    | `Annotation[]` | `[]`                                          |
+| `apiUrl`                         | `string`       | `"/api/"`                                     |
+| `defaultHomologyId`              | `integer`      | The first homology id in the homologies list. |
+| `defaultSequenceMetadataColumns` | `string[]`     | `[]`                                          |
+| `sequenceMetadata`               | `Metadata[]`   | `[]`                                          |
+| `title`                          | `string`       | `"PanVA"`                                     |
+| `trees`                          | `Tree[]`       | `[]`                                          |
+| `variableMetadata`               | `Metadata[]`   | `[]`                                          |
 
 
 ## Annotation
@@ -28,16 +31,16 @@ Each column should be configured as a JSON object with the following options:
 | `label`  | `string` | :heavy_check_mark: | Description of the annotation.                                                            |
 
 
-## Filter
+## Tree
 
-Positions can be filtered based on variable position properties. You can configure which properties should be available.
+Besides the default and custom dendrogram, PanVA can render additional trees in Newick for. You can configure which columns should be displayed.
 
 Each column should be configured as a JSON object with the following options:
 
-| Field    | Type     | Notes                                                                      |
-|----------|----------|----------------------------------------------------------------------------|
-| `column` | `string` | CSV column in [`variable.csv`](../../api/docs/data-format.md#variablecsv). |
-| `label`  | `string` | Description of the property.                                               |
+| Field      | Type     | Notes                                                                       |
+|------------|----------|-----------------------------------------------------------------------------|
+| `filename` | `string` | Filename of the tree file (in Newick format) in the root dataset directory. |
+| `label`    | `string` | Description of the tree.                                                    |
 
 
 ## Metadata
@@ -46,18 +49,29 @@ Metadata can be visualized in a number of different ways. You can configure whic
 
 Each column should be configured as a JSON object with the following options:
 
-| Field    | Type                                           | Notes                                                                               |
-|----------|------------------------------------------------|-------------------------------------------------------------------------------------|
-| `column` | `string`                                       | CSV column in [`metadata.csv`](../../api/docs/data-format.md#metadatacsv-optional). |
-| `label`  | `string`                                       | Shown above the column.                                                             |
-| `type`   | `"boolean" \| "categorical" \| "quantitative"` |                                                                                     |
+| Field    | Type                                           | Notes                                               |
+|----------|------------------------------------------------|-----------------------------------------------------|
+| `column` | `string`                                       | CSV column in the respective file (see note below). |
+| `label`  | `string`                                       | Short description of the column.                    |
+| `type`   | `"boolean" \| "categorical" \| "quantitative"` |                                                     |
 
 Based on the value of `type` these options are extended with the options as defined below.
 
-**Important:** The `column` property must be unique across all Metadata objects; a column from [`metadata.csv`](../../api/docs/data-format.md#metadatacsv-optional) can not be used multiple times.
+**Important:** The same metadata column can not be displayed more than once.
 
 
-### Boolean
+### Files
+
+This type is used for several kinds of metadata, which are stored in multiple files: 
+
+* `alignmentMetadata` is stored in [`alignments.csv`](../../api/docs/data-format.md#alignmentscsv) and contains metadata for each position in each aligned gene sequence.
+* `sequenceMetadata` is stored in [`metadata.csv`](../../api/docs/data-format.md#metadatacsv) and contains metadata for each aligned gene sequence (metadata is the same for all positions).
+* `variableMetadata` is stored in [`variable.csv`](../../api/docs/data-format.md#variablecsv) and contains metadata for each variable position (metadata is the same for all sequences).
+
+Metadata of type `boolean` in `variableMetadata` can also be used to filter positions.
+
+
+### Type: Boolean
 
 | Field          | Type     | Required           | Notes                                  |
 |----------------|----------|--------------------|----------------------------------------|
@@ -72,22 +86,22 @@ Based on the value of `type` these options are extended with the options as defi
 When `values` is omitted, the value will be matched (case-insensitive) against `"true" | "t" | "yes" | "y"` for `true` and `"false" | "f" | "no" | "n"` for `false`. All other values will be considered to be unknown (`null`).
 
 
-### Categorical
+### Type: Categorical
 
-| Field   | Type     | Required           | Notes                |
-|---------|----------|--------------------|----------------------|
-| `width` | `number` | :heavy_check_mark: | Width of the column. |
+| Field   | Type     | Default | Notes                                      |
+|---------|----------|---------|--------------------------------------------|
+| `width` | `number` | `120`   | Width of the column for sequence metadata. |
 
 
 
-### Quantitative
+### Type: Quantitative
 
-| Field      | Type     | Required           | Notes                                                                           |
-|------------|----------|--------------------|---------------------------------------------------------------------------------|
-| `decimals` | `number` |                    | Maximum number of decimals to display. <br> Trailing zeroes are removed.        |
-| `maxValue` | `number` |                    | Maximum value to determine bar width. <br> Defaults to maximum value in column. |
-| `suffix`   | `string` |                    | String to be placed behind the numeric value (e.g. `"%"`)                       |
-| `width`    | `number` | :heavy_check_mark: | Width of the column.                                                            |
+| Field      | Type     | Default                 | Notes                                                               |
+|------------|----------|-------------------------|---------------------------------------------------------------------|
+| `decimals` | `number` | `0`                     | Maximum number of decimals to display. Trailing zeroes are removed. |
+| `maxValue` | `number` | Maximum value in column | Maximum value to determine bar width.                               |
+| `suffix`   | `string` | `""`                    | String to be placed behind the numeric value (e.g. `"%"`)           |
+| `width`    | `number` | `120`                   | Width of the column for sequence metadata.                          |
 
 
 ## Example configuration file

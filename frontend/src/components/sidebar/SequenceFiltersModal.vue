@@ -62,12 +62,12 @@ export default {
     PlusOutlined,
   },
   computed: {
-    ...mapState(useDataStore, ['metadata', 'metadataConfigLookup']),
+    ...mapState(useDataStore, ['sequences']),
     ...mapWritableState(useDataStore, ['sequenceFilters']),
-    ...mapState(useConfigStore, { configMetadata: 'metadata' }),
+    ...mapState(useConfigStore, ['sequenceMetadata', 'sequenceMetadataLookup']),
     columnOptions() {
       return sortBy(
-        this.configMetadata.map(({ column, label }) => ({
+        this.sequenceMetadata.map(({ column, label }) => ({
           value: column,
           label,
         })),
@@ -79,12 +79,12 @@ export default {
     valuesForColumn(column?: string): Option[] {
       if (!column) return []
 
-      const metadata = this.metadataConfigLookup[column]
+      const metadata = this.sequenceMetadataLookup[column]
 
       if (metadata.type === 'categorical') {
         const uniqueValues = new Set(
-          this.metadata.map(
-            ({ [column]: value }) => value as MetadataCategorical
+          this.sequences.map(
+            ({ metadata: { [column]: value } }) => value as MetadataCategorical
           )
         )
         return sortBy([...uniqueValues]).map((value) => ({ value }))
@@ -122,7 +122,7 @@ export default {
     },
     addFilter() {
       const column = this.columnOptions[0].value
-      const { type } = this.metadataConfigLookup[column]
+      const { type } = this.sequenceMetadataLookup[column]
       const operator = this.operatorsForType(type)[0].value
 
       this.values.filters.push({
@@ -137,7 +137,7 @@ export default {
     },
     onColumnChange(filter: SequenceFilter) {
       // Lookup type of newly selected column.
-      filter.type = this.metadataConfigLookup[filter.column].type
+      filter.type = this.sequenceMetadataLookup[filter.column].type
       // Lookup operators of newly selected column.
       const operators = map(this.operatorsForType(filter.type), 'value')
 

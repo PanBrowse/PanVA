@@ -46,8 +46,8 @@ export default {
     ...mapState(useDataStore, [
       'groupsFiltered',
       'mrnaIds',
-      'metadata',
       'selectedDataIndicesSet',
+      'sequences',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
       'transitionTime',
@@ -86,7 +86,9 @@ export default {
       'dragUpdate',
     ]),
     valueAtDataIndex(dataIndex: number): MetadataBoolean {
-      return this.metadata[dataIndex][this.column.column] as MetadataBoolean
+      return this.sequences[dataIndex].metadata[
+        this.column.column
+      ] as MetadataBoolean
     },
     svg() {
       return d3.select(`#${this.name}`)

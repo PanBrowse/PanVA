@@ -113,6 +113,12 @@
         }
     },
     "properties": {
+        "alignmentMetadata": {
+            "items": {
+                "$ref": "#/definitions/ConfigMetadata"
+            },
+            "type": "array"
+        },
         "annotations": {
             "items": {
                 "additionalProperties": false,
@@ -135,17 +141,26 @@
         "defaultHomologyId": {
             "type": "number"
         },
-        "defaultMetadataColumns": {
+        "defaultSequenceMetadataColumns": {
             "items": {
                 "type": "string"
             },
             "type": "array"
         },
-        "filters": {
+        "sequenceMetadata": {
+            "items": {
+                "$ref": "#/definitions/ConfigMetadata"
+            },
+            "type": "array"
+        },
+        "title": {
+            "type": "string"
+        },
+        "trees": {
             "items": {
                 "additionalProperties": false,
                 "properties": {
-                    "column": {
+                    "filename": {
                         "type": "string"
                     },
                     "label": {
@@ -156,14 +171,11 @@
             },
             "type": "array"
         },
-        "metadata": {
+        "variableMetadata": {
             "items": {
                 "$ref": "#/definitions/ConfigMetadata"
             },
             "type": "array"
-        },
-        "title": {
-            "type": "string"
         }
     },
     "type": "object"

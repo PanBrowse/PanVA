@@ -1,21 +1,31 @@
 <script lang="ts">
-import { CloseCircleOutlined, CheckCircleOutlined } from '@ant-design/icons-vue'
+import {
+  CloseCircleOutlined,
+  CheckCircleOutlined,
+  QuestionCircleOutlined,
+} from '@ant-design/icons-vue'
+import type { PropType } from 'vue'
 
 export default {
   components: {
     CloseCircleOutlined,
     CheckCircleOutlined,
+    QuestionCircleOutlined,
   },
   props: {
-    value: Boolean,
+    value: {
+      type: null as unknown as PropType<boolean | null>,
+      required: true,
+    },
   },
 }
 </script>
 
 <template>
   <div class="container">
-    <CheckCircleOutlined v-if="value" />
-    <CloseCircleOutlined v-else />
+    <CheckCircleOutlined v-if="value === true" />
+    <CloseCircleOutlined v-else-if="value === false" />
+    <QuestionCircleOutlined v-else />
     <slot></slot>
   </div>
 </template>
@@ -33,5 +43,8 @@ export default {
 }
 .anticon-close-circle {
   color: $danger;
+}
+.anticon-question-circle {
+  color: $gray-7;
 }
 </style>

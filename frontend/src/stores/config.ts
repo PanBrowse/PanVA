@@ -1,9 +1,4 @@
-import type {
-  Config,
-  ConfigMetadata,
-  ConfigFilter,
-  ConfigAnnotation,
-} from '@/types'
+import type { Config, ConfigMetadata, ConfigAnnotation } from '@/types'
 import { defineStore } from 'pinia'
 
 // @ts-ignore
@@ -13,14 +8,32 @@ import { useDataStore } from './data'
 
 export const useConfigStore = defineStore('config', {
   state: () => ({
+    alignmentMetadata: [] as ConfigMetadata[],
     annotations: [] as ConfigAnnotation[],
     apiUrl: '/api/' as string,
     defaultHomologyId: null as number | null,
-    defaultMetadataColumns: [] as string[],
-    filters: [] as ConfigFilter[],
-    metadata: [] as ConfigMetadata[],
+    defaultSequenceMetadataColumns: [] as string[],
+    sequenceMetadata: [] as ConfigMetadata[],
     title: '' as string,
+    variableMetadata: [] as ConfigMetadata[],
   }),
+  getters: {
+    alignmentMetadataLookup(): Record<string, ConfigMetadata> {
+      return Object.fromEntries(
+        this.alignmentMetadata.map((metadata) => [metadata.column, metadata])
+      )
+    },
+    sequenceMetadataLookup(): Record<string, ConfigMetadata> {
+      return Object.fromEntries(
+        this.sequenceMetadata.map((metadata) => [metadata.column, metadata])
+      )
+    },
+    variableMetadataLookup(): Record<string, ConfigMetadata> {
+      return Object.fromEntries(
+        this.variableMetadata.map((metadata) => [metadata.column, metadata])
+      )
+    },
+  },
   actions: {
     async loadConfig() {
       const { setError } = useDataStore()
@@ -44,6 +57,7 @@ export const useConfigStore = defineStore('config', {
           message: 'Invalid runtime configuration found.',
           isFatal: true,
         })
+        console.error(validate.errors)
         return false
       }
 

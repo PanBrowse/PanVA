@@ -8,7 +8,7 @@ export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
 export type Range = [number, number]
 export type DataIndexCollapsed = number | Group
 export type TreeOption = 'dendroDefault' | 'dendroCustom' | 'coreSNP'
-export type FilterPosition = 'all' | 'variable' | 'informative' | string
+export type FilterPosition = 'all' | 'variable' | string
 
 export type GroupReference = {
   type: 'group'
@@ -83,7 +83,7 @@ export type Group = {
 
 export type HomologyMetadata = {
   label: string
-  value: string | boolean
+  value: string | string[] | boolean
 }
 
 export type Homology = {
@@ -94,6 +94,15 @@ export type Homology = {
   metadata?: HomologyMetadata[]
 }
 
+export type Alignment = {
+  nucleotide: Nucleotide
+  metadata: Metadata
+}
+
+export type Sequence = {
+  metadata: Metadata
+}
+
 export type VariablePosition = {
   A: number
   C: number
@@ -101,9 +110,7 @@ export type VariablePosition = {
   T: number
   gap: number
   conservation: number
-
-  // Includes `informative`, but also contains data for configured filters.
-  properties: Record<string, boolean | null>
+  metadata: Metadata
 }
 
 export type Annotation = {
@@ -140,11 +147,10 @@ export type AlignmentCSVColumns =
 
 export type AnnotationCSVColumns = 'mRNA_id' | 'position'
 
-export type MetadataCSVColumns = 'mRNA_id'
+export type SequenceMetadataCSVColumns = 'mRNA_id'
 
 export type VariablePositionCSVColumns =
   | 'position'
-  | 'informative'
   | 'A'
   | 'C'
   | 'G'
@@ -179,11 +185,6 @@ export type ConfigAnnotation = {
   label: string
 }
 
-export type ConfigFilter = {
-  column: string
-  label: string
-}
-
 type ConfigMetadataBase = {
   column: string
   label: string
@@ -191,28 +192,28 @@ type ConfigMetadataBase = {
 
 export type ConfigMetadataBoolean = ConfigMetadataBase & {
   type: 'boolean'
-  values?: {
-    true: string
-    false: string
-  }
   labels?: {
     true: string
     false: string
     null: string
   }
+  values?: {
+    true: string
+    false: string
+  }
 }
 
 export type ConfigMetadataCategorical = ConfigMetadataBase & {
   type: 'categorical'
-  width: number
+  width?: number
 }
 
 export type ConfigMetadataQuantitative = ConfigMetadataBase & {
   type: 'quantitative'
   decimals?: number
-  suffix?: string
   maxValue?: number
-  width: number
+  suffix?: string
+  width?: number
 }
 
 export type ConfigMetadata =
@@ -220,12 +221,19 @@ export type ConfigMetadata =
   | ConfigMetadataCategorical
   | ConfigMetadataQuantitative
 
+export type ConfigTree = {
+  filename: string
+  label: string
+}
+
 export type Config = {
+  alignmentMetadata?: ConfigMetadata[] // Default: []
   annotations?: ConfigAnnotation[] // Default: []
   apiUrl?: string // Default: '/'
   defaultHomologyId?: number // Default: First homology in homologies.
-  defaultMetadataColumns?: string[] // Default: []
-  filters?: ConfigFilter[] // Default: []
-  metadata?: ConfigMetadata[] // Default: []
-  title?: string // Default constants.DEFAULT_TITLE
+  defaultSequenceMetadataColumns?: string[] // Default: []
+  variableMetadata?: ConfigMetadata[] // Default: []
+  sequenceMetadata?: ConfigMetadata[] // Default: []
+  title?: string // Default `constants.DEFAULT_TITLE`
+  trees?: ConfigTree[] // Default: []
 }

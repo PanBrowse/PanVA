@@ -10,6 +10,8 @@ import type { DataIndexCollapsed, Group } from '@/types'
 import { groupName } from '@/helpers/groupName'
 import { max } from 'lodash'
 import colors from '@/assets/colors.module.scss'
+import { useTooltipStore } from '@/stores/tooltip'
+import { naturalSort } from '@/helpers/sorting'
 
 export default {
   data() {
@@ -51,6 +53,7 @@ export default {
   },
   methods: {
     ...mapActions(useDataStore, ['dragStart', 'dragEnd', 'dragUpdate']),
+    ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     svg() {
       return d3.select('#names')
     },
@@ -152,6 +155,35 @@ export default {
             this.hoverRowIndex = index
             this.dragUpdate(index)
           }
+
+          const data = this.sortedDataIndicesCollapsed[index]
+          if (isGroup(data)) {
+            this.showTooltip({
+              key: `names-${index}`,
+              element: event.target,
+              generateContent: () => {
+                const names = naturalSort(
+                  data.dataIndices.map((index) => this.mrnaIds[index])
+                )
+
+                return {
+                  title: groupName(data),
+                  template: `
+                    <AList size="small" bordered :dataSource="names">
+                      <template #renderItem="{ item }">
+                        <AListItem>{{ item }}</AListItem>
+                      </template>
+                    </AList>
+                  `,
+                  data: {
+                    names,
+                  },
+                  isCompact: true,
+                  isPinnable: true,
+                }
+              },
+            })
+          }
         })
         .on('mouseup', (event) => {
           const index = eventIndex(event)
@@ -161,6 +193,7 @@ export default {
         })
         .on('mouseout', () => {
           this.hoverRowIndex = null
+          this.hideTooltip()
         })
     },
   },

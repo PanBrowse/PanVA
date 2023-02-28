@@ -15,7 +15,7 @@ Each homology group is a subdirectory of the root data directory and has a uniqu
 ```
 /
 |-- homologies.json
-|-- core_snp.txt
+|-- [tree files]
 |
 +-- <homology_id>/
     |-- alignments.csv
@@ -58,10 +58,9 @@ An example object in the array:
 ]
 ```
 
+### `tree files` (OPTIONAL)
 
-### `core_snp.txt`
-
-A Maximum likelihood (ML) or Neighbour-Joining (NJ) phylogeny from SNPs identified from single copy orthologous genes. The file is in Newick format. 
+The PanVA frontend can be configured to display one or more additional trees, such as CoreSNP. The files are in Newick format and should be placed in the root directory of the dataset.
 
 
 ## Homology group files
@@ -79,6 +78,8 @@ This is a matrix of the aligned gene sequences and position specific attributes.
 * `genome_nr`: A unique ID for each genome sequence (_integer_).
 * `position`: The position in the alignment (_integer_).
 * `nucleotide`: The nucleotide value (_`A|C|G|T|-`_).
+
+This file can be extended with [additional metadata](#additionalmetadata).
 
 
 ### `sequences.csv`
@@ -111,11 +112,7 @@ Summary of all variable positions in the alignment and their value counts. This 
 * `T`: Number of sequences containing nucleotide T (_integer_).
 * `gap`: Number of sequences containing a gap (-) (_integer_).
 
-This file can be extended with additional columns to be used as a position filter. For example:
-
-* `pheno_specific`: Is position phenotype specific in nucleotide alignment (_boolean_).
-
-The frontend needs to be [configured](../../frontend/docs/config.md) to filter on these additional columns.
+This file can be extended with [additional metadata](#additionalmetadata).
 
 
 ### `annotations.csv` (OPTIONAL)
@@ -129,6 +126,8 @@ This optional file is only used for Eukaryotic pangenomes. It specifies the gene
 
 * `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
 * `position`: The position in the alignment (_integer_).
+
+This file can be extended with [additional metadata](#additionalmetadata).
 
 This file can be extended with additional columns to be used as annotations. For example:
 
@@ -149,12 +148,7 @@ An optional CSV file containing metadata for each genome indicated by `mRNA_id` 
 
 * `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
 
-This file can be extended with additional columns to be shown as metadata. For example:
-
-* `virulence`: Example binary metadata, in this case virulence (_boolean_).
-* `species`: Example categorical metadata, in this case the species name (_string_).
-
-The frontend needs to be [configured](../../frontend/docs/config.md) to display this metadata.
+This file can be extended with [additional metadata](#additionalmetadata).
 
 
 ### `linkage_matrix.npy` (AUTO-GENERATED)
@@ -164,3 +158,9 @@ The linkage matrix for generating the initial clustering dendrogram, stored as N
 **Important:** Please delete this file if the contents of `sequences.csv` has changed.
 
 
+## Additional metadata
+
+Some files, specifically [`alignments.csv`](#alignmentscsv), [`metadata.csv`](#metadatacsv), and [`variable.csv`](#variablecsv), can be extended with additional metadata columns.
+Values in each column should be of the same type (string, number, optional boolean).
+
+The frontend needs to be [configured](../../frontend/docs/config.md) to use these additional columns.

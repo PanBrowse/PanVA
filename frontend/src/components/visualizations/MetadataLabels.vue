@@ -14,16 +14,19 @@ export default {
     }
   },
   computed: {
-    ...mapState(useDataStore, ['sorting', 'visibleMetadata']),
+    ...mapState(useDataStore, ['sorting', 'visibleSequenceMetadata']),
     width(): number {
       //
-      return sum(this.visibleMetadata.map(this.columnWidth)) + this.paddingRight
+      return (
+        sum(this.visibleSequenceMetadata.map(this.columnWidth)) +
+        this.paddingRight
+      )
     },
     xPositions(): number[] {
       const result: number[] = []
       let total = this.metadataGap
 
-      this.visibleMetadata.forEach((column) => {
+      this.visibleSequenceMetadata.forEach((column) => {
         const width = this.columnWidth(column)
 
         // We move over the boolean label slightly, to align with the circles.
@@ -49,8 +52,10 @@ export default {
     ...mapActions(useDataStore, ['changeSorting']),
     columnWidth(column: ConfigMetadata): number {
       if (column.type === 'boolean') return 18 + this.metadataGap
-      if (column.type === 'categorical') return column.width + this.metadataGap
-      if (column.type === 'quantitative') return column.width + this.metadataGap
+      if (column.type === 'categorical')
+        return (column.width || 120) + this.metadataGap
+      if (column.type === 'quantitative')
+        return (column.width || 120) + this.metadataGap
       return 0
     },
     svg() {
@@ -64,7 +69,7 @@ export default {
     draw() {
       this.svg()
         .selectAll('text')
-        .data(this.visibleMetadata, (d) => (d as ConfigMetadata).column)
+        .data(this.visibleSequenceMetadata, (d) => (d as ConfigMetadata).column)
         .join(
           (enter) =>
             enter
@@ -87,7 +92,7 @@ export default {
     this.draw()
   },
   watch: {
-    visibleMetadata() {
+    visibleSequenceMetadata() {
       this.draw()
     },
     sortingMetadata() {

@@ -31,7 +31,7 @@ export default {
     TreeLabels,
   },
   computed: {
-    ...mapState(useDataStore, ['visibleMetadata']),
+    ...mapState(useDataStore, ['visibleSequenceMetadata']),
   },
   methods: {
     ...mapActions(useDataStore, ['dragEnd']),
@@ -84,7 +84,7 @@ export default {
         >
           <Heatmap />
         </scroll-sync>
-        <template v-for="column in visibleMetadata">
+        <template v-for="column in visibleSequenceMetadata">
           <MetadataBoolean
             v-bind:key="column.column"
             :column="column"

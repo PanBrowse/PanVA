@@ -4,7 +4,7 @@ import { useDataStore } from '@/stores/data'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { CELL_SIZE } from '@/constants'
 
-import type { DataIndexCollapsed, Nucleotide } from '@/types'
+import type { Alignment, DataIndexCollapsed, Nucleotide } from '@/types'
 import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { keys, pickBy } from 'lodash'
@@ -65,8 +65,8 @@ export default {
       'transitionTime',
       'variablePositions',
     ]),
-    ...mapState(useConfigStore, ['filters']),
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
+    ...mapState(useConfigStore, ['alignmentMetadata']),
     width(): number {
       return this.filteredPositionsCount * CELL_SIZE
     },
@@ -109,7 +109,7 @@ export default {
             }
 
             dataIndices.forEach((dataIndex) => {
-              const nucleotide = this.nucleotideAtPosition(dataIndex, position)
+              const { nucleotide } = this.dataAtPosition(dataIndex, position)
               counts[nucleotide]++
             })
 
@@ -138,6 +138,14 @@ export default {
         width: this.width + 'px',
       }
     },
+    hoverColStyle(): StyleValue {
+      if (this.hoverColIndex === null) return {}
+      return {
+        top: 0,
+        left: this.hoverColIndex * CELL_SIZE + 'px',
+        height: this.height + 'px',
+      }
+    },
   },
   methods: {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
@@ -148,7 +156,7 @@ export default {
         .node()!
         .getContext('2d')
     },
-    nucleotideAtPosition(dataIndex: number, position: number): Nucleotide {
+    dataAtPosition(dataIndex: number, position: number): Alignment {
       return this.alignedPositions[dataIndex * this.geneLength + position - 1]
     },
     isReference(data: DataIndexCollapsed): boolean {
@@ -192,7 +200,8 @@ export default {
             return nucleotides
           }
 
-          return this.nucleotideAtPosition(data, position)
+          const { nucleotide } = this.dataAtPosition(data, position)
+          return nucleotide
         })
     },
     updateCanvasCell(
@@ -303,11 +312,11 @@ export default {
               title: groupName(data),
               template: `
                   <ADescriptions size="small" layout="horizontal" :column="1" bordered>
-                    <ADescriptionsItem label="Bases">
-                      {{ nucleotides }}
-                    </ADescriptionsItem>
                     <ADescriptionsItem label="Position">
                       {{ position }}
+                    </ADescriptionsItem>
+                    <ADescriptionsItem label="Bases">
+                      {{ nucleotides }}
                     </ADescriptionsItem>
                   </ADescriptions>
                 `,
@@ -320,37 +329,30 @@ export default {
             }
           }
 
-          const nucleotide = this.nucleotideAtPosition(data, position)
-          const varPos = this.variablePositions[position - 1]
+          const alignment = this.dataAtPosition(data, position)
 
           return {
             title: this.mrnaIds[data],
             template: `
-                <ADescriptions size="small" layout="horizontal" :column="1" bordered>
-                  <ADescriptionsItem label="Base">
-                    {{ nucleotide }}
-                  </ADescriptionsItem>
-                  <ADescriptionsItem label="Position">
-                    {{ position }}
-                  </ADescriptionsItem>
-                  <ADescriptionsItem label="Variable">
-                    <BooleanIndicator :value="!!varPos" />
-                  </ADescriptionsItem>
-                  <template v-if="varPos">
-                    <ADescriptionsItem label="Informative">
-                      <BooleanIndicator :value="varPos.properties.informative" />
-                    </ADescriptionsItem>
-                    <ADescriptionsItem :label="property.label" v-for="property in properties">
-                      <BooleanIndicator :value="varPos.properties[property.column]" />
-                    </ADescriptionsItem>
-                  </template>
-                </ADescriptions>
-              `,
+              <ADescriptions size="small" layout="horizontal" :column="1" bordered>
+                <ADescriptionsItem label="Position">
+                  {{ position }}
+                </ADescriptionsItem>
+                <ADescriptionsItem label="Base">
+                  {{ alignment.nucleotide }}
+                </ADescriptionsItem>
+                <ADescriptionsItem :label="metadata.label" v-for="metadata in alignmentMetadata" v-bind:key="metadata.column">
+                  <MetadataValue
+                    :metadata="metadata"
+                    :value="alignment.metadata[metadata.column]"
+                  />
+                </ADescriptionsItem>
+              </ADescriptions>
+            `,
             data: {
-              nucleotide,
               position,
-              properties: this.filters,
-              varPos,
+              alignment,
+              alignmentMetadata: this.alignmentMetadata,
             },
             isCompact: true,
             isPinnable: true,
@@ -436,6 +438,12 @@ export default {
     />
 
     <div
+      class="heatmap-col-hover"
+      v-if="hoverColIndex !== null"
+      :style="hoverColStyle"
+    />
+
+    <div
       class="heatmap-row-hover"
       v-if="hoverRowIndex !== null"
       :style="hoverRowStyle"
@@ -467,6 +475,14 @@ export default {
   border-bottom: 1px solid $hover;
   position: absolute;
   height: 10px;
+}
+
+.heatmap-col-hover {
+  pointer-events: none;
+  border-right: 1px solid $hover;
+  border-left: 1px solid $hover;
+  position: absolute;
+  width: 10px;
 }
 
 .heatmap-wrapper {

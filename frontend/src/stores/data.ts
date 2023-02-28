@@ -16,7 +16,6 @@ import type {
   Homology,
   mRNAid,
   Nucleotide,
-  Metadata,
   Range,
   Sorting,
   VariablePosition,
@@ -30,12 +29,15 @@ import type {
   MetadataQuantitative,
   SequenceFilter,
   Annotation,
+  Alignment,
+  Sequence,
 } from '@/types'
 import {
   clamp,
   constant,
   filter,
   flatten,
+  pick,
   range,
   reverse,
   sortBy,
@@ -65,7 +67,7 @@ import {
   fetchDendrogramCustom,
   fetchDendrogramDefault,
   fetchHomologies,
-  fetchMetadata,
+  fetchSequenceMetadata,
   fetchVariablePositions,
 } from '@/helpers/api'
 import { homologyName } from '@/helpers/homology'
@@ -83,11 +85,11 @@ export const useDataStore = defineStore('data', {
 
     // Data that is fetched from the API using `homologyId`.
     // We don't keep data for previous homology ids because of memory consumption.
-    alignedPositions: [] as Nucleotide[],
+    alignedPositions: [] as Alignment[],
     annotations: [] as Annotation[],
     dendroCustom: null as TreeNode | null,
     dendroDefault: null as TreeNode | null,
-    metadata: [] as Metadata[],
+    sequences: [] as Sequence[],
     variablePositions: [] as (VariablePosition | null)[],
     // mRNA ids in order as defined by the default dendrogram.
     // This is populated by taking the leaf nodes from dendroDefault.
@@ -154,7 +156,7 @@ export const useDataStore = defineStore('data', {
     reference: null as Reference | null,
     transitionsEnabled: true,
     tree: 'dendroDefault' as TreeOption,
-    visibleMetadataColumns: [] as string[],
+    visibleSequenceMetadataColumns: [] as string[],
 
     // Indicates if the data store contains all data to render the layout with all views.
     isInitialized: false,
@@ -171,7 +173,7 @@ export const useDataStore = defineStore('data', {
        */
       return this.sortedDataIndices.filter((dataIndex) =>
         this.sequenceFilters.every(({ column, operator, values }): boolean => {
-          const value = this.metadata[dataIndex][column]
+          const value = this.sequences[dataIndex].metadata[column]
           switch (operator) {
             case 'between':
               return value !== null && value >= values[0] && value <= values[1]
@@ -311,7 +313,7 @@ export const useDataStore = defineStore('data', {
             const varPos = this.variablePositions[pos - 1]
             if (!varPos) return false
             if (column === 'variable') return true
-            return varPos.properties[column]
+            return varPos.metadata[column]
           })
         }
 
@@ -371,7 +373,7 @@ export const useDataStore = defineStore('data', {
           const nucleotides: Record<string, boolean> = {}
 
           dataIndices.forEach((dataIndex) => {
-            const nucleotide =
+            const { nucleotide } =
               this.alignedPositions[dataIndex * this.geneLength + position - 1]
             nucleotides[nucleotide] = true
           })
@@ -384,7 +386,7 @@ export const useDataStore = defineStore('data', {
         return this.filteredPositions.map((position) => {
           const { dataIndex } = this.reference as DataReference
 
-          const nucleotide =
+          const { nucleotide } =
             this.alignedPositions[dataIndex * this.geneLength + position - 1]
           return nucleotide
         })
@@ -411,16 +413,11 @@ export const useDataStore = defineStore('data', {
       // Array.includes is O(n) while Set.has is O(1).
       return new Set(this.selectedDataIndices)
     },
-    metadataConfigLookup() {
-      const config = useConfigStore()
-      return Object.fromEntries(
-        config.metadata.map((metadata) => [metadata.column, metadata])
-      )
-    },
-    visibleMetadata(): ConfigMetadata[] {
+    visibleSequenceMetadata(): ConfigMetadata[] {
       // Maintain selection order.
-      return this.visibleMetadataColumns.map(
-        (column) => this.metadataConfigLookup[column]
+      const config = useConfigStore()
+      return this.visibleSequenceMetadataColumns.map(
+        (column) => config.sequenceMetadataLookup[column]
       )
     },
     annotation(): Annotation | null {
@@ -502,12 +499,15 @@ export const useDataStore = defineStore('data', {
 
       // Sorting by quantitative metadata should not take current sorting into account.
       if (sorting.name === 'metadata') {
-        const metadataConfig = this.metadataConfigLookup[sorting.column]
+        const config = useConfigStore()
+        const metadataConfig = config.sequenceMetadataLookup[sorting.column]
         if (metadataConfig.type === 'quantitative') {
           this.sortedDataIndices = sortBy(
             this.sortedDataIndices,
             (index) =>
-              this.metadata[index][sorting.column] as MetadataQuantitative
+              this.sequences[index].metadata[
+                sorting.column
+              ] as MetadataQuantitative
           )
           return
         }
@@ -519,17 +519,18 @@ export const useDataStore = defineStore('data', {
           const column = this.sorting.column
           // Get the array of values in the currently sorted order.
           return this.sortedDataIndices.map(
-            (index) => this.metadata[index][column]
+            (index) => this.sequences[index].metadata[column]
           )
         }
 
         if (this.sorting.name === 'position') {
           const position = this.sorting.position
           // Get the array of values in the currently sorted order.
-          return this.sortedDataIndices.map<Nucleotide>(
-            (index) =>
+          return this.sortedDataIndices.map<Nucleotide>((index) => {
+            const { nucleotide } =
               this.alignedPositions[index * this.geneLength + position - 1]
-          )
+            return nucleotide
+          })
         }
 
         return []
@@ -671,14 +672,15 @@ export const useDataStore = defineStore('data', {
           throw error
         }
 
-        // Use the configured default metadata columns.
-        const visibleMetadataColumns = config.defaultMetadataColumns
+        // Use the configured default sequence metadata columns.
+        const visibleSequenceMetadataColumns =
+          config.defaultSequenceMetadataColumns
 
         // Update the store.
         this.$patch({
           coreSNP,
           homologies,
-          visibleMetadataColumns,
+          visibleSequenceMetadataColumns,
         })
 
         // Use the configured defaultHomologyId or default to the first homology from `homologies`.
@@ -768,7 +770,7 @@ export const useDataStore = defineStore('data', {
         fetchAlignments(homologyId),
         fetchAnnotations(homologyId, geneLength),
         fetchDendrogramDefault(homologyId),
-        fetchMetadata(homologyId),
+        fetchSequenceMetadata(homologyId),
         fetchVariablePositions(homologyId, geneLength),
       ])
         .then(
@@ -776,7 +778,7 @@ export const useDataStore = defineStore('data', {
             alignments,
             annotations,
             dendroDefault,
-            meta,
+            sequenceMetadata,
             variablePositions,
           ]) => {
             // Get mRNA id order from default dendrogram.
@@ -792,20 +794,22 @@ export const useDataStore = defineStore('data', {
               // 2. Sort by the position within each mRNA id.
               [({ mRNA_id }) => mrnaIdsLookup[mRNA_id], 'position']
             )
+
             const genomeNrs = range(
               0,
               geneLength * sequenceCount,
               geneLength
             ).map((index) => sortedAlignments[index].genome_nr)
-            const alignedPositions = sortedAlignments.map(
-              ({ nucleotide }) => nucleotide
+
+            const alignedPositions = sortedAlignments.map((alignment) =>
+              pick(alignment, ['nucleotide', 'metadata'])
             )
 
             // Sort metadata.
-            const metadata = sortBy(
-              meta,
+            const sequences = sortBy(
+              sequenceMetadata,
               ({ mrnaId }) => mrnaIdsLookup[mrnaId]
-            ).map(({ metadata }) => metadata)
+            ).map((sequence) => pick(sequence, 'metadata'))
 
             const positionRegion = DEFAULT_SELECTED_REGION.map((val) =>
               clamp(val, geneLength)
@@ -831,13 +835,13 @@ export const useDataStore = defineStore('data', {
               homologyId,
               isInitialized: true,
               lastGroupId: 0,
-              metadata,
               mrnaIds,
               positionFilter: 'all',
               positionRegion,
               reference: null,
               selectedDataIndices: [],
               selectedPositions: [],
+              sequences,
               sequenceFilters,
               sortedDataIndices: range(sequenceCount),
               sorting: DEFAULT_SORTING,

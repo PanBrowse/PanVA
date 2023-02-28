@@ -77,12 +77,14 @@ export default {
       'sequenceFilters',
       'transitionsEnabled',
       'tree',
-      'visibleMetadataColumns',
+      'visibleSequenceMetadataColumns',
     ]),
-    ...mapState(useConfigStore, ['filters', 'metadata']),
-    ...mapState(useConfigStore, { configAnnotations: 'annotations' }),
     annotationValue(): string | undefined {
       return this.annotationMrnaId || undefined
+    },
+    config() {
+      const config = useConfigStore()
+      return config
     },
     referenceValue(): string | undefined {
       if (!this.reference) return undefined
@@ -136,19 +138,11 @@ export default {
         { value: 'position', label: `Nucleotide (pos ${sortPosition})` },
       ]
 
-      const metadataSortOptions: SortOption[] = sortBy(
-        this.metadata,
-        'label'
-      ).map(({ column, label }) => ({
-        value: `metadata:${column}`,
-        label,
-      }))
-
-      if (metadataSortOptions.length) {
+      if (this.metadataOptions.length !== 0) {
         options.push({
           value: 'metadata',
           label: 'Metadata',
-          options: metadataSortOptions,
+          options: this.metadataOptions,
         })
       }
 
@@ -159,7 +153,7 @@ export default {
     },
     metadataOptions(): SortOption[] {
       return sortBy(
-        this.metadata.map(({ column, label }) => ({
+        this.config.sequenceMetadata.map(({ column, label }) => ({
           value: column,
           label,
         })),
@@ -167,16 +161,23 @@ export default {
       )
     },
     filterPositionOptions(): SortOption[] {
-      const options = [
+      const options: SortOption[] = [
         { value: 'all', label: 'All' },
         { value: 'variable', label: 'Variable' },
-        { value: 'informative', label: 'Informative' },
       ]
-      this.filters.forEach(({ column, label }) =>
-        options.push({ value: column, label })
-      )
-      // Alphabetical, but 'all' always first.
-      return sortBy(options, [({ value }) => value !== 'all', 'label'])
+
+      // Add configured metadata.
+      const additional: SortOption[] = []
+      this.config.variableMetadata.forEach(({ column, label, type }) => {
+        if (type === 'boolean') {
+          additional.push({ value: column, label })
+        }
+      })
+
+      // Keep `All` and `Variable` on top, but sort the rest alphabetically.
+      options.push(...sortBy(additional, 'label'))
+
+      return options
     },
     annotationOptions(): SortOption[] {
       return naturalSort(map(this.annotations, 'mRNA_id')).map((mrnaId) => ({
@@ -184,7 +185,7 @@ export default {
         label: mrnaId,
       }))
     },
-    filterSequencesValue(): string | undefined {
+    sequenceFiltersValue(): string | undefined {
       if (this.sequenceFilters.length === 0) return
       if (this.sequenceFilters.length === 1) return '1 filter'
       return `${this.sequenceFilters.length} filters`
@@ -269,7 +270,7 @@ export default {
       <AFormItem label="Filter sequences">
         <AInputGroup compact>
           <AInput
-            :value="filterSequencesValue"
+            :value="sequenceFiltersValue"
             placeholder="None"
             @click="editSequenceFilters"
             @mousedown="(event) => event.preventDefault()"
@@ -360,7 +361,7 @@ export default {
         </ASelect>
       </AFormItem>
 
-      <AFormItem label="Annotation ref" v-if="configAnnotations.length !== 0">
+      <AFormItem label="Annotation ref" v-if="config.annotations.length !== 0">
         <ASelect
           showSearch
           :dropdownMatchSelectWidth="false"
@@ -377,7 +378,7 @@ export default {
       <AFormItem label="Metadata">
         <ASelect
           placeholder="None"
-          v-model:value="visibleMetadataColumns"
+          v-model:value="visibleSequenceMetadataColumns"
           mode="multiple"
           :options="metadataOptions"
           :dropdownMatchSelectWidth="false"

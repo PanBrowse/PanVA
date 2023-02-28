@@ -1,6 +1,9 @@
 <script lang="ts">
 import { CELL_SIZE } from '@/constants'
+import { eventIndex } from '@/helpers/eventIndex'
+import { useConfigStore } from '@/stores/config'
 import { useDataStore } from '@/stores/data'
+import { useTooltipStore } from '@/stores/tooltip'
 import * as d3 from 'd3'
 import { mapState, mapActions } from 'pinia'
 
@@ -11,7 +14,9 @@ export default {
       'filteredPositionsCount',
       'sorting',
       'transitionTime',
+      'variablePositions',
     ]),
+    ...mapState(useConfigStore, ['variableMetadata']),
     width(): number {
       return this.filteredPositionsCount * CELL_SIZE
     },
@@ -27,6 +32,7 @@ export default {
   },
   methods: {
     ...mapActions(useDataStore, ['changeSorting']),
+    ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     positionTransform(index: number) {
       const x = (index + 1) * CELL_SIZE - 2
       const y = this.height
@@ -59,7 +65,49 @@ export default {
             ),
           (exit) => exit.remove()
         )
+        .attr('data-index', (data, index) => index)
         .attr('data-sorted', (d) => this.sortingPosition === d)
+        .on('mouseover', (event) => {
+          const index = eventIndex(event)
+          if (index === null) return
+
+          const position = this.filteredPositions[index]
+          const variablePosition = this.variablePositions[position - 1]
+
+          this.showTooltip({
+            key: `position-${position}`,
+            element: event.target,
+            generateContent: () => {
+              return {
+                title: `Position ${position}`,
+                template: `
+                  <ADescriptions size="small" layout="horizontal" :column="1" bordered>
+                    <ADescriptionsItem label="Variable">
+                      <BooleanIndicator :value="!!variablePosition" />
+                    </ADescriptionsItem>
+                    <template v-if="variablePosition">
+                      <ADescriptionsItem :label="metadata.label" v-for="metadata in variableMetadata" v-bind:key="metadata.column">
+                        <MetadataValue
+                          :metadata="metadata"
+                          :value="variablePosition.metadata[metadata.column]"
+                        />
+                      </ADescriptionsItem>
+                    </template>
+                  </ADescriptions>
+                `,
+                data: {
+                  variablePosition,
+                  variableMetadata: this.variableMetadata,
+                },
+                isCompact: true,
+                isPinnable: true,
+              }
+            },
+          })
+        })
+        .on('mouseout', () => {
+          this.hideTooltip()
+        })
     },
   },
   mounted() {

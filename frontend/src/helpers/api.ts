@@ -16,16 +16,30 @@ import type {
   mRNAid,
   Nucleotide,
   Metadata,
-  MetadataCSVColumns,
+  SequenceMetadataCSVColumns,
   VariablePosition,
   VariablePositionCSVColumns,
-  ConfigFilter,
   ConfigMetadata,
   AnnotationCSVColumns,
   Annotation,
+  ConfigAnnotation,
 } from '@/types'
 import { useConfigStore } from '@/stores/config'
 import { constant, times, values } from 'lodash'
+
+const parseMetadata = (configMetadata: ConfigMetadata, value?: string) => {
+  const { type } = configMetadata
+
+  if (type === 'boolean') {
+    return parseMetadataBoolean(value, configMetadata.values)
+  }
+
+  if (type === 'quantitative') {
+    return parseOptionalNumber(value)
+  }
+
+  return parseMetadataCategorical(value)
+}
 
 // Temporary type that also holds data needed for sorting,
 // but that is removed before aligned positions are stored.
@@ -34,18 +48,32 @@ export type FetchedAlignments = {
   genome_nr: number
   position: number
   nucleotide: Nucleotide
+  metadata: Metadata
 }
 
 export const fetchAlignments = async (homologyId: number) => {
   const config = useConfigStore()
-  return await d3.csv<FetchedAlignments, AlignmentCSVColumns>(
+  return await d3.csv<FetchedAlignments, AlignmentCSVColumns | string>(
     `${config.apiUrl}${homologyId}/alignments.csv`,
-    ({ genome_nr, mRNA_id, nucleotide, position }) => ({
-      genome_nr: parseNumber(genome_nr),
-      mRNA_id: parseString(mRNA_id),
-      nucleotide: parseString(nucleotide) as Nucleotide,
-      position: parseNumber(position),
-    })
+    ({ genome_nr, mRNA_id, nucleotide, position, ...rest }) => {
+      const data: FetchedAlignments = {
+        genome_nr: parseNumber(genome_nr),
+        mRNA_id: parseString(mRNA_id),
+        nucleotide: parseString(nucleotide) as Nucleotide,
+        position: parseNumber(position),
+        metadata: {},
+      }
+
+      // Parse configured metadata.
+      config.alignmentMetadata.forEach((configMetadata: ConfigMetadata) => {
+        data.metadata[configMetadata.column] = parseMetadata(
+          configMetadata,
+          rest[configMetadata.column]
+        )
+      })
+
+      return data
+    }
   )
 }
 
@@ -81,8 +109,8 @@ export const fetchAnnotations = async (
         }
 
         // Configured additional columns.
-        config.annotations.forEach((filter: ConfigFilter) => {
-          const { column } = filter
+        config.annotations.forEach((annotation: ConfigAnnotation) => {
+          const { column } = annotation
           data.features[column] = parseBool(rest[column])
         })
 
@@ -165,46 +193,34 @@ export const fetchHomologies = async () => {
 
 // Temporary type that also holds data needed for sorting,
 // but that is removed before metadata is stored.
-export type FetchedMetadata = {
+export type FetchedSequenceMetadata = {
   mrnaId: mRNAid
   metadata: Metadata
 }
 
-export const fetchMetadata = async (homologyId: number) => {
+export const fetchSequenceMetadata = async (homologyId: number) => {
   const config = useConfigStore()
 
-  return await d3.csv<FetchedMetadata, MetadataCSVColumns | string>(
-    `${config.apiUrl}${homologyId}/metadata.csv`,
-    ({ mRNA_id, ...rest }) => {
-      // Common columns.
-      const data: FetchedMetadata = {
-        mrnaId: parseString(mRNA_id),
-        metadata: {},
-      }
-
-      // Dataset specific columns.
-      config.metadata.forEach((metadataConfig: ConfigMetadata) => {
-        const { column, type } = metadataConfig
-
-        if (type === 'categorical') {
-          data.metadata[column] = parseMetadataCategorical(rest[column])
-        }
-
-        if (type === 'boolean') {
-          data.metadata[column] = parseMetadataBoolean(
-            rest[column],
-            metadataConfig.values
-          )
-        }
-
-        if (type === 'quantitative') {
-          data.metadata[column] = parseOptionalNumber(rest[column])
-        }
-      })
-
-      return data
+  return await d3.csv<
+    FetchedSequenceMetadata,
+    SequenceMetadataCSVColumns | string
+  >(`${config.apiUrl}${homologyId}/metadata.csv`, ({ mRNA_id, ...rest }) => {
+    // Common columns.
+    const data: FetchedSequenceMetadata = {
+      mrnaId: parseString(mRNA_id),
+      metadata: {},
     }
-  )
+
+    // Parse configured metadata.
+    config.sequenceMetadata.forEach((configMetadata: ConfigMetadata) => {
+      data.metadata[configMetadata.column] = parseMetadata(
+        configMetadata,
+        rest[configMetadata.column]
+      )
+    })
+
+    return data
+  })
 }
 
 // Temporary type that also holds data needed for sorting,
@@ -224,16 +240,7 @@ export const fetchVariablePositions = async (
     VariablePositionCSVColumns | string
   >(
     `${config.apiUrl}${homologyId}/variable.csv`,
-    ({
-      informative,
-      position,
-      A: As,
-      C: Cs,
-      G: Gs,
-      T: Ts,
-      gap: Gaps,
-      ...rest
-    }) => {
+    ({ position, A: As, C: Cs, G: Gs, T: Ts, gap: Gaps, ...rest }) => {
       const A = parseNumber(As)
       const C = parseNumber(Cs)
       const G = parseNumber(Gs)
@@ -251,15 +258,15 @@ export const fetchVariablePositions = async (
         T,
         gap,
         conservation,
-        properties: {
-          informative: parseBool(informative),
-        },
+        metadata: {},
       }
 
-      // Configured additional columns.
-      config.filters.forEach((filter: ConfigFilter) => {
-        const { column } = filter
-        data.properties[column] = parseBool(rest[column])
+      // Parse configured metadata.
+      config.variableMetadata.forEach((configMetadata: ConfigMetadata) => {
+        data.metadata[configMetadata.column] = parseMetadata(
+          configMetadata,
+          rest[configMetadata.column]
+        )
       })
 
       return data
