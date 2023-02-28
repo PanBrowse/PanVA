@@ -89,27 +89,30 @@ export default {
       return this.mapToFilterOptions(map)
     },
     options(): Option[] {
-      return this.homologies
-        .filter(({ metadata }) =>
-          this.selectedFilters.every(({ label, values }) =>
-            // Find at least one metadata record for this homology group that matches the filter.
-            metadata?.find((metadata) => {
-              if (metadata.label !== label) return false
+      return sortBy(
+        this.homologies
+          .filter(({ metadata }) =>
+            this.selectedFilters.every(({ label, values }) =>
+              // Find at least one metadata record for this homology group that matches the filter.
+              metadata?.find((metadata) => {
+                if (metadata.label !== label) return false
 
-              if (Array.isArray(metadata.value)) {
-                return metadata.value.some((val) => values.includes(val))
-              }
+                if (Array.isArray(metadata.value)) {
+                  return metadata.value.some((val) => values.includes(val))
+                }
 
-              return values.includes(metadata.value)
-            })
+                return values.includes(metadata.value)
+              })
+            )
           )
-        )
-        .map((homology) => ({
-          value: homology.homology_id,
-          label: `${homology.homology_id}`,
-          members: homology.members,
-          alignmentLength: homology.alignment_length,
-        }))
+          .map((homology) => ({
+            value: homology.homology_id,
+            label: `${homology.homology_id}`,
+            members: homology.members,
+            alignmentLength: homology.alignment_length,
+          })),
+        'value'
+      )
     },
   },
   methods: {
