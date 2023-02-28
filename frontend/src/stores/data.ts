@@ -70,7 +70,6 @@ import {
   fetchTrees,
   fetchVariablePositions,
 } from '@/helpers/api'
-import { homologyName } from '@/helpers/homology'
 import { ProgressPromise } from '@prezly/progress-promise'
 import colorInterpolate from 'color-interpolate'
 
@@ -734,7 +733,7 @@ export const useDataStore = defineStore('data', {
         if (percent < 100) {
           notification.open({
             key: 'homology',
-            message: `Loading homology group ${homologyName(homology)}.`,
+            message: `Loading homology group ${loadId}.`,
             description: () => h(AProgress, { percent, showInfo: false }),
             btn: () =>
               h(
@@ -762,7 +761,7 @@ export const useDataStore = defineStore('data', {
         } else {
           notification.open({
             key: 'homology',
-            message: `Loaded homology group ${homologyName(homology)}.`,
+            message: `Loaded homology group ${loadId}.`,
             description: () => h(AProgress, { percent, showInfo: false }),
             btn: () =>
               h(
@@ -880,9 +879,7 @@ export const useDataStore = defineStore('data', {
             notification.close('homology')
 
             this.setError({
-              message: `Unable to load the data for homology group ${homologyName(
-                homology
-              )}.`,
+              message: `Unable to load the data for homology group ${loadId}.`,
               isFatal: !this.isInitialized,
             })
           },
@@ -893,9 +890,7 @@ export const useDataStore = defineStore('data', {
           if (this.homologyLoadId !== loadId) return
 
           this.setError({
-            message: `There was an error processing the data for homology group ${homologyName(
-              homology
-            )}.`,
+            message: `There was an error processing the data for homology group ${loadId}.`,
             isFatal: true,
           })
           throw error

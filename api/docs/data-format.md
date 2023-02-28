@@ -39,17 +39,17 @@ A list of objects representing all homology ids of the selected set. Homology id
 * `alignment_length`: Length of the alignment (_integer_).
 * `metadata`: Metadata shown in the frontend (**optional** _array_). Each containing:
     * `label`: Label to display (_string_).
-    * `value`: Value to display (_string|boolean_).
+    * `value`: Value to display (_string|boolean|string[]_).
 
 An example object in the array:
 ```json
 [
     {
         "homology_id": 13773385,
-        "name": "GapA",
         "members": 197,
         "alignment_length": 996,
         "metadata": [
+            { "label": "Gene names", "value": ["GapA", "dnaX"] },
             { "label": "Classification", "value": "single copy core" },
             { "label": "Variable sites", "value": true },
             { "label": "Informative sites", "value": false }

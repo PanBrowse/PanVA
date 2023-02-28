@@ -5,11 +5,12 @@ import { useDataStore } from '@/stores/data'
 import SidebarItem from '@/components/common/SidebarItem.vue'
 import { Divider, Select, Tree, type TreeProps } from 'ant-design-vue'
 import { sortBy } from 'lodash'
-import { homologyName } from '@/helpers/homology'
 
 type Option = {
   value: number
   label: string
+  members: number
+  alignmentLength: number
 }
 
 type FilterOption = {
@@ -40,14 +41,18 @@ export default {
       this.homologies.forEach(({ metadata }) => {
         metadata?.forEach(({ label, value }) => {
           const values = map.get(label) || new Set()
-          values.add(value)
+          if (Array.isArray(value)) {
+            value.forEach((val) => values.add(val))
+          } else {
+            values.add(value)
+          }
           map.set(label, values)
         })
       })
 
       return this.mapToFilterOptions(map)
     },
-    filterTree(): TreeProps['treeData'] {
+    treeData(): TreeProps['treeData'] {
       return [
         {
           title: 'Filter by metadata',
@@ -66,6 +71,9 @@ export default {
       ]
     },
     selectedFilters(): FilterOption[] {
+      /**
+       * Converts selected checkboxes into `FilterOption` objects.
+       */
       const map = new Map<string, Set<any>>()
 
       this.checkedKeys.map((key) => {
@@ -84,15 +92,23 @@ export default {
       return this.homologies
         .filter(({ metadata }) =>
           this.selectedFilters.every(({ label, values }) =>
-            metadata?.find(
-              (metadata) =>
-                metadata.label === label && values.includes(metadata.value)
-            )
+            // Find at least one metadata record for this homology group that matches the filter.
+            metadata?.find((metadata) => {
+              if (metadata.label !== label) return false
+
+              if (Array.isArray(metadata.value)) {
+                return metadata.value.some((val) => values.includes(val))
+              }
+
+              return values.includes(metadata.value)
+            })
           )
         )
         .map((homology) => ({
           value: homology.homology_id,
-          label: homologyName(homology),
+          label: `${homology.homology_id}`,
+          members: homology.members,
+          alignmentLength: homology.alignment_length,
         }))
     },
   },
@@ -136,7 +152,7 @@ export default {
           @mousedown="(e) => e.preventDefault()"
         >
           <ATree
-            :tree-data="filterTree"
+            :tree-data="treeData"
             v-model:expandedKeys="expandedKeys"
             v-model:checkedKeys="checkedKeys"
             :selectable="false"
@@ -152,14 +168,29 @@ export default {
 
         <v-nodes :vnodes="menuNode" />
       </template>
+      <!--
+      <template #option="{ members, alignmentLength, label }">
+        {{ label }}
+        <span class="select-item-suffix">
+          &nbsp;-&nbsp;
+          {{ members }} members, length {{ alignmentLength }}
+        </span>
+      </template>
+      -->
     </ASelect>
   </SidebarItem>
 </template>
 
 <style lang="scss">
+@import '@/assets/colors.module.scss';
+
 .homology-filter-tree {
   padding: 8px;
   max-height: 256px;
   overflow-y: auto;
+}
+
+.select-item-suffix {
+  color: $gray-7;
 }
 </style>

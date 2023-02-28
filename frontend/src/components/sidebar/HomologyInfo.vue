@@ -31,6 +31,9 @@ export default {
       <ADescriptionsItem label="Members">
         {{ homology.members }}
       </ADescriptionsItem>
+      <ADescriptionsItem label="Alignment length">
+        {{ homology.alignment_length }}
+      </ADescriptionsItem>
       <ADescriptionsItem
         :label="label"
         v-for="{ label, value } in homology.metadata"
@@ -38,6 +41,11 @@ export default {
       >
         <BooleanIndicator :value="true" v-if="value === true" />
         <BooleanIndicator :value="false" v-else-if="value === false" />
+        <template v-else-if="Array.isArray(value)">
+          <div v-bind:key="index" v-for="(item, index) in value">
+            {{ item }}
+          </div>
+        </template>
         <template v-else>
           {{ value }}
         </template>
