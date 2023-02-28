@@ -733,7 +733,7 @@ export const useDataStore = defineStore('data', {
         if (percent < 100) {
           notification.open({
             key: 'homology',
-            message: `Loading homology group ${loadId}.`,
+            message: `Loading homology group ${homologyId}.`,
             description: () => h(AProgress, { percent, showInfo: false }),
             btn: () =>
               h(
@@ -761,7 +761,7 @@ export const useDataStore = defineStore('data', {
         } else {
           notification.open({
             key: 'homology',
-            message: `Loaded homology group ${loadId}.`,
+            message: `Loaded homology group ${homologyId}.`,
             description: () => h(AProgress, { percent, showInfo: false }),
             btn: () =>
               h(
@@ -879,7 +879,7 @@ export const useDataStore = defineStore('data', {
             notification.close('homology')
 
             this.setError({
-              message: `Unable to load the data for homology group ${loadId}.`,
+              message: `Unable to load the data for homology group ${homologyId}.`,
               isFatal: !this.isInitialized,
             })
           },
@@ -890,7 +890,7 @@ export const useDataStore = defineStore('data', {
           if (this.homologyLoadId !== loadId) return
 
           this.setError({
-            message: `There was an error processing the data for homology group ${loadId}.`,
+            message: `There was an error processing the data for homology group ${homologyId}.`,
             isFatal: true,
           })
           throw error
