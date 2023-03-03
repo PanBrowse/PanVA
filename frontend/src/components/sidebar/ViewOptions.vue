@@ -70,7 +70,7 @@ export default {
     ]),
     ...mapWritableState(useDataStore, [
       'annotationMrnaId',
-      'cellTheme',
+      'selectedCellTheme',
       'keepSequenceFilters',
       'positionFilter',
       'reference',
@@ -415,7 +415,7 @@ export default {
 
       <AFormItem label="Color scheme">
         <ASelect
-          v-model:value="cellTheme"
+          v-model:value="selectedCellTheme"
           :dropdownMatchSelectWidth="false"
           :options="cellThemeOptions"
         />

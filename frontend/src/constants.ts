@@ -42,82 +42,82 @@ export const EMPTY_CELL_COLOR = '#f0f0f0'
 export const CELL_THEMES: Record<string, CellTheme> = {
   default: {
     name: 'Default',
-    colors: [
-      '#c7ceea',
-      '#dcbed4',
-      '#d2dcc5',
-      '#c5b8a6',
+    colors: {
+      A: '#c7ceea',
+      C: '#dcbed4',
+      G: '#d2dcc5',
+      T: '#c5b8a6',
 
-      '#c7ceea',
-      '#dcbed4',
-      '#d2dcc5',
-      '#c5b8a6',
+      a: '#c7ceea',
+      c: '#dcbed4',
+      g: '#d2dcc5',
+      t: '#c5b8a6',
 
-      '#ffffff',
-    ],
+      gap: '#ffffff',
+    },
   },
   default2: {
     name: 'Alternative',
-    colors: [
-      '#89b2ff',
-      '#8fca85',
-      '#fdcffe',
-      '#f99372',
+    colors: {
+      A: '#89b2ff',
+      C: '#8fca85',
+      G: '#fdcffe',
+      T: '#f99372',
 
-      '#89b2ff',
-      '#8fca85',
-      '#fdcffe',
-      '#f99372',
+      a: '#89b2ff',
+      c: '#8fca85',
+      g: '#fdcffe',
+      t: '#f99372',
 
-      '#ffffff',
-    ],
+      gap: '#ffffff',
+    },
   },
   clustal: {
     name: 'Clustal',
-    colors: [
-      '#fb8072',
-      '#80b1d3',
-      '#fdb462',
-      '#b3de69',
+    colors: {
+      A: '#fb8072',
+      C: '#80b1d3',
+      G: '#fdb462',
+      T: '#b3de69',
 
-      '#fb8072',
-      '#80b1d3',
-      '#fdb462',
-      '#b3de69',
+      a: '#fb8072',
+      c: '#80b1d3',
+      g: '#fdb462',
+      t: '#b3de69',
 
-      '#ffffff',
-    ],
+      gap: '#ffffff',
+    },
   },
   'cg-at': {
     name: 'CG vs AT',
-    colors: [
-      '#e29eb6',
-      '#dfd266',
-      '#dfd266',
-      '#e29eb6',
+    colors: {
+      A: '#e29eb6',
+      C: '#dfd266',
+      G: '#dfd266',
+      T: '#e29eb6',
 
-      '#e29eb6',
-      '#dfd266',
-      '#dfd266',
-      '#e29eb6',
+      a: '#e29eb6',
+      c: '#dfd266',
+      g: '#dfd266',
+      t: '#e29eb6',
 
-      '#ffffff',
-    ],
+      gap: '#ffffff',
+    },
   },
   'pur-pyr': {
     name: 'Purine vs Pyrimidine',
-    colors: [
-      '#a463ce',
-      '#9fd0cb',
-      '#a463ce',
-      '#9fd0cb',
+    colors: {
+      A: '#a463ce',
+      C: '#9fd0cb',
+      G: '#a463ce',
+      T: '#9fd0cb',
 
-      '#a463ce',
-      '#9fd0cb',
-      '#a463ce',
-      '#9fd0cb',
+      a: '#a463ce',
+      c: '#9fd0cb',
+      g: '#a463ce',
+      t: '#9fd0cb',
 
-      '#ffffff',
-    ],
+      gap: '#ffffff',
+    },
   },
 }

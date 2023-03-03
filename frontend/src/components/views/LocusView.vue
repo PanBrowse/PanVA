@@ -59,31 +59,31 @@ export default {
 
 <template>
   <ACard class="locus-view" title="Locus view" :bordered="false" size="small">
-    <scroll-sync horizontal group="locus-view" class="header scrollbars-hidden">
+    <ScrollSync horizontal group="locus-view" class="header scrollbars-hidden">
       <TreeLabels />
-      <scroll-sync
+      <ScrollSync
         horizontal
         group="locus-heatmap"
         style="overflow: auto hidden; min-width: 200px"
       >
         <HeatmapHeader />
-      </scroll-sync>
+      </ScrollSync>
       <MetadataLabels />
-    </scroll-sync>
+    </ScrollSync>
 
-    <scroll-sync horizontal group="locus-view" class="content-wrapper">
+    <ScrollSync horizontal group="locus-view" class="content-wrapper">
       <div class="content">
         <Tree />
         <Bipartite />
         <Names />
-        <scroll-sync
+        <ScrollSync
           horizontal
           group="locus-heatmap"
           style="overflow: auto hidden; min-width: 200px"
           class="scrollbars-hidden"
         >
           <Heatmap />
-        </scroll-sync>
+        </ScrollSync>
         <template v-for="column in visibleSequenceMetadata">
           <MetadataBoolean
             v-bind:key="column.column"
@@ -105,7 +105,7 @@ export default {
         <!-- MetadataLabels padding-right, to prevent labels from being cut off. -->
         <div style="min-width: 32px"></div>
       </div>
-    </scroll-sync>
+    </ScrollSync>
   </ACard>
 </template>
 
@@ -137,6 +137,7 @@ export default {
 
   .content-wrapper {
     overflow: auto;
+    overflow: overlay;
     padding-bottom: 12px;
   }
 

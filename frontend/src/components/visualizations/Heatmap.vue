@@ -57,7 +57,6 @@ export default {
       'groupsFiltered',
       'homologyId',
       'mrnaIds',
-      'nucleotideColor',
       'reference',
       'referenceNucleotides',
       'sequenceCount',
@@ -173,6 +172,8 @@ export default {
       return false
     },
     draw() {
+      console.log('Heatmap#draw')
+      console.time('Heatmap#draw')
       d3.select(this.customNode)
         .selectAll('c')
         .data<Cell>(
@@ -188,8 +189,8 @@ export default {
               .attr('y', ({ row }) => row * CELL_SIZE),
           (update) =>
             update
-              .transition()
-              .duration(this.transitionTime)
+              // .transition()
+              // .duration(this.transitionTime)
               .attr('x', ({ column }) => column * CELL_SIZE)
               .attr('y', ({ row }) => row * CELL_SIZE),
           (exit) => exit.remove()
@@ -203,6 +204,7 @@ export default {
           const { nucleotide } = this.dataAtPosition(data, position)
           return nucleotide
         })
+      console.timeEnd('Heatmap#draw')
     },
     updateCanvasCell(
       ctx: CanvasRenderingContext2D,
@@ -216,16 +218,19 @@ export default {
         this.referenceNucleotides &&
         !isReference &&
         this.referenceNucleotides[column] === nucleotides
+      const cellThemeColors = this.cellTheme.colors
 
       drawNucleotide({
         ctx,
         nucleotides: matchesReference ? '' : nucleotides,
         x,
         y,
-        colorFn: this.nucleotideColor,
+        cellThemeColors,
       })
     },
     updateCanvas() {
+      console.log('Heatmap#updateCanvas')
+      console.time('Heatmap#updateCanvas')
       const scaleFactor = 2.0
 
       const canvas = d3
@@ -265,6 +270,7 @@ export default {
             that.isReference(data)
           )
         })
+      console.timeEnd('Heatmap#updateCanvas')
     },
     mouseEventToCell(event: MouseEvent): CellCoordinate | undefined {
       const [x, y] = d3.pointer(event)

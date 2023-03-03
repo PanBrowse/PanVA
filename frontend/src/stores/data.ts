@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import * as d3 from 'd3'
 
 import {
   CELL_THEMES,
@@ -31,6 +30,7 @@ import type {
   Alignment,
   Sequence,
   Tree,
+  CellTheme,
 } from '@/types'
 import {
   clamp,
@@ -72,9 +72,6 @@ import {
 } from '@/helpers/api'
 import { ProgressPromise } from '@prezly/progress-promise'
 import colorInterpolate from 'color-interpolate'
-
-type NucleotideColorFunc = (nucleotide: Nucleotide) => string
-type CellThemeName = keyof typeof CELL_THEMES
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -149,7 +146,7 @@ export const useDataStore = defineStore('data', {
 
     // User options.
     annotationMrnaId: null as mRNAid | null,
-    cellTheme: 'default' as CellThemeName,
+    selectedCellTheme: 'default',
     homologyId: null as number | null,
     keepSequenceFilters: false,
     reference: null as Reference | null,
@@ -359,12 +356,8 @@ export const useDataStore = defineStore('data', {
       if (this.homology) return this.homology.alignment_length
       return 0
     },
-    nucleotideColor(): NucleotideColorFunc {
-      const colors = CELL_THEMES[this.cellTheme].colors
-      return d3
-        .scaleOrdinal<string>()
-        .domain(['A', 'C', 'G', 'T', 'a', 'c', 'g', 't', '-'])
-        .range(colors)
+    cellTheme(): CellTheme {
+      return CELL_THEMES[this.selectedCellTheme]
     },
     annotationColors(): string[] {
       const config = useConfigStore()

@@ -63,7 +63,7 @@ export default {
             }
           }
         })
-      )
+      ).filter(({ treeIndex }) => treeIndex !== undefined)
     },
     colors() {
       return colors

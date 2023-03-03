@@ -1,8 +1,8 @@
 import { EMPTY_CELL_COLOR, CELL_SIZE } from '@/constants'
-import type { Nucleotide } from '@/types'
 import { sortBy } from 'lodash'
 
 import colors from '@/assets/colors.module.scss'
+import type { CellThemeColors } from '@/types'
 
 export const sortNucleotideString = (value: string) => {
   const order = 'ACGTacgt-'
@@ -14,7 +14,7 @@ type DrawNucleotide = {
   nucleotides: string
   x: number
   y: number
-  colorFn: (nucleotide: Nucleotide) => string
+  cellThemeColors: CellThemeColors
 }
 
 export const drawNucleotide = ({
@@ -22,10 +22,8 @@ export const drawNucleotide = ({
   nucleotides,
   x,
   y,
-  colorFn,
+  cellThemeColors,
 }: DrawNucleotide) => {
-  ctx.save()
-
   // No nucleotide or matches with reference.
   if (nucleotides.length === 0) {
     ctx.fillStyle = EMPTY_CELL_COLOR
@@ -33,7 +31,7 @@ export const drawNucleotide = ({
   }
   // Single nucleotide or group with the same nucleotide; solid color square.
   else if (nucleotides.length === 1) {
-    ctx.fillStyle = colorFn(nucleotides as Nucleotide)
+    ctx.fillStyle = cellThemeColors[nucleotides as keyof typeof cellThemeColors]
     ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
   }
   // Multiple nucleotides.
@@ -42,7 +40,7 @@ export const drawNucleotide = ({
     ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
 
     if (nucleotides.includes('a') || nucleotides.includes('A')) {
-      ctx.fillStyle = colorFn('A')
+      ctx.fillStyle = cellThemeColors.A
       ctx.beginPath()
       // Top.
       ctx.moveTo(x + 5, y + 5)
@@ -54,7 +52,7 @@ export const drawNucleotide = ({
     }
 
     if (nucleotides.includes('c') || nucleotides.includes('C')) {
-      ctx.fillStyle = colorFn('C')
+      ctx.fillStyle = cellThemeColors.C
       ctx.beginPath()
       // Right.
       ctx.moveTo(x + 5, y + 5)
@@ -66,7 +64,7 @@ export const drawNucleotide = ({
     }
 
     if (nucleotides.includes('g') || nucleotides.includes('G')) {
-      ctx.fillStyle = colorFn('G')
+      ctx.fillStyle = cellThemeColors.G
       ctx.beginPath()
       // Bottom.
       ctx.moveTo(x + 5, y + 5)
@@ -78,7 +76,7 @@ export const drawNucleotide = ({
     }
 
     if (nucleotides.includes('t') || nucleotides.includes('T')) {
-      ctx.fillStyle = colorFn('T')
+      ctx.fillStyle = cellThemeColors.T
       ctx.beginPath()
       // Left.
       ctx.moveTo(x + 5, y + 5)
@@ -114,6 +112,4 @@ export const drawNucleotide = ({
   ctx.strokeStyle = colors['gray-1']
   ctx.lineWidth = 0.5
   ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE)
-
-  ctx.restore()
 }

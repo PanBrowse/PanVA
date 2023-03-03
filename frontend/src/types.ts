@@ -172,20 +172,21 @@ export type VariablePositionCSVColumns =
   | 'T'
   | 'gap'
 
+export type CellThemeColors = {
+  A: string
+  C: string
+  G: string
+  T: string
+  a: string
+  c: string
+  g: string
+  t: string
+  gap: string
+}
+
 export type CellTheme = {
   name: string
-  // ACGTacgt-, so 9 elements.
-  colors: [
-    string,
-    string,
-    string,
-    string,
-    string,
-    string,
-    string,
-    string,
-    string
-  ]
+  colors: CellThemeColors
 }
 
 /**
