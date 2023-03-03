@@ -3,17 +3,18 @@ import * as d3 from 'd3'
 import { useDataStore } from '@/stores/data'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { CELL_SIZE } from '@/constants'
+import { drawNucleotide } from '@/helpers/nucleotide'
 
 import type { Alignment, DataIndexCollapsed, Nucleotide } from '@/types'
-import { valueKey } from '@/helpers/valueKey'
 import { isGroup } from '@/helpers/isGroup'
 import { keys, pickBy } from 'lodash'
 import { useTooltipStore } from '@/stores/tooltip'
 import { groupName } from '@/helpers/groupName'
 import { groupCounts } from '@/helpers/groupCounts'
-import { drawNucleotide, sortNucleotideString } from '@/helpers/nucleotide'
+import { sortNucleotideString } from '@/helpers/nucleotide'
 import type { StyleValue } from 'vue'
 import { useConfigStore } from '@/stores/config'
+import { valueKey } from '@/helpers/valueKey'
 
 type CellCoordinate = {
   column: number
@@ -30,7 +31,9 @@ type Cell = {
 type GroupCounts = Record<Nucleotide, number>
 
 type GroupAggregates = Record<
+  // Group id
   number,
+  // Array aligns with filteredPositions.
   {
     // Counts per nucleotide in this position.
     counts: GroupCounts
@@ -57,6 +60,7 @@ export default {
       'groupsFiltered',
       'homologyId',
       'mrnaIds',
+      'positionRegion',
       'reference',
       'referenceNucleotides',
       'sequenceCount',
@@ -158,6 +162,18 @@ export default {
     dataAtPosition(dataIndex: number, position: number): Alignment {
       return this.alignedPositions[dataIndex * this.geneLength + position - 1]
     },
+    nucleotidesForDataIndex(dataIndex: DataIndexCollapsed): string[] {
+      if (isGroup(dataIndex)) {
+        return this.groupAggregates[dataIndex.id].map(
+          (aggr) => aggr.nucleotides
+        )
+      }
+
+      return this.filteredPositions.map((position) => {
+        const { nucleotide } = this.dataAtPosition(dataIndex, position)
+        return nucleotide
+      })
+    },
     isReference(data: DataIndexCollapsed): boolean {
       if (!this.reference) return false
 
@@ -171,106 +187,62 @@ export default {
 
       return false
     },
-    draw() {
-      console.log('Heatmap#draw')
-      console.time('Heatmap#draw')
-      d3.select(this.customNode)
-        .selectAll('c')
-        .data<Cell>(
-          this.cells,
-          ({ data, column }: any) => `${valueKey(data)}:${column}`
-        )
-        .join(
-          (enter) =>
-            enter
-              // This call is the performance bottleneck.
-              .append('c')
-              .attr('x', ({ column }) => column * CELL_SIZE)
-              .attr('y', ({ row }) => row * CELL_SIZE),
-          (update) =>
-            update
-              // .transition()
-              // .duration(this.transitionTime)
-              .attr('x', ({ column }) => column * CELL_SIZE)
-              .attr('y', ({ row }) => row * CELL_SIZE),
-          (exit) => exit.remove()
-        )
-        .attr('nucleotides', ({ data, position, column }) => {
-          if (isGroup(data)) {
-            const { nucleotides } = this.groupAggregates[data.id][column]
-            return nucleotides
-          }
+    drawCell(ctx: CanvasRenderingContext2D, data: DataIndexCollapsed) {
+      const isRef = this.isReference(data)
 
-          const { nucleotide } = this.dataAtPosition(data, position)
-          return nucleotide
+      this.nucleotidesForDataIndex(data).forEach((nucl, column) => {
+        const matchesReference =
+          this.referenceNucleotides &&
+          !isRef &&
+          this.referenceNucleotides![column] === nucl
+
+        drawNucleotide({
+          ctx,
+          nucleotides: matchesReference ? '' : nucl,
+          x: column * CELL_SIZE,
+          y: 0,
+          cellThemeColors: this.cellTheme.colors,
         })
-      console.timeEnd('Heatmap#draw')
-    },
-    updateCanvasCell(
-      ctx: CanvasRenderingContext2D,
-      nucleotides: string,
-      column: number,
-      x: number,
-      y: number,
-      isReference: boolean
-    ) {
-      const matchesReference =
-        this.referenceNucleotides &&
-        !isReference &&
-        this.referenceNucleotides[column] === nucleotides
-      const cellThemeColors = this.cellTheme.colors
-
-      drawNucleotide({
-        ctx,
-        nucleotides: matchesReference ? '' : nucleotides,
-        x,
-        y,
-        cellThemeColors,
       })
     },
-    updateCanvas() {
-      console.log('Heatmap#updateCanvas')
-      console.time('Heatmap#updateCanvas')
-      const scaleFactor = 2.0
-
-      const canvas = d3
-        .select<HTMLCanvasElement, any>('#heatmap')
-        .attr('width', this.width * scaleFactor)
-        .attr('height', this.height * scaleFactor)
-        .style('width', this.width + 'px')
-        .style('height', this.height + 'px')
-
-      const ctx = canvas.node()?.getContext('2d')
-
-      if (!ctx) return
-
-      // Render everything at 2x for improved graphics on higher DPI screens.
-      ctx.scale(scaleFactor, scaleFactor)
-
-      // Clear the screen.
-      ctx.clearRect(0, 0, this.width, this.height)
+    draw(updateDraw = true) {
+      console.log('Heatmap#draw')
+      console.time('Heatmap#draw')
 
       const that = this
 
-      d3.select(this.customNode)
-        .selectAll<HTMLElement, any>('c')
-        .each(function ({ data, column }) {
-          if (!this) return
+      d3.select('#heatmap')
+        .selectAll<HTMLCanvasElement, DataIndexCollapsed>('canvas')
+        .data<DataIndexCollapsed>(this.sortedDataIndicesCollapsed, valueKey)
+        .join(
+          (enter) =>
+            enter
+              .append('canvas')
+              .attr('width', this.width)
+              .attr('height', CELL_SIZE)
+              .style('top', (data, index) => index * CELL_SIZE + 'px')
+              .each(function (data) {
+                const ctx = this.getContext('2d')!
+                that.drawCell(ctx, data)
+              }),
 
-          const nucleotides = this.getAttribute('nucleotides') as string
-          const x = parseInt(this.getAttribute('x') as string)
-          const y = parseInt(this.getAttribute('y') as string)
+          (update) =>
+            update
+              .each(function (data) {
+                if (updateDraw) {
+                  this.setAttribute('width', '' + that.width)
+                  const ctx = this.getContext('2d')!
+                  that.drawCell(ctx, data)
+                }
+              })
+              .transition()
+              .duration(this.transitionTime)
+              .style('top', (data, index) => index * CELL_SIZE + 'px'),
 
-          that.updateCanvasCell(
-            ctx,
-            nucleotides,
-            column,
-            x,
-            y,
-            that.isReference(data)
-          )
-        })
-      console.timeEnd('Heatmap#updateCanvas')
+          (exit) => exit.remove()
+        )
+
+      console.timeEnd('Heatmap#draw')
     },
     mouseEventToCell(event: MouseEvent): CellCoordinate | undefined {
       const [x, y] = d3.pointer(event)
@@ -371,51 +343,26 @@ export default {
       this.hoverColIndex = null
       this.hoverRowIndex = null
     },
-    isDataEqual(a: DataIndexCollapsed[], b: DataIndexCollapsed[]) {
-      // Different lengths, so must have changed.
-      if (a.length !== b.length) return false
-      // We assume groups don't change internally when collapsed.
-      return a.every((aData, index) => {
-        const bData = b[index]
-        const isGroupA = isGroup(aData)
-        const isGroupB = isGroup(bData)
-        if (isGroupA || isGroupB) return isGroupA === isGroupB
-        return aData === bData
-      })
-    },
   },
   mounted() {
-    // https://bl.ocks.org/1Cr18Ni9/75c29c06e02ff80671e37fd30eb8519e
-    // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
-    this.mutationObserver = new MutationObserver(() => this.updateCanvas())
-    this.mutationObserver.observe(this.customNode, {
-      attributes: true,
-      childList: true,
-      subtree: true,
-    })
     this.draw()
   },
-  unmounted() {
-    this.mutationObserver?.disconnect()
-  },
+
   watch: {
     alignedPositions() {
       this.draw()
     },
     cellTheme() {
-      this.updateCanvas()
+      this.draw()
     },
     reference() {
-      this.updateCanvas()
+      this.draw()
     },
     filteredPositions() {
       this.draw()
     },
-    sortedDataIndicesCollapsed(newData, oldData) {
-      // Don't redraw unless data actually changed.
-      if (!this.isDataEqual(newData, oldData)) {
-        this.draw()
-      }
+    sortedDataIndicesCollapsed() {
+      this.draw(false)
     },
   },
 }
@@ -427,14 +374,9 @@ export default {
     :style="{
       width: width + 'px',
       height: height + 'px',
-      transitionDuration: transitionTime + 'ms',
     }"
   >
-    <canvas
-      id="heatmap"
-      @mousemove="onMouseMove"
-      @mouseleave="onMouseLeave"
-    ></canvas>
+    <div id="heatmap" @mousemove="onMouseMove" @mouseleave="onMouseLeave"></div>
 
     <div
       ref="hoverCell"
@@ -457,7 +399,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '@/assets/colors.module.scss';
 
 .heatmap-tooltip-virtual-element {
@@ -493,11 +435,14 @@ export default {
 
 .heatmap-wrapper {
   position: relative;
-  transition-property: width;
-  transition-timing-function: linear;
+}
 
-  /* canvas {
-    image-rendering: pixelated;
-  } */
+#heatmap {
+  position: relative;
+
+  canvas {
+    position: absolute;
+    left: 0;
+  }
 }
 </style>

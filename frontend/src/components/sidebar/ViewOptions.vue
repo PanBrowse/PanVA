@@ -327,7 +327,6 @@ export default {
           :dropdownMatchSelectWidth="false"
           :value="sortValue"
           @change="onSortChange"
-          showSearch
         >
           <template v-for="option in sortOptions" v-bind:key="option.value">
             <ASelectOptGroup :label="option.label" v-if="option.options">
@@ -361,7 +360,6 @@ export default {
 
       <AFormItem label="Reference">
         <ASelect
-          showSearch
           :dropdownMatchSelectWidth="false"
           :value="referenceValue"
           @change="onReferenceChange"

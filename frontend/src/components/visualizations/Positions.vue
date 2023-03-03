@@ -13,7 +13,6 @@ export default {
       'filteredPositions',
       'filteredPositionsCount',
       'sorting',
-      'transitionTime',
       'variablePositions',
     ]),
     ...mapState(useConfigStore, ['variableMetadata']),
@@ -130,7 +129,6 @@ export default {
     :style="{
       width: width + 'px',
       height: height + 'px',
-      transitionDuration: transitionTime + 'ms',
     }"
   >
     <svg id="positions" :width="width" :height="height"></svg>
@@ -141,9 +139,6 @@ export default {
 @import '@/assets/colors.module.scss';
 
 .positions-wrapper {
-  transition-property: width;
-  transition-timing-function: linear;
-
   .ant-checkbox-group {
     height: 10px;
     line-height: 10px;

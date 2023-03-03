@@ -1,6 +1,6 @@
 <script lang="ts">
 import * as d3 from 'd3'
-import { range } from 'lodash'
+import { clamp, range } from 'lodash'
 import { useDataStore } from '@/stores/data'
 import { mapState, mapWritableState } from 'pinia'
 import type { D3BrushEvent } from 'd3'
@@ -169,7 +169,11 @@ export default {
       if (!selection) {
         // We determine the clicked x position ourselves.
         const [xPos] = d3.pointer(event, this.svg().node())
-        const x0 = Math.round(this.xScale.invert(xPos))
+        const x0 = clamp(
+          Math.round(this.xScale.invert(xPos)),
+          1,
+          this.geneLength
+        )
         this.positionRegion = [x0, x0]
         return
       }

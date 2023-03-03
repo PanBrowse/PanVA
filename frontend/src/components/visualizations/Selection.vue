@@ -27,11 +27,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(useDataStore, [
-      'filteredPositions',
-      'filteredPositionsCount',
-      'transitionTime',
-    ]),
+    ...mapState(useDataStore, ['filteredPositions', 'filteredPositionsCount']),
     ...mapWritableState(useDataStore, ['selectedPositions']),
     options(): CheckboxOptionType[] {
       return this.filteredPositions.map((position) => ({
@@ -92,13 +88,7 @@ export default {
 </script>
 
 <template>
-  <div
-    class="selection-wrapper"
-    :style="{
-      width: width + 'px',
-      transitionDuration: transitionTime + 'ms',
-    }"
-  >
+  <div class="selection-wrapper" :style="{ width: width + 'px' }">
     <ACheckboxGroup v-model:value="selectionProxy" :options="options" />
   </div>
 </template>
@@ -106,8 +96,6 @@ export default {
 <style lang="scss">
 .selection-wrapper {
   line-height: 10px;
-  transition-property: width;
-  transition-timing-function: linear;
 
   .ant-checkbox-group {
     line-height: 10px;

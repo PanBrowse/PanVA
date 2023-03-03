@@ -13,7 +13,6 @@ export default {
       'annotationColors',
       'filteredPositions',
       'filteredPositionsCount',
-      'transitionTime',
     ]),
     ...mapState(useConfigStore, ['annotations']),
     width(): number {
@@ -31,24 +30,14 @@ export default {
         .getContext('2d')
     },
     draw() {
-      const scaleFactor = 2.0
-
       const canvas = d3
         .select<HTMLCanvasElement, any>('#annotation')
-        .attr('width', this.width * scaleFactor)
-        .attr('height', this.height * scaleFactor)
-        .style('width', this.width + 'px')
-        .style('height', this.height + 'px')
+        .attr('width', this.width)
+        .attr('height', this.height)
 
       const ctx = canvas.node()?.getContext('2d')
 
       if (!ctx) return
-
-      // Render everything at 2x for improved graphics on higher DPI screens.
-      ctx.scale(scaleFactor, scaleFactor)
-
-      // Clear the screen.
-      ctx.clearRect(0, 0, this.width, this.height)
 
       this.filteredPositions.forEach((position, cellIndex) => {
         this.annotations.forEach(({ column }, annotationIndex) => {
@@ -83,13 +72,7 @@ export default {
 </script>
 
 <template>
-  <div
-    class="annotation-wrapper"
-    :style="{
-      width: width + 'px',
-      transitionDuration: transitionTime + 'ms',
-    }"
-  >
+  <div class="annotation-wrapper" :style="{ width: width + 'px' }">
     <canvas id="annotation"></canvas>
   </div>
 </template>
@@ -98,8 +81,7 @@ export default {
 .annotation-wrapper {
   line-height: 1;
   overflow: hidden;
-  transition-property: width;
-  transition-timing-function: linear;
+
   padding-top: 4px;
 
   canvas {
