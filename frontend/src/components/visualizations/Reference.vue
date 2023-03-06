@@ -8,11 +8,12 @@ import { drawNucleotide } from '@/helpers/nucleotide'
 export default {
   computed: {
     ...mapState(useDataStore, [
-      'cellTheme',
       'filteredPositions',
       'filteredPositionsCount',
+      'highDpiEnabled',
       'reference',
       'referenceNucleotides',
+      'theme',
     ]),
     width(): number {
       return this.filteredPositionsCount * CELL_SIZE
@@ -29,14 +30,19 @@ export default {
         .getContext('2d')
     },
     draw() {
+      const scaleFactor = this.highDpiEnabled ? 2 : 1
+
       const canvas = d3
         .select<HTMLCanvasElement, any>('#reference')
-        .attr('width', this.width)
-        .attr('height', this.height)
+        .attr('width', this.width * scaleFactor)
+        .attr('height', this.height * scaleFactor)
+        .style('width', this.width + 'px')
+        .style('height', this.height + 'px')
 
       const ctx = canvas.node()?.getContext('2d')
-
       if (!ctx) return
+
+      ctx.scale(scaleFactor, scaleFactor)
 
       this.filteredPositions.forEach((position, index) => {
         const nucleotides = this.referenceNucleotides
@@ -48,7 +54,7 @@ export default {
           nucleotides,
           x: index * CELL_SIZE,
           y: 0,
-          cellThemeColors: this.cellTheme.colors,
+          theme: this.theme,
         })
       })
     },
@@ -60,10 +66,13 @@ export default {
     filteredPositions() {
       this.draw()
     },
+    highDpiEnabled() {
+      this.draw()
+    },
     reference() {
       this.draw()
     },
-    cellTheme() {
+    theme() {
       this.draw()
     },
   },
@@ -83,6 +92,7 @@ export default {
 
   canvas {
     vertical-align: top;
+    background: white;
   }
 }
 </style>

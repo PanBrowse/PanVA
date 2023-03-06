@@ -11,6 +11,7 @@ import {
   LayoutContent,
   LayoutSider,
 } from 'ant-design-vue'
+import { isMobile } from '@/helpers/mediaQueries'
 
 export default {
   slots: ['sidebar'],
@@ -25,7 +26,7 @@ export default {
   },
   data() {
     return {
-      collapsed: false,
+      collapsed: isMobile(),
       defaultTitle: DEFAULT_TITLE,
     }
   },
@@ -33,6 +34,14 @@ export default {
     ...mapState(useConfigStore, ['title']),
     hasSidebar(): boolean {
       return !!this.$slots.sidebar
+    },
+    isMobile(): boolean {
+      return isMobile()
+    },
+  },
+  methods: {
+    closeSidebar() {
+      this.collapsed = true
     },
   },
 }
@@ -75,9 +84,15 @@ export default {
       </ACard>
     </ALayoutSider>
   </ALayout>
+
+  <div
+    class="ant-sidebar-backdrop"
+    :class="{ visible: !collapsed }"
+    @mousedown="closeSidebar"
+  ></div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .ant-layout {
   height: 100vh;
 }
@@ -93,6 +108,46 @@ export default {
 .ant-layout-sider {
   background: none;
   overflow-y: auto;
+
+  &:not(.ant-layout-sider-collapsed) {
+    /* Responsive on mobile. */
+    min-width: auto !important;
+    max-width: 380px !important;
+    width: 90% !important;
+  }
+}
+
+.ant-sidebar-backdrop {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: #000000;
+  z-index: 180;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  pointer-events: none;
+
+  &.visible {
+    opacity: 0.3;
+    pointer-events: all;
+  }
+}
+
+@media (max-device-width: 960px) {
+  .ant-layout-sider {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 190;
+  }
+
+  .ant-sidebar-backdrop {
+    display: block;
+  }
 }
 
 .collapse-trigger {

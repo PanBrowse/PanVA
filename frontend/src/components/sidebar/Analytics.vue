@@ -2,7 +2,6 @@
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { naturalSort } from '@/helpers/sorting'
-import { CELL_THEMES } from '@/constants'
 import { EditOutlined, PushpinOutlined } from '@ant-design/icons-vue'
 
 import SidebarItem from '@/components/common/SidebarItem.vue'
@@ -20,19 +19,10 @@ import {
   Select,
   SelectOptGroup,
   SelectOption,
-  Switch,
   Tooltip,
 } from 'ant-design-vue'
 import { map, sortBy } from 'lodash'
-
-type SortOption = {
-  label: string
-  disabled?: boolean
-  // Groups should have a unique value too.
-  value: string
-  // Having options means this is a group.
-  options?: Omit<SortOption, 'options'>[]
-}
+import type { DefaultOptionType } from 'ant-design-vue/lib/select'
 
 export default {
   components: {
@@ -44,7 +34,6 @@ export default {
     ASelect: Select,
     ASelectOptGroup: SelectOptGroup,
     ASelectOption: SelectOption,
-    ASwitch: Switch,
     ATooltip: Tooltip,
     EditOutlined,
     PushpinOutlined,
@@ -70,13 +59,11 @@ export default {
     ]),
     ...mapWritableState(useDataStore, [
       'annotationMrnaId',
-      'selectedCellTheme',
       'keepSequenceFilters',
       'positionFilter',
       'reference',
       'selectedTree',
       'sequenceFilters',
-      'transitionsEnabled',
       'visibleSequenceMetadataColumns',
     ]),
     annotationValue(): string | undefined {
@@ -117,13 +104,13 @@ export default {
     defaultSortPosition(): number {
       return this.filteredPositions[0] || 1
     },
-    sortOptions(): SortOption[] {
+    sortOptions(): DefaultOptionType[] {
       const sortPosition =
         this.sorting.name === 'position'
           ? this.sorting.position
           : this.defaultSortPosition
 
-      const options: SortOption[] = [
+      const options: DefaultOptionType[] = [
         {
           value: 'tree',
           label: 'Tree',
@@ -149,10 +136,7 @@ export default {
 
       return options
     },
-    cellThemeOptions(): SortOption[] {
-      return map(CELL_THEMES, ({ name }, key) => ({ value: key, label: name }))
-    },
-    metadataOptions(): SortOption[] {
+    metadataOptions(): DefaultOptionType[] {
       return sortBy(
         this.config.sequenceMetadata.map(({ column, label }) => ({
           value: column,
@@ -161,8 +145,8 @@ export default {
         'label'
       )
     },
-    treeOptions(): SortOption[] {
-      const options = [
+    treeOptions(): DefaultOptionType[] {
+      const options: DefaultOptionType[] = [
         { value: 'dendroDefault', label: 'Dendrogram' },
         {
           value: 'dendroCustom',
@@ -172,7 +156,7 @@ export default {
       ]
 
       // Add loaded additional trees.
-      const additional: SortOption[] = []
+      const additional: DefaultOptionType[] = []
       this.trees.forEach(({ name, label }) => {
         additional.push({ value: name, label })
       })
@@ -182,14 +166,14 @@ export default {
 
       return options
     },
-    filterPositionOptions(): SortOption[] {
-      const options: SortOption[] = [
+    filterPositionOptions(): DefaultOptionType[] {
+      const options: DefaultOptionType[] = [
         { value: 'all', label: 'All' },
         { value: 'variable', label: 'Variable' },
       ]
 
       // Add configured metadata.
-      const additional: SortOption[] = []
+      const additional: DefaultOptionType[] = []
       this.config.variableMetadata.forEach(({ column, label, type }) => {
         if (type === 'boolean') {
           additional.push({ value: column, label })
@@ -201,7 +185,7 @@ export default {
 
       return options
     },
-    annotationOptions(): SortOption[] {
+    annotationOptions(): DefaultOptionType[] {
       return naturalSort(map(this.annotations, 'mRNA_id')).map((mrnaId) => ({
         value: mrnaId,
         label: mrnaId,
@@ -280,7 +264,7 @@ export default {
 </script>
 
 <template>
-  <SidebarItem title="View options">
+  <SidebarItem title="Analytics">
     <AForm
       layout="horizontal"
       :labelCol="{ span: 8 }"
@@ -358,6 +342,17 @@ export default {
         />
       </AFormItem>
 
+      <AFormItem label="Metadata">
+        <ASelect
+          placeholder="None"
+          v-model:value="visibleSequenceMetadataColumns"
+          mode="multiple"
+          :options="metadataOptions"
+          :dropdownMatchSelectWidth="false"
+          showSearch
+        />
+      </AFormItem>
+
       <AFormItem label="Reference">
         <ASelect
           :dropdownMatchSelectWidth="false"
@@ -398,32 +393,6 @@ export default {
           v-if="annotations.length !== 0"
         />
         <AInput v-else placeholder="0 available" style="pointer-events: none" />
-      </AFormItem>
-
-      <AFormItem label="Metadata">
-        <ASelect
-          placeholder="None"
-          v-model:value="visibleSequenceMetadataColumns"
-          mode="multiple"
-          :options="metadataOptions"
-          :dropdownMatchSelectWidth="false"
-          showSearch
-        />
-      </AFormItem>
-
-      <AFormItem label="Color scheme">
-        <ASelect
-          v-model:value="selectedCellTheme"
-          :dropdownMatchSelectWidth="false"
-          :options="cellThemeOptions"
-        />
-      </AFormItem>
-
-      <AFormItem
-        label="Transitions"
-        extra="Disable for improved performance on slower computers."
-      >
-        <ASwitch size="small" v-model:checked="transitionsEnabled" />
       </AFormItem>
     </AForm>
 

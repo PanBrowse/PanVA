@@ -2,7 +2,7 @@
 import * as d3 from 'd3'
 import { useDataStore } from '@/stores/data'
 import { mapState } from 'pinia'
-import { CELL_SIZE, EMPTY_CELL_COLOR } from '@/constants'
+import { CELL_SIZE } from '@/constants'
 import { useConfigStore } from '@/stores/config'
 import colors from '@/assets/colors.module.scss'
 
@@ -13,6 +13,7 @@ export default {
       'annotationColors',
       'filteredPositions',
       'filteredPositionsCount',
+      'theme',
     ]),
     ...mapState(useConfigStore, ['annotations']),
     width(): number {
@@ -46,7 +47,7 @@ export default {
           const y = annotationIndex * CELL_SIZE
           ctx.fillStyle = value
             ? this.annotationColors[annotationIndex]
-            : EMPTY_CELL_COLOR
+            : this.theme.cellColors.empty
           ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
 
           // White border overlay.

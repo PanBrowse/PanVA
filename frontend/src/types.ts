@@ -172,7 +172,7 @@ export type VariablePositionCSVColumns =
   | 'T'
   | 'gap'
 
-export type CellThemeColors = {
+export type ThemeCellColors = {
   A: string
   C: string
   G: string
@@ -181,12 +181,15 @@ export type CellThemeColors = {
   c: string
   g: string
   t: string
-  gap: string
+  '-': string
+  empty: string
+  aggregate: string
 }
 
-export type CellTheme = {
+export type Theme = {
   name: string
-  colors: CellThemeColors
+  cellColors: ThemeCellColors
+  annotationColors: string[]
 }
 
 /**

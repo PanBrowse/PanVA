@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia'
 
 import {
-  CELL_THEMES,
   DEFAULT_SORTING,
   DEFAULT_SELECTED_REGION,
   TRANSITION_TIME,
-  ANNOTATIONS_GRADIENT_COLORS,
+  THEMES,
 } from '@/constants'
 import { h } from 'vue'
 import type {
@@ -30,7 +29,7 @@ import type {
   Alignment,
   Sequence,
   Tree,
-  CellTheme,
+  Theme,
 } from '@/types'
 import {
   clamp,
@@ -72,6 +71,7 @@ import {
 } from '@/helpers/api'
 import { ProgressPromise } from '@prezly/progress-promise'
 import colorInterpolate from 'color-interpolate'
+import { isHighDPI, isMobile } from '@/helpers/mediaQueries'
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -146,12 +146,13 @@ export const useDataStore = defineStore('data', {
 
     // User options.
     annotationMrnaId: null as mRNAid | null,
-    selectedCellTheme: 'default',
     homologyId: null as number | null,
     keepSequenceFilters: false,
     reference: null as Reference | null,
-    transitionsEnabled: true,
+    selectedTheme: 'clustal',
     selectedTree: 'dendroDefault' as TreeOption,
+    transitionsEnabled: true,
+    highDpiEnabled: false,
     visibleSequenceMetadataColumns: [] as string[],
 
     // Indicates if the data store contains all data to render the layout with all views.
@@ -356,13 +357,13 @@ export const useDataStore = defineStore('data', {
       if (this.homology) return this.homology.alignment_length
       return 0
     },
-    cellTheme(): CellTheme {
-      return CELL_THEMES[this.selectedCellTheme]
+    theme(): Theme {
+      return THEMES[this.selectedTheme]
     },
     annotationColors(): string[] {
       const config = useConfigStore()
       const count = config.annotations.length
-      const interpolation = colorInterpolate(ANNOTATIONS_GRADIENT_COLORS)
+      const interpolation = colorInterpolate(this.theme.annotationColors)
       if (count === 1) return [interpolation(0)]
       return range(count).map((index) => interpolation(index / (count - 1)))
     },
@@ -660,6 +661,12 @@ export const useDataStore = defineStore('data', {
       this.sequenceFilters.push(filter)
     },
     async initializeApp() {
+      // Change graphics options to suit device of user.
+      this.$patch({
+        highDpiEnabled: isHighDPI(),
+        transitionsEnabled: !isMobile(),
+      })
+
       const config = useConfigStore()
       if (await config.loadConfig()) {
         let homologies: Homology[]

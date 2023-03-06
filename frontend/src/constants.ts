@@ -1,4 +1,4 @@
-import type { CellTheme, Range, Sorting } from '@/types'
+import type { Range, Sorting, Theme } from '@/types'
 
 export const DEFAULT_SORTING: Sorting = {
   name: 'tree',
@@ -33,48 +33,13 @@ export const DEFAULT_METADATA_BOOLEAN_LABELS = {
   null: 'Unknown',
 }
 
-export const ANNOTATIONS_GRADIENT_COLORS = ['#f759ab', '#597ef7']
-
-export const EMPTY_CELL_COLOR = '#f0f0f0'
-
 // Different themes for coloring the nucleotide cells.
 // The order of the colors is `ACGTacgt-`.
-export const CELL_THEMES: Record<string, CellTheme> = {
-  default: {
-    name: 'Default',
-    colors: {
-      A: '#c7ceea',
-      C: '#dcbed4',
-      G: '#d2dcc5',
-      T: '#c5b8a6',
-
-      a: '#c7ceea',
-      c: '#dcbed4',
-      g: '#d2dcc5',
-      t: '#c5b8a6',
-
-      gap: '#ffffff',
-    },
-  },
-  default2: {
-    name: 'Alternative',
-    colors: {
-      A: '#89b2ff',
-      C: '#8fca85',
-      G: '#fdcffe',
-      T: '#f99372',
-
-      a: '#89b2ff',
-      c: '#8fca85',
-      g: '#fdcffe',
-      t: '#f99372',
-
-      gap: '#ffffff',
-    },
-  },
+export const THEMES: Record<string, Theme> = {
   clustal: {
-    name: 'Clustal',
-    colors: {
+    name: 'Clustal (default)',
+    annotationColors: ['#f759ab', '#597ef7'],
+    cellColors: {
       A: '#fb8072',
       C: '#80b1d3',
       G: '#fdb462',
@@ -85,12 +50,53 @@ export const CELL_THEMES: Record<string, CellTheme> = {
       g: '#fdb462',
       t: '#b3de69',
 
-      gap: '#ffffff',
+      '-': '#ffffff',
+      empty: '#f0f0f0',
+      aggregate: '#595959',
+    },
+  },
+  pastel: {
+    name: 'Pastel',
+    annotationColors: ['#f759ab', '#597ef7'],
+    cellColors: {
+      A: '#c7ceea',
+      C: '#dcbed4',
+      G: '#d2dcc5',
+      T: '#c5b8a6',
+
+      a: '#c7ceea',
+      c: '#dcbed4',
+      g: '#d2dcc5',
+      t: '#c5b8a6',
+
+      '-': '#ffffff',
+      empty: '#f0f0f0',
+      aggregate: '#595959',
+    },
+  },
+  alternative: {
+    name: 'Alternative',
+    annotationColors: ['#f759ab', '#597ef7'],
+    cellColors: {
+      A: '#89b2ff',
+      C: '#8fca85',
+      G: '#fdcffe',
+      T: '#f99372',
+
+      a: '#89b2ff',
+      c: '#8fca85',
+      g: '#fdcffe',
+      t: '#f99372',
+
+      '-': '#ffffff',
+      empty: '#f0f0f0',
+      aggregate: '#595959',
     },
   },
   'cg-at': {
     name: 'CG vs AT',
-    colors: {
+    annotationColors: ['#f759ab', '#597ef7'],
+    cellColors: {
       A: '#e29eb6',
       C: '#dfd266',
       G: '#dfd266',
@@ -101,12 +107,15 @@ export const CELL_THEMES: Record<string, CellTheme> = {
       g: '#dfd266',
       t: '#e29eb6',
 
-      gap: '#ffffff',
+      '-': '#ffffff',
+      empty: '#f0f0f0',
+      aggregate: '#595959',
     },
   },
   'pur-pyr': {
     name: 'Purine vs Pyrimidine',
-    colors: {
+    annotationColors: ['#f759ab', '#597ef7'],
+    cellColors: {
       A: '#a463ce',
       C: '#9fd0cb',
       G: '#a463ce',
@@ -117,7 +126,9 @@ export const CELL_THEMES: Record<string, CellTheme> = {
       g: '#a463ce',
       t: '#9fd0cb',
 
-      gap: '#ffffff',
+      '-': '#ffffff',
+      empty: '#f0f0f0',
+      aggregate: '#595959',
     },
   },
 }

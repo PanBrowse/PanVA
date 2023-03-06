@@ -53,11 +53,11 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'alignedPositions',
-      'cellTheme',
       'filteredPositions',
       'filteredPositionsCount',
       'geneLength',
       'groupsFiltered',
+      'highDpiEnabled',
       'homologyId',
       'mrnaIds',
       'positionRegion',
@@ -65,6 +65,7 @@ export default {
       'referenceNucleotides',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
+      'theme',
       'transitionTime',
       'variablePositions',
     ]),
@@ -153,12 +154,6 @@ export default {
   methods: {
     ...mapActions(useTooltipStore, ['showTooltip', 'hideTooltip']),
     ...mapActions(useDataStore, ['dragUpdate']),
-    context() {
-      return d3
-        .select<HTMLCanvasElement, any>('#heatmap')
-        .node()!
-        .getContext('2d')
-    },
     dataAtPosition(dataIndex: number, position: number): Alignment {
       return this.alignedPositions[dataIndex * this.geneLength + position - 1]
     },
@@ -187,7 +182,30 @@ export default {
 
       return false
     },
-    drawCell(ctx: CanvasRenderingContext2D, data: DataIndexCollapsed) {
+    getContext(canvas: HTMLCanvasElement) {
+      if (this.highDpiEnabled) {
+        const scaleFactor = 2
+        canvas.setAttribute('width', '' + this.width * scaleFactor)
+        canvas.setAttribute('height', '' + CELL_SIZE * scaleFactor)
+        canvas.style.width = this.width + 'px'
+        canvas.style.height = CELL_SIZE + 'px'
+
+        const ctx = canvas.getContext('2d')!
+        ctx.scale(scaleFactor, scaleFactor)
+
+        return ctx
+      }
+
+      canvas.setAttribute('width', '' + this.width)
+      canvas.setAttribute('height', '' + CELL_SIZE)
+      canvas.style.removeProperty('width')
+      canvas.style.removeProperty('height')
+
+      const ctx = canvas.getContext('2d')!
+
+      return ctx
+    },
+    drawRow(ctx: CanvasRenderingContext2D, data: DataIndexCollapsed) {
       const isRef = this.isReference(data)
 
       this.nucleotidesForDataIndex(data).forEach((nucl, column) => {
@@ -201,12 +219,11 @@ export default {
           nucleotides: matchesReference ? '' : nucl,
           x: column * CELL_SIZE,
           y: 0,
-          cellThemeColors: this.cellTheme.colors,
+          theme: this.theme,
         })
       })
     },
     draw(updateDraw = true) {
-      console.log('Heatmap#draw')
       console.time('Heatmap#draw')
 
       const that = this
@@ -222,17 +239,16 @@ export default {
               .attr('height', CELL_SIZE)
               .style('top', (data, index) => index * CELL_SIZE + 'px')
               .each(function (data) {
-                const ctx = this.getContext('2d')!
-                that.drawCell(ctx, data)
+                const ctx = that.getContext(this)
+                that.drawRow(ctx, data)
               }),
 
           (update) =>
             update
               .each(function (data) {
                 if (updateDraw) {
-                  this.setAttribute('width', '' + that.width)
-                  const ctx = this.getContext('2d')!
-                  that.drawCell(ctx, data)
+                  const ctx = that.getContext(this)
+                  that.drawRow(ctx, data)
                 }
               })
               .transition()
@@ -352,17 +368,20 @@ export default {
     alignedPositions() {
       this.draw()
     },
-    cellTheme() {
+    filteredPositions() {
+      this.draw()
+    },
+    highDpiEnabled() {
       this.draw()
     },
     reference() {
       this.draw()
     },
-    filteredPositions() {
-      this.draw()
-    },
     sortedDataIndicesCollapsed() {
       this.draw(false)
+    },
+    theme() {
+      this.draw()
     },
   },
 }
@@ -441,8 +460,11 @@ export default {
   position: relative;
 
   canvas {
+    background: white;
     position: absolute;
     left: 0;
+
+    /* image-rendering: pixelated; */
   }
 }
 </style>

@@ -1,8 +1,7 @@
-import { EMPTY_CELL_COLOR, CELL_SIZE } from '@/constants'
+import { CELL_SIZE } from '@/constants'
 import { sortBy } from 'lodash'
 
-import colors from '@/assets/colors.module.scss'
-import type { CellThemeColors } from '@/types'
+import type { Nucleotide, Theme } from '@/types'
 
 export const sortNucleotideString = (value: string) => {
   const order = 'ACGTacgt-'
@@ -14,7 +13,7 @@ type DrawNucleotide = {
   nucleotides: string
   x: number
   y: number
-  cellThemeColors: CellThemeColors
+  theme: Theme
 }
 
 export const drawNucleotide = ({
@@ -22,94 +21,89 @@ export const drawNucleotide = ({
   nucleotides,
   x,
   y,
-  cellThemeColors,
+  theme: { cellColors },
 }: DrawNucleotide) => {
+  const size = CELL_SIZE
+  const halfsize = CELL_SIZE * 0.5
+
   // No nucleotide or matches with reference.
   if (nucleotides.length === 0) {
-    ctx.fillStyle = EMPTY_CELL_COLOR
-    ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
+    ctx.fillStyle = cellColors.empty
+    ctx.fillRect(x, y, size, size)
   }
   // Single nucleotide or group with the same nucleotide; solid color square.
   else if (nucleotides.length === 1) {
-    ctx.fillStyle = cellThemeColors[nucleotides as keyof typeof cellThemeColors]
-    ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
+    ctx.fillStyle = cellColors[nucleotides as Nucleotide]
+    ctx.fillRect(x, y, size, size)
   }
   // Multiple nucleotides.
   else {
-    ctx.fillStyle = colors['gray-9']
-    ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
+    ctx.fillStyle = cellColors.aggregate
+    ctx.fillRect(x, y, size, size)
 
     if (nucleotides.includes('a') || nucleotides.includes('A')) {
-      ctx.fillStyle = cellThemeColors.A
+      ctx.fillStyle = cellColors.A
       ctx.beginPath()
       // Top.
-      ctx.moveTo(x + 5, y + 5)
+      ctx.moveTo(x + halfsize, y + halfsize)
       ctx.lineTo(x, y)
-      ctx.lineTo(x + 10, y)
-      ctx.lineTo(x + 5, y + 5)
+      ctx.lineTo(x + size, y)
+      ctx.lineTo(x + halfsize, y + halfsize)
       ctx.closePath()
       ctx.fill()
     }
 
     if (nucleotides.includes('c') || nucleotides.includes('C')) {
-      ctx.fillStyle = cellThemeColors.C
+      ctx.fillStyle = cellColors.C
       ctx.beginPath()
       // Right.
-      ctx.moveTo(x + 5, y + 5)
-      ctx.lineTo(x + 10, y)
-      ctx.lineTo(x + 10, y + 10)
-      ctx.lineTo(x + 5, y + 5)
+      ctx.moveTo(x + halfsize, y + halfsize)
+      ctx.lineTo(x + size, y)
+      ctx.lineTo(x + size, y + size)
+      ctx.lineTo(x + halfsize, y + halfsize)
       ctx.closePath()
       ctx.fill()
     }
 
     if (nucleotides.includes('g') || nucleotides.includes('G')) {
-      ctx.fillStyle = cellThemeColors.G
+      ctx.fillStyle = cellColors.G
       ctx.beginPath()
       // Bottom.
-      ctx.moveTo(x + 5, y + 5)
-      ctx.lineTo(x + 10, y + 10)
-      ctx.lineTo(x, y + 10)
-      ctx.lineTo(x + 5, y + 5)
+      ctx.moveTo(x + halfsize, y + halfsize)
+      ctx.lineTo(x + size, y + size)
+      ctx.lineTo(x, y + size)
+      ctx.lineTo(x + halfsize, y + halfsize)
       ctx.closePath()
       ctx.fill()
     }
 
     if (nucleotides.includes('t') || nucleotides.includes('T')) {
-      ctx.fillStyle = cellThemeColors.T
+      ctx.fillStyle = cellColors.T
       ctx.beginPath()
       // Left.
-      ctx.moveTo(x + 5, y + 5)
-      ctx.lineTo(x, y + 10)
+      ctx.moveTo(x + halfsize, y + halfsize)
+      ctx.lineTo(x, y + size)
       ctx.lineTo(x, y)
-      ctx.lineTo(x + 5, y + 5)
+      ctx.lineTo(x + halfsize, y + halfsize)
       ctx.closePath()
       ctx.fill()
     }
 
     if (nucleotides.includes('-')) {
-      ctx.fillStyle = colors['gray-1']
+      ctx.fillStyle = cellColors['-']
+      ctx.strokeStyle = cellColors.aggregate
+      ctx.lineWidth = 0.5
       ctx.beginPath()
-      ctx.ellipse(x + 5, y + 5, 2.75, 2.75, 0, 0, 0)
+      ctx.ellipse(x + halfsize, y + halfsize, 2, 2, 0, 0, 2 * Math.PI)
       ctx.closePath()
       ctx.fill()
-
-      ctx.fillStyle = colors['gray-9']
-      ctx.beginPath()
-      ctx.ellipse(x + 5, y + 5, 2.5, 2.5, 0, 0, 0)
-      ctx.closePath()
-      ctx.fill()
-
-      ctx.fillStyle = colors['gray-1']
-      ctx.beginPath()
-      ctx.ellipse(x + 5, y + 5, 1.5, 1.5, 0, 0, 0)
-      ctx.closePath()
-      ctx.fill()
+      ctx.stroke()
     }
   }
 
   // White border overlay.
-  ctx.strokeStyle = colors['gray-1']
-  ctx.lineWidth = 0.5
-  ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE)
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineCap = 'square'
+  ctx.lineWidth = 1
+  ctx.strokeRect(x, y, size, size)
 }

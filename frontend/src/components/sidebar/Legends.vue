@@ -6,7 +6,6 @@ import SidebarItem from '@/components/common/SidebarItem.vue'
 import { Space } from 'ant-design-vue'
 import { useDataStore } from '@/stores/data'
 import type { Nucleotide } from '@/types'
-import { EMPTY_CELL_COLOR } from '@/constants'
 import colors from '@/assets/colors.module.scss'
 
 export default {
@@ -15,19 +14,12 @@ export default {
     SidebarItem,
   },
   computed: {
-    ...mapState(useDataStore, [
-      'annotationColors',
-      'annotations',
-      'nucleotideColor',
-    ]),
+    ...mapState(useDataStore, ['annotationColors', 'annotations', 'theme']),
     ...mapState(useConfigStore, {
       configAnnotations: 'annotations',
     }),
     nucleotides(): Nucleotide[] {
       return ['A', 'C', 'G', 'T', '-']
-    },
-    emptyCellColor() {
-      return EMPTY_CELL_COLOR
     },
     colors() {
       return colors
@@ -45,14 +37,14 @@ export default {
           <div class="nucleotide" v-for="nucl in nucleotides" v-bind:key="nucl">
             <div
               class="nucleotide-color"
-              :style="{ background: nucleotideColor(nucl) }"
+              :style="{ background: theme.cellColors[nucl as Nucleotide] }"
             ></div>
             <div class="nucleotide-name">{{ nucl === '-' ? 'gap' : nucl }}</div>
           </div>
           <div class="nucleotide">
             <div
               class="nucleotide-color"
-              :style="{ background: emptyCellColor }"
+              :style="{ background: theme.cellColors.empty }"
             ></div>
             <div class="nucleotide-name">reference match</div>
           </div>
@@ -63,26 +55,24 @@ export default {
         <h4>Aggregated nucleotides</h4>
         <ASpace align="center" size="small">
           <svg viewBox="0 0 10 10" class="aggregated-nucleotide">
-            <rect width="10" height="10" :fill="colors['gray-9']" />
+            <rect width="10" height="10" :fill="theme.cellColors.aggregate" />
 
-            <polygon points="10 0 5 5 0 0 10 0" :fill="nucleotideColor('A')" />
-            <polygon
-              points="10 0 10 10 5 5 10 0"
-              :fill="nucleotideColor('C')"
-            />
+            <polygon points="10 0 5 5 0 0 10 0" :fill="theme.cellColors.A" />
+            <polygon points="10 0 10 10 5 5 10 0" :fill="theme.cellColors.C" />
             <polygon
               points="10 10 10 10 0 10 5 5 10 10"
-              :fill="nucleotideColor('G')"
+              :fill="theme.cellColors.G"
             />
-            <polygon
-              points="5 5 0 10 0 0 0 0 5 5"
-              :fill="nucleotideColor('T')"
-            />
+            <polygon points="5 5 0 10 0 0 0 0 5 5" :fill="theme.cellColors.T" />
 
             <g>
-              <circle cx="5" cy="5" r="2.75" :fill="colors['gray-1']" />
-              <circle cx="5" cy="5" r="2.5" :fill="colors['gray-9']" />
-              <circle cx="5" cy="5" r="1.5" :fill="colors['gray-1']" />
+              <circle
+                cx="5"
+                cy="5"
+                r="2.5"
+                :fill="theme.cellColors['-']"
+                :stroke="theme.cellColors.aggregate"
+              />
             </g>
           </svg>
 
