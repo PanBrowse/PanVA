@@ -9,7 +9,9 @@ This document describes the improvements of the PanVA application compared to th
 * Added single Dockerfile to run both API + Frontend.
 * Added necessary documentation.
 * Removed duplicated data from data format.
-* Allow dynamic metadata in variable positions, annotations, homology groups.
+* Support dynamic metadata in homology groups, variable positions, annotations, individual alignment cells.
+* Support annotations with multiple properties.
+* Support multiple Newick trees.
 
 
 # API
@@ -41,7 +43,9 @@ This document describes the improvements of the PanVA application compared to th
 * Configurable position filters.
 * Configurable metadata columns.
 * Homology groups can be filtered by metadata.
-* Sequences can be filtered by metadata.
+* Complex sequence filtering on metadata.
+* Legend showing nucleotides, aggregation, boolean icons and annotations.
+* Setting for high DPI cell rendering.
 
 ## Code cleanup
 
@@ -65,6 +69,7 @@ This document describes the improvements of the PanVA application compared to th
   This also prevents the use of `Array.includes` and `Array.indexOf` which are slow in performance.
 * Lean heavily on memoized functions (`computed` in Vue, `getters` in Pinia).
 * Debounced lazy-loaded tooltips.
-* Draw Heatmap using single `canvas` element. \
+* Draw Heatmap using `canvas` elements. \
   Instead of 100.000+ DOM elements that slow down the browser.
-* Don't redraw `svg`/`canvas` for hover effect, use `css` instead.
+  Each row has its own `canvas` element, so only changed rows need to be redrawn.
+* Don't redraw `svg`/`canvas` for hover effect or transitions, use `css` instead.
