@@ -19,7 +19,7 @@ To run the application, you **don't** need the code from this repository.
 Using the publically available Docker image (NOT YET AVAILABLE), you can start the PanVA application from anywhere using the following command:
 
 ```
-docker run -p 8080:80 -v /path/to/your/data:/panva/api/data -v /path/to/your/config.json:/panva/frontend/config.json pantools/panva
+docker run -p 8080:80 -v /path/to/your/data:/panva/api/data -v /path/to/your/config.json:/panva/frontend/config.json -e APACHE_UID=1000 -e APACHE_GID=1000 pantools/panva
 ```
 
 The application will then be available on http://localhost:8080/.
@@ -34,6 +34,10 @@ We'll explain the various options passed to Docker.
   **IMPORTANT:** Make sure this directory is writable so the [linkage_matrix.npy](api/docs/data-format.md#linkage_matrixnpy-auto-generated) files can be stored in each homology group directory.
 - `-v /path/to/your/config.json:/panva/frontend/config.json` \
   Mounts your optional custom `config.json` file to the predefined path `/panva/frontend/config.json` that the application looks at.
+- `-e APACHE_UID=1000` \
+  `-e APACHE_GID=1000` \
+  The data directory mounted at `/panva/api/data` needs to be read by the Apache webserver. To prevent permission issues, the user id (uid) and group id (gid) of the user running Apache can be changed to match the data directory on the host machine. Use `ls -n` to see the numeric uid and gid of a directory on the host machine.
+
 
 
 ## Building the application
