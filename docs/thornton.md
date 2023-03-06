@@ -1,11 +1,11 @@
 This document describes how to manage PanVA instances to be available through https://www.bioinformatics.nl/panva/.
 
-# Architecture
+# Introduction
 
 When a user visits https://www.bioinformatics.nl/panva/ or any subpage, the request is forwarded by Myers (the public webserver) to Thornton (an internal server that runs docker containers).
 On Thornton, each request is handled by a single Nginx instance that forwards the request to the appropriate PanVA instance based on the subpath.
 
-Adding a new PanVA instances requires no changes on Myers.
+Adding new PanVA instances requires no changes on Myers.
 
 
 # Configuration files
@@ -54,7 +54,7 @@ The first container called `nginx` is the entrypoint for all http requests for _
 
 The second and third containers called `pecto205` and `pecto454` are PanVA instances. Consult [this repository's README](../README.md#running-the-application) on how an instance should be configured. Setting the correct `APACHE_UID` and `APACHE_GID` is very important.
 
-All instances above are configured to use the Docker image `ghcr.io/fdev/panva:`**`develop`**. This means that the image with the `develop` tag will be used. At some point it might be useful to have a specific instance running a specific feature branch. In that case, change the tag in the image name to the appropriate tag in the PanVA container registry.
+All instances above are configured to use the Docker image `ghcr.io/fdev/panva:develop`. This means that the image with the **`develop`** tag will be used. At some point it might be useful to have a specific instance running a specific feature branch. In that case, change the tag in the image name to the appropriate tag in the PanVA container registry, for example `ghcr.io/fdev/panva:feature-graph-explorer`.
 
 
 ## `panva.conf`
@@ -88,17 +88,17 @@ server {
 }
 ```
 
-This Nginx configuration file contains routing for each PanVA instance. In this case, we have two instances configured:
+This is the Nginx configuration file and contains routing for each PanVA instance. In this case, we have two instances configured:
 
-* The path `/pecto-205/` (accessible through https://www.bioinformatics.nl/panva/pecto-205/) is routed to the `pecto205` instance configured in [`docker-compose.yml`](#docker-composeyml). \
+* The path `/pecto-205/` (accessible through https://www.bioinformatics.nl/panva/pecto-205/) is routed to the `pecto205` instance configured in [`docker-compose.yml`](#docker-composeyml).
   It is also configured to require authentication using `auth_basic` and `auth_basic_user_file`.
-* The path `/pecto-454/` (accessible through https://www.bioinformatics.nl/panva/pecto-454/) is routed to the `pecto454` instance configured in [`docker-compose.yml`](#docker-composeyml). \
-  It will be publically available without requiring authentication.
+* The path `/pecto-454/` (accessible through https://www.bioinformatics.nl/panva/pecto-454/) is routed to the `pecto454` instance configured in [`docker-compose.yml`](#docker-composeyml).
+  It will be publicly available without requiring authentication.
 
 
 ## Authentication
 
-Each instance can be configured to require a user to authenticate before the instance (and its data) can be viewed. The `htpasswd` file referenced by `auth_basic_user_file` contains a line for each user:
+Each instance can be configured to require a user to authenticate before the instance (and more importantly its data) can be viewed. The `htpasswd` file referenced by `auth_basic_user_file` contains a line for each user:
 
 ```
 alice:$apr1$.I8RXGAo$4QcBIQtX5hA6oCJNyGSsu.
@@ -106,6 +106,8 @@ bob:$apr1$YRIshvy/$TBYQ8WvEyGSWJDqBoM96E0
 ```
 
 Each line is in the format `username:hash` where the hash can be generated using `openssl passwd -apr1`
+
+**Important:** Use a separate `htpasswd` file for each instance, to prevent users from being able to access other instances.
 
 
 # Updating instances
