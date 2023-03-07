@@ -33,30 +33,33 @@ Each homology group is a subdirectory of the root data directory and has a uniqu
 
 A list of objects representing all homology ids of the selected set. Homology id objects have the following properties:
 
-* `homology_id`: Unique id for the homology group (_integer_).
-* `name`: Name of the gene (**optional** _string_).
+* `id`: Unique id for the homology group (_string_).
 * `members`: Number of sequences (_integer_).
 * `alignment_length`: Length of the alignment (_integer_).
-* `metadata`: Metadata shown in the frontend (**optional** _array_). Each containing:
-    * `label`: Label to display (_string_).
-    * `value`: Value to display (_string|boolean|string[]_).
+* `metadata`: Metadata shown in the frontend (_object_).
+    * `key`: Internal name (_string_).
+    * `value`: Value to display (_string, boolean, number, Array of strings_).
 
 An example object in the array:
 ```json
 [
     {
-        "homology_id": 13773385,
+        "id": "13773385",
         "members": 197,
         "alignment_length": 996,
-        "metadata": [
-            { "label": "Gene names", "value": ["GapA", "dnaX"] },
-            { "label": "Classification", "value": "single copy core" },
-            { "label": "Variable sites", "value": true },
-            { "label": "Informative sites", "value": false }
-        ]
+        "metadata": {
+            "in_genomes": 48,
+            "gene_names", ["GapA", "dnaX"],
+            "classification": "single copy core",
+            "var_sites": true,
+            "inf_sites": false
+        }
     }
 ]
 ```
+
+Important: When using an array of strings as metadata, be sure to consistently use an array across all homologies.
+
 
 ### `tree files` (OPTIONAL)
 
@@ -77,7 +80,7 @@ This is a matrix of the aligned gene sequences and position specific attributes.
 * `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
 * `genome_nr`: A unique ID for each genome sequence (_integer_).
 * `position`: The position in the alignment (_integer_).
-* `nucleotide`: The nucleotide value (_`A|C|G|T|-`_).
+* `nucleotide`: The nucleotide value (_string containing A, C, G, T, or -_).
 
 This file can be extended with [additional metadata](#additionalmetadata).
 

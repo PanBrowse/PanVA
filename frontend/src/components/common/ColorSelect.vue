@@ -20,7 +20,7 @@ export default {
     ARadioButton: RadioButton,
     CheckOutlined,
   },
-  emits: ['update:modelValue', 'change'],
+  emits: ['update:modelValue'],
   computed: {
     groupColors() {
       return GROUP_COLORS
@@ -29,7 +29,6 @@ export default {
   methods: {
     handleChange(event: RadioChangeEvent) {
       this.$emit('update:modelValue', (event.target as HTMLInputElement).value)
-      this.$emit('change')
     },
   },
 }

@@ -13,6 +13,7 @@ All fields are optional.
 | `apiUrl`                         | `string`       | `"/api/"`                                     |
 | `defaultHomologyId`              | `integer`      | The first homology id in the homologies list. |
 | `defaultSequenceMetadataColumns` | `string[]`     | `[]`                                          |
+| `homologyMetadata`               | `Metadata[]`   | `[]`                                          |
 | `sequenceMetadata`               | `Metadata[]`   | `[]`                                          |
 | `title`                          | `string`       | `"PanVA"`                                     |
 | `trees`                          | `Tree[]`       | `[]`                                          |
@@ -65,6 +66,7 @@ Based on the value of `type` these options are extended with the options as defi
 This type is used for several kinds of metadata, which are stored in multiple files: 
 
 * `alignmentMetadata` is stored in [`alignments.csv`](../../api/docs/data-format.md#alignmentscsv) and contains metadata for each position in each aligned gene sequence.
+* `homologyMetadata` is stored in [`homologies.json`](../../api/docs/data-format.md#homologiesjson) and contains metadata for each homology group.
 * `sequenceMetadata` is stored in [`metadata.csv`](../../api/docs/data-format.md#metadatacsv) and contains metadata for each aligned gene sequence (metadata is the same for all positions).
 * `variableMetadata` is stored in [`variable.csv`](../../api/docs/data-format.md#variablecsv) and contains metadata for each variable position (metadata is the same for all sequences).
 
@@ -93,7 +95,6 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
 | `width` | `number` | `120`   | Width of the column for sequence metadata. |
 
 
-
 ### Type: Quantitative
 
 | Field      | Type     | Default                 | Notes                                                               |
@@ -102,6 +103,7 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
 | `maxValue` | `number` | Maximum value in column | Maximum value to determine bar width.                               |
 | `suffix`   | `string` | `""`                    | String to be placed behind the numeric value (e.g. `"%"`)           |
 | `width`    | `number` | `120`                   | Width of the column for sequence metadata.                          |
+
 
 
 ## Example configuration file

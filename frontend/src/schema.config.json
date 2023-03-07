@@ -122,7 +122,7 @@
         "annotations": {
             "items": {
                 "additionalProperties": false,
-                "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate:config-validator",
+                "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate-validators",
                 "properties": {
                     "column": {
                         "type": "string"
@@ -139,11 +139,17 @@
             "type": "string"
         },
         "defaultHomologyId": {
-            "type": "number"
+            "type": "string"
         },
         "defaultSequenceMetadataColumns": {
             "items": {
                 "type": "string"
+            },
+            "type": "array"
+        },
+        "homologyMetadata": {
+            "items": {
+                "$ref": "#/definitions/ConfigMetadata"
             },
             "type": "array"
         },

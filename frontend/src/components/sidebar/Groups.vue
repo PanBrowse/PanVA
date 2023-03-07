@@ -116,7 +116,7 @@ export default {
       v-bind:key="group.id"
     >
       <ACol flex="0 0 auto">
-        <ColorSelect v-model="group.color" @change="updateGroups()" />
+        <ColorSelect v-model="group.color" @update:modelValue="updateGroups" />
       </ACol>
       <!-- -->
       <ACol flex="1 1 auto" style="width: min-content">

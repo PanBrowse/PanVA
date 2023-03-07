@@ -57,7 +57,7 @@ export type Sorting =
 /**
  * Filtering
  */
-export type SequenceFilter = {
+export type MetadataFilter = {
   type: ConfigMetadata['type']
   column: string
   operator:
@@ -89,18 +89,19 @@ export type Group = {
 /**
  * Data structures.
  */
-
-export type HomologyMetadata = {
-  label: string
-  value: string | string[] | boolean
-}
+// Exactly the same as `MetadataValue`, but we allow multiple `MetadataCategorical` as an array.
+export type HomologyMetadataValue =
+  | MetadataBoolean
+  | MetadataCategorical
+  | MetadataCategorical[]
+  | MetadataQuantitative
+export type HomologyMetadata = Record<string, HomologyMetadataValue>
 
 export type Homology = {
-  homology_id: number
+  id: string
   members: number
   alignment_length: number
-  name?: string
-  metadata?: HomologyMetadata[]
+  metadata: HomologyMetadata
 }
 
 export type Alignment = {
@@ -196,7 +197,7 @@ export type Theme = {
  * Configuration.
  *
  * When making changes, be sure to update the config validator by running:
- *   npm run generate:config-validator
+ *   npm run generate-validators
  */
 
 export type ConfigAnnotation = {
@@ -249,10 +250,13 @@ export type Config = {
   alignmentMetadata?: ConfigMetadata[] // Default: []
   annotations?: ConfigAnnotation[] // Default: []
   apiUrl?: string // Default: '/'
-  defaultHomologyId?: number // Default: First homology in homologies.
+  defaultHomologyId?: string // Default: First homology in homologies.
   defaultSequenceMetadataColumns?: string[] // Default: []
-  variableMetadata?: ConfigMetadata[] // Default: []
+  homologyMetadata?: ConfigMetadata[] // Default: []
   sequenceMetadata?: ConfigMetadata[] // Default: []
   title?: string // Default `constants.DEFAULT_TITLE`
   trees?: ConfigTree[] // Default: []
+  variableMetadata?: ConfigMetadata[] // Default: []
 }
+
+export type ConfigHomologies = Homology[]

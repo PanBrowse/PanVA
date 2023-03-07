@@ -7,7 +7,7 @@ import type {
 import { defineStore } from 'pinia'
 
 // @ts-ignore
-import schema from '../config.schema.json'
+import schema from '../schema.config.json'
 import Ajv from 'ajv'
 import { useDataStore } from './data'
 
@@ -16,27 +16,18 @@ export const useConfigStore = defineStore('config', {
     alignmentMetadata: [] as ConfigMetadata[],
     annotations: [] as ConfigAnnotation[],
     apiUrl: '/api/' as string,
-    defaultHomologyId: null as number | null,
+    defaultHomologyId: null as string | null,
     defaultSequenceMetadataColumns: [] as string[],
+    homologyMetadata: [] as ConfigMetadata[],
     sequenceMetadata: [] as ConfigMetadata[],
     title: '' as string,
     trees: [] as ConfigTree[],
     variableMetadata: [] as ConfigMetadata[],
   }),
   getters: {
-    alignmentMetadataLookup(): Record<string, ConfigMetadata> {
-      return Object.fromEntries(
-        this.alignmentMetadata.map((metadata) => [metadata.column, metadata])
-      )
-    },
     sequenceMetadataLookup(): Record<string, ConfigMetadata> {
       return Object.fromEntries(
         this.sequenceMetadata.map((metadata) => [metadata.column, metadata])
-      )
-    },
-    variableMetadataLookup(): Record<string, ConfigMetadata> {
-      return Object.fromEntries(
-        this.variableMetadata.map((metadata) => [metadata.column, metadata])
       )
     },
   },

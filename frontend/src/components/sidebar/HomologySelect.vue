@@ -1,199 +1,120 @@
 <script lang="ts">
-import { mapState, mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { useDataStore } from '@/stores/data'
+import { FilterOutlined } from '@ant-design/icons-vue'
 
 import SidebarItem from '@/components/common/SidebarItem.vue'
-import { Divider, Select, Tree, type TreeProps } from 'ant-design-vue'
-import { sortBy } from 'lodash'
-
-type Option = {
-  value: number
-  label: string
-  members: number
-  alignmentLength: number
-}
-
-type FilterOption = {
-  label: string
-  values: any[]
-}
+import HomologySelectModal from '@/components/sidebar/HomologySelectModal.vue'
+import { Button, Select, InputGroup, Tooltip } from 'ant-design-vue'
+import type { DefaultOptionType } from 'ant-design-vue/lib/select'
 
 export default {
   components: {
-    ADivider: Divider,
+    AButton: Button,
     ASelect: Select,
-    ATree: Tree,
+    AInputGroup: InputGroup,
+    FilterOutlined,
+    ATooltip: Tooltip,
+    HomologySelectModal,
     SidebarItem,
-    VNodes: (_, { attrs }) => {
-      return attrs.vnodes
-    },
   },
   data() {
     return {
-      expandedKeys: [] as string[],
-      checkedKeys: [] as string[],
+      showHomologySelectModal: false,
     }
   },
   computed: {
-    ...mapState(useDataStore, ['homologies', 'homologyId']),
-    filterOptions(): FilterOption[] {
-      const map = new Map<string, Set<any>>()
-      this.homologies.forEach(({ metadata }) => {
-        metadata?.forEach(({ label, value }) => {
-          const values = map.get(label) || new Set()
-          if (Array.isArray(value)) {
-            value.forEach((val) => values.add(val))
-          } else {
-            values.add(value)
-          }
-          map.set(label, values)
+    ...mapState(useDataStore, [
+      'homologies',
+      'homologiesFiltered',
+      'homologyId',
+    ]),
+    options(): DefaultOptionType[] {
+      const options: DefaultOptionType[] = this.homologiesFiltered.map(
+        (homology) => ({
+          value: homology.id,
+          label: homology.id,
         })
-      })
-
-      return this.mapToFilterOptions(map)
-    },
-    treeData(): TreeProps['treeData'] {
-      return [
-        {
-          title: 'Filter by metadata',
-          checkable: false,
-          key: 'root',
-          children: this.filterOptions.map(({ label, values }, index) => ({
-            title: label,
-            checkable: false,
-            key: `${index}`,
-            children: values.map((value, valueIndex) => ({
-              title: value,
-              key: `${index}:${valueIndex}`,
-            })),
-          })),
-        },
-      ]
-    },
-    selectedFilters(): FilterOption[] {
-      /**
-       * Converts selected checkboxes into `FilterOption` objects.
-       */
-      const map = new Map<string, Set<any>>()
-
-      this.checkedKeys.map((key) => {
-        const [index, valueIndex] = key.split(':').map((str) => parseInt(str))
-        const { label, values } = this.filterOptions[index]
-        const value = values[valueIndex]
-
-        const item = map.get(label) || new Set()
-        item.add(value)
-        map.set(label, item)
-      })
-
-      return this.mapToFilterOptions(map)
-    },
-    options(): Option[] {
-      return sortBy(
-        this.homologies
-          .filter(({ metadata }) =>
-            this.selectedFilters.every(({ label, values }) =>
-              // Find at least one metadata record for this homology group that matches the filter.
-              metadata?.find((metadata) => {
-                if (metadata.label !== label) return false
-
-                if (Array.isArray(metadata.value)) {
-                  return metadata.value.some((val) => values.includes(val))
-                }
-
-                return values.includes(metadata.value)
-              })
-            )
-          )
-          .map((homology) => ({
-            value: homology.homology_id,
-            label: `${homology.homology_id}`,
-            members: homology.members,
-            alignmentLength: homology.alignment_length,
-          })),
-        'value'
       )
+
+      if (this.isFiltered) {
+        options.push({
+          value: '',
+          label: 'Filters applied, not all homologies are shown.',
+          disabled: true,
+        })
+      }
+
+      return options
+    },
+    isFiltered(): boolean {
+      return this.homologies.length !== this.homologiesFiltered.length
     },
   },
   methods: {
     ...mapActions(useDataStore, ['loadHomologyGroup']),
-    filterOption(input: string, option: Option) {
-      return option.label.toLowerCase().includes(input.toLowerCase())
-    },
-    mapToFilterOptions(map: Map<string, Set<any>>): FilterOption[] {
-      return sortBy([...map.keys()]).map((label) => {
-        const values = sortBy([...map.get(label)!])
-
-        return {
-          label,
-          values,
-        }
-      })
+    selectHomology() {
+      this.showHomologySelectModal = true
     },
     onHomologySelect(homologyId: any) {
       this.loadHomologyGroup(homologyId)
+    },
+    filterOption(input: string, option?: DefaultOptionType) {
+      return option?.label.toLowerCase().includes(input.toLowerCase())
     },
   },
 }
 </script>
 
 <template>
-  <SidebarItem title="Homology">
-    <ASelect
-      showSearch
-      :dropdownMatchSelectWidth="false"
-      :filterOption="filterOption"
-      :options="options"
-      :value="homologyId"
-      @select="onHomologySelect"
-      style="width: 100%"
-      v-if="homologyId"
-    >
-      <template #dropdownRender="{ menuNode }">
-        <div
-          class="homology-filter-tree"
-          @mousedown="(e) => e.preventDefault()"
+  <SidebarItem v-if="homologyId" title="Homology">
+    <AInputGroup class="homology" compact>
+      <ASelect
+        showSearch
+        :dropdownMatchSelectWidth="false"
+        :filterOption="filterOption"
+        :options="options"
+        :value="homologyId"
+        style="width: 100%"
+        @select="onHomologySelect"
+      />
+
+      <ATooltip
+        title="Filter and search homology groups"
+        placement="topRight"
+        arrowPointAtCenter
+      >
+        <AButton
+          @click="selectHomology"
+          :type="isFiltered ? 'primary' : 'default'"
         >
-          <ATree
-            :tree-data="treeData"
-            v-model:expandedKeys="expandedKeys"
-            v-model:checkedKeys="checkedKeys"
-            :selectable="false"
-            checkable
-          >
-            <template #title="{ title }">
-              {{ title }}
-            </template>
-          </ATree>
-        </div>
+          <template #icon><FilterOutlined /></template>
+        </AButton>
+      </ATooltip>
+    </AInputGroup>
 
-        <ADivider style="margin: 0 0 4px" />
-
-        <v-nodes :vnodes="menuNode" />
-      </template>
-      <!--
-      <template #option="{ members, alignmentLength, label }">
-        {{ label }}
-        <span class="select-item-suffix">
-          &nbsp;-&nbsp;
-          {{ members }} members, length {{ alignmentLength }}
-        </span>
-      </template>
-      -->
-    </ASelect>
+    <HomologySelectModal
+      :visible="showHomologySelectModal"
+      @close="showHomologySelectModal = false"
+      @select="onHomologySelect"
+    />
   </SidebarItem>
 </template>
 
 <style lang="scss">
 @import '@/assets/colors.module.scss';
 
-.homology-filter-tree {
-  padding: 8px;
-  max-height: 256px;
-  overflow-y: auto;
+.ant-input-group.homology {
+  display: flex !important;
+
+  .ant-btn-icon-only {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }
 
-.select-item-suffix {
+.homology-select__filtered {
+  padding: 4px 12px;
   color: $gray-7;
 }
 </style>

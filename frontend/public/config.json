@@ -27,12 +27,59 @@
       "label": "Exon"
     }
   ],
-  "defaultHomologyId": 13803671,
+  "defaultHomologyId": "13803671",
   "defaultSequenceMetadataColumns": [
     "virulence",
     "species",
     "growth_rate",
     "strain_name"
+  ],
+  "homologyMetadata": [
+    {
+      "type": "quantitative",
+      "column": "in_genomes",
+      "label": "Found in genomes"
+    },
+    {
+      "type": "categorical",
+      "column": "gene_names",
+      "label": "Gene names"
+    },
+    {
+      "type": "categorical",
+      "column": "classification",
+      "label": "Classification"
+    },
+    {
+      "type": "boolean",
+      "column": "var_nucl_sites",
+      "label": "Variable nucleotide sites"
+    },
+    {
+      "type": "boolean",
+      "column": "var_prot_sites",
+      "label": "Variable protein sites"
+    },
+    {
+      "type": "boolean",
+      "column": "inf_nucl_sites",
+      "label": "Informative nucleotide sites"
+    },
+    {
+      "type": "boolean",
+      "column": "inf_prot_sites",
+      "label": "Informative protein sites"
+    },
+    {
+      "type": "boolean",
+      "column": "pheno_specific_nucl_changes",
+      "label": "Phenotype specific nucleotide changes"
+    },
+    {
+      "type": "boolean",
+      "column": "pheno_specific_prot_changes",
+      "label": "Phenotype specific protein changes"
+    }
   ],
   "sequenceMetadata": [
     {

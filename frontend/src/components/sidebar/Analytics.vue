@@ -287,10 +287,11 @@ export default {
             placeholder="None"
             @click="editSequenceFilters"
             @mousedown="(event) => event.preventDefault()"
-          />
-          <AButton @click="editSequenceFilters">
-            <template #icon><EditOutlined /></template>
-          </AButton>
+          >
+            <template #suffix>
+              <EditOutlined />
+            </template>
+          </AInput>
           <ATooltip
             title="Keep filter when switching homology groups"
             placement="topRight"
@@ -412,9 +413,17 @@ export default {
   .ant-input-group {
     display: flex !important;
 
+    .ant-input-affix-wrapper {
+      cursor: text;
+    }
+
     .ant-btn-icon-only {
       padding-left: 8px;
       padding-right: 8px;
+    }
+
+    .ant-input-suffix {
+      color: rgba(0, 0, 0, 0.25);
     }
   }
 

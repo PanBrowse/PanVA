@@ -8,28 +8,28 @@ import {
 } from '@/constants'
 import { h } from 'vue'
 import type {
+  Alignment,
+  Annotation,
+  AppError,
+  ConfigMetadata,
   DataIndexCollapsed,
+  DataReference,
+  FilterPosition,
   Group,
+  GroupReference,
   Homology,
+  MetadataFilter,
+  MetadataQuantitative,
   mRNAid,
   Nucleotide,
   Range,
-  Sorting,
-  VariablePosition,
-  AppError,
-  FilterPosition,
-  TreeOption,
   Reference,
-  GroupReference,
-  DataReference,
-  ConfigMetadata,
-  MetadataQuantitative,
-  SequenceFilter,
-  Annotation,
-  Alignment,
   Sequence,
-  Tree,
+  Sorting,
   Theme,
+  Tree,
+  TreeOption,
+  VariablePosition,
 } from '@/types'
 import {
   clamp,
@@ -72,6 +72,7 @@ import {
 import { ProgressPromise } from '@prezly/progress-promise'
 import colorInterpolate from 'color-interpolate'
 import { isHighDPI, isMobile } from '@/helpers/mediaQueries'
+import { filterMetadata } from '@/helpers/filtering'
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -121,8 +122,9 @@ export const useDataStore = defineStore('data', {
     // Filter positions based on position metadata.
     positionFilter: 'all' as FilterPosition,
 
-    // Filter sequences based on sequence metadata.
-    sequenceFilters: [] as SequenceFilter[],
+    // Filter sequences and homology groups based on metadata.
+    sequenceFilters: [] as MetadataFilter[],
+    homologyFilters: [] as MetadataFilter[],
 
     // Grouping.
     groups: [] as Group[],
@@ -146,7 +148,7 @@ export const useDataStore = defineStore('data', {
 
     // User options.
     annotationMrnaId: null as mRNAid | null,
-    homologyId: null as number | null,
+    homologyId: null as string | null,
     keepSequenceFilters: false,
     reference: null as Reference | null,
     selectedTheme: 'clustal',
@@ -164,31 +166,22 @@ export const useDataStore = defineStore('data', {
     homologyLoadId: 0,
   }),
   getters: {
+    homologiesFiltered(): Homology[] {
+      return this.homologies.filter(({ metadata }) =>
+        this.homologyFilters.every((filter) => {
+          const value = metadata[filter.column]
+          return filterMetadata(filter, value)
+        })
+      )
+    },
     sortedDataIndicesFiltered(): number[] {
       /**
        * Filters `sortedDataIndices` and removes data indices that don't match.
        */
       return this.sortedDataIndices.filter((dataIndex) =>
-        this.sequenceFilters.every(({ column, operator, values }): boolean => {
-          const value = this.sequences[dataIndex].metadata[column]
-          switch (operator) {
-            case 'between':
-              return value !== null && value >= values[0] && value <= values[1]
-            case 'equals':
-              return value !== null && value === values[0]
-            case 'greater-than':
-              return value !== null && value > values[0]
-            case 'less-than':
-              return value !== null && value < values[0]
-            case 'greater-than-equal':
-              return value !== null && value >= values[0]
-            case 'less-than-equal':
-              return value !== null && value <= values[0]
-            case 'in':
-              return values.includes(`${value}`)
-            case 'not-in':
-              return !values.includes(`${value}`)
-          }
+        this.sequenceFilters.every((filter) => {
+          const value = this.sequences[dataIndex].metadata[filter.column]
+          return filterMetadata(filter, value)
         })
       )
     },
@@ -323,9 +316,7 @@ export const useDataStore = defineStore('data', {
     },
     homology(): Homology | undefined {
       // This will return undefined if the homologies have not yet loaded.
-      return this.homologies.find(
-        ({ homology_id }) => homology_id === this.homologyId
-      )
+      return this.homologies.find(({ id }) => id === this.homologyId)
     },
     filterPositions() {
       return (positions: number[]) => {
@@ -657,7 +648,7 @@ export const useDataStore = defineStore('data', {
 
       this.error = error
     },
-    addSequenceFilter(filter: SequenceFilter) {
+    addSequenceFilter(filter: MetadataFilter) {
       this.sequenceFilters.push(filter)
     },
     async initializeApp() {
@@ -672,7 +663,7 @@ export const useDataStore = defineStore('data', {
         let homologies: Homology[]
 
         try {
-          homologies = sortBy(await fetchHomologies(), ['name', 'homology_id'])
+          homologies = sortBy(await fetchHomologies(), 'id')
         } catch (error) {
           this.setError({
             message: 'Could not load or parse homologies.',
@@ -704,22 +695,18 @@ export const useDataStore = defineStore('data', {
         const homologyId =
           config.defaultHomologyId !== null &&
           // Make sure the configured homology id exists.
-          homologies.find(
-            ({ homology_id }) => homology_id === config.defaultHomologyId
-          )
+          homologies.find(({ id }) => id === config.defaultHomologyId)
             ? config.defaultHomologyId
-            : homologies[0].homology_id
+            : homologies[0].id
 
         await this.loadHomologyGroup(homologyId)
       }
     },
-    async loadHomologyGroup(homologyId: number) {
+    async loadHomologyGroup(homologyId: string) {
       // Remember the load id for this call.
       const loadId = ++this.homologyLoadId
 
-      const homology = this.homologies.find(
-        ({ homology_id }) => homology_id === homologyId
-      )!
+      const homology = this.homologies.find(({ id }) => id === homologyId)!
       const geneLength = homology.alignment_length
       const sequenceCount = homology.members
 

@@ -1,6 +1,4 @@
-<!-- eslint-disable vue/no-unused-components -->
 <script lang="ts">
-// import { ExclamationCircleFilled } from '@ant-design/icons-vue'
 import { useDataStore } from '@/stores/data'
 import { mapWritableState } from 'pinia'
 import type { ModalFunc } from 'ant-design-vue/lib/modal/Modal'

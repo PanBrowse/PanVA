@@ -8,8 +8,8 @@ import ErrorOverlay from '@/components/common/ErrorOverlay.vue'
 import GeneOverview from '@/components/views/GeneOverview.vue'
 import Graphics from '@/components/sidebar/Graphics.vue'
 import Groups from '@/components/sidebar/Groups.vue'
-import HomologyInfo from '@/components/sidebar/HomologyInfo.vue'
 import HomologySelect from '@/components/sidebar/HomologySelect.vue'
+import HomologyInfo from '@/components/sidebar/HomologyInfo.vue'
 import Layout from '@/components/common/Layout.vue'
 import Legends from '@/components/sidebar/Legends.vue'
 import LoadingScreen from '@/components/common/LoadingScreen.vue'
@@ -28,8 +28,8 @@ export default {
     GeneOverview,
     Graphics,
     Groups,
-    HomologyInfo,
     HomologySelect,
+    HomologyInfo,
     Layout,
     Legends,
     LoadingScreen,

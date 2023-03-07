@@ -1,18 +1,22 @@
 <script lang="ts">
 import BooleanIndicator from '@/components/common/BooleanIndicator.vue'
 import type { PropType } from 'vue'
-import type { ConfigMetadata, MetadataValue } from '@/types'
+import type {
+  ConfigMetadata,
+  HomologyMetadataValue,
+  MetadataValue,
+} from '@/types'
 import { formatNumber } from '@/helpers/number'
 import { DEFAULT_METADATA_BOOLEAN_LABELS } from '@/constants'
 
 export default {
   props: {
     value: {
-      type: null as unknown as PropType<MetadataValue>,
+      type: null as unknown as PropType<MetadataValue | HomologyMetadataValue>,
       required: true,
     },
     metadata: {
-      type: null as unknown as PropType<ConfigMetadata>,
+      type: Object as PropType<ConfigMetadata>,
       required: true,
     },
   },
@@ -20,8 +24,9 @@ export default {
     BooleanIndicator,
   },
   computed: {
-    formatNumber() {
-      return formatNumber
+    values() {
+      if (!Array.isArray(this.value)) return [this.value]
+      return this.value
     },
     booleanLabels() {
       if (this.metadata.type === 'boolean') {
@@ -29,6 +34,9 @@ export default {
       }
       return DEFAULT_METADATA_BOOLEAN_LABELS
     },
+  },
+  methods: {
+    formatNumber,
   },
 }
 </script>
@@ -41,6 +49,8 @@ export default {
     {{ formatNumber(value as any, metadata.decimals, metadata.suffix) }}
   </span>
   <span v-else>
-    {{ value }}
+    <div v-bind:key="index" v-for="(value, index) in values">
+      {{ value }}
+    </div>
   </span>
 </template>
