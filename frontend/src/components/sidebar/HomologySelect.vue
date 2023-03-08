@@ -57,7 +57,12 @@ export default {
       this.showHomologySelectModal = true
     },
     onHomologySelect(homologyId: any) {
-      this.loadHomologyGroup(homologyId)
+      if (this.homologyId !== homologyId) {
+        // Close the modal.
+        this.showHomologySelectModal = false
+        // Load the selected homology id.
+        this.loadHomologyGroup(homologyId)
+      }
     },
     filterOption(input: string, option?: DefaultOptionType) {
       return option?.label.toLowerCase().includes(input.toLowerCase())
