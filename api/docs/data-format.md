@@ -49,7 +49,7 @@ An example object in the array:
         "alignment_length": 996,
         "metadata": {
             "in_genomes": 48,
-            "gene_names", ["GapA", "dnaX"],
+            "gene_names": ["GapA", "dnaX"],
             "classification": "single copy core",
             "var_sites": true,
             "inf_sites": false
