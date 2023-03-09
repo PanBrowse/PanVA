@@ -47,23 +47,27 @@ export default {
       )
     },
     links(): Link[] {
-      return flatten(
-        this.sortedDataIndicesCollapsed.map((data, index) => {
-          if (isGroup(data)) {
-            return data.dataIndices.map((dataIndex) => ({
-              treeIndex: this.getTreeIndex(dataIndex),
-              rowIndex: index,
-              color: data.isColorized ? data.color : undefined,
-            }))
-          } else {
-            return {
-              treeIndex: this.getTreeIndex(data),
-              rowIndex: index,
-              color: this.rowColors[data],
+      return (
+        flatten(
+          this.sortedDataIndicesCollapsed.map((data, index) => {
+            if (isGroup(data)) {
+              return data.dataIndices.map((dataIndex) => ({
+                treeIndex: this.getTreeIndex(dataIndex),
+                rowIndex: index,
+                color: data.isColorized ? data.color : undefined,
+              }))
+            } else {
+              return {
+                treeIndex: this.getTreeIndex(data),
+                rowIndex: index,
+                color: this.rowColors[data],
+              }
             }
-          }
-        })
-      ).filter(({ treeIndex }) => treeIndex !== undefined)
+          })
+        )
+          // It's possible that a sequence does not appear in the tree.
+          .filter(({ treeIndex }) => treeIndex !== undefined)
+      )
     },
     colors() {
       return colors

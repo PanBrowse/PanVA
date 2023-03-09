@@ -21,7 +21,6 @@ export default {
       'groupLookup',
       'mrnaIdsLookup',
       'rowColors',
-      'sequenceCount',
       'tree',
     ]),
     ...mapWritableState(useDataStore, ['selectedDataIndices']),

@@ -16,14 +16,7 @@ import type { StyleValue } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import { valueKey } from '@/helpers/valueKey'
 
-type CellCoordinate = {
-  column: number
-  row: number
-}
-
 type Cell = {
-  data: DataIndexCollapsed
-  position: number
   column: number
   row: number
 }
@@ -58,16 +51,13 @@ export default {
       'geneLength',
       'groupsFiltered',
       'highDpiEnabled',
-      'homologyId',
       'mrnaIds',
-      'positionRegion',
       'reference',
       'referenceNucleotides',
       'sequenceCount',
       'sortedDataIndicesCollapsed',
       'theme',
       'transitionTime',
-      'variablePositions',
     ]),
     ...mapWritableState(useDataStore, ['hoverRowIndex']),
     ...mapState(useConfigStore, ['alignmentMetadata']),
@@ -76,25 +66,6 @@ export default {
     },
     height(): number {
       return this.sequenceCount * CELL_SIZE
-    },
-    cells(): Cell[] {
-      /**
-       * We have two arrays:
-       * - sortedDataIndicesCollapsed (DataIndexCollapsed[])
-       * - positions (number[])
-       *
-       * This functions generates an array that contains the cartesian product
-       * of these two arrays, including the accompanying index in each array.
-       */
-      const result: Cell[] = []
-
-      this.sortedDataIndicesCollapsed.forEach((data, row) => {
-        this.filteredPositions.forEach((position, column) => {
-          result.push({ data, position, column, row })
-        })
-      })
-
-      return result
     },
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
@@ -260,7 +231,7 @@ export default {
 
       console.timeEnd('Heatmap#draw')
     },
-    mouseEventToCell(event: MouseEvent): CellCoordinate | undefined {
+    mouseEventToCell(event: MouseEvent): Cell | undefined {
       const [x, y] = d3.pointer(event)
       const column = Math.floor(x / CELL_SIZE)
       const row = Math.floor(y / CELL_SIZE)

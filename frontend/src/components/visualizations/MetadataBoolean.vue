@@ -45,7 +45,6 @@ export default {
   computed: {
     ...mapState(useDataStore, [
       'groupsFiltered',
-      'mrnaIds',
       'selectedDataIndicesSet',
       'sequences',
       'sequenceCount',
