@@ -83,7 +83,11 @@ export default {
     PlusOutlined,
   },
   computed: {
-    ...mapState(useDataStore, ['homologies', 'homologiesFiltered']),
+    ...mapState(useDataStore, [
+      'homologyId',
+      'homologies',
+      'homologiesFiltered',
+    ]),
     ...mapWritableState(useDataStore, ['homologyFilters']),
     ...mapState(useConfigStore, ['homologyMetadata']),
     tableColumns(): TableColumnsType {
@@ -172,6 +176,11 @@ export default {
     showTotal(total: number, range: [number, number]) {
       return `${range[0]} - ${range[1]} of ${total} items`
     },
+    rowClassName(homology: Homology) {
+      if (homology.id === this.homologyId) {
+        return 'ant-table-row-selected'
+      }
+    },
   },
   watch: {
     visible() {
@@ -251,10 +260,11 @@ export default {
 
     <ATable
       :columns="tableColumns"
-      rowKey="id"
+      :rowClassName="rowClassName"
       :pagination="{ showSizeChanger: true, showTotal }"
       :data-source="homologiesFiltered"
       :scroll="{ x: true, scrollToFirstRowOnChange: true }"
+      rowKey="id"
     />
   </AModal>
 </template>
