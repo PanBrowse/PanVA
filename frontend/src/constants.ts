@@ -26,6 +26,8 @@ export const CELL_SIZE = 10
 
 export const TRANSITION_TIME = 2000
 
+export const TRANSITION_SEQUENCES_THRESHOLD = 1000
+
 export const METADATA_GAP = 8
 
 // When there are more groups, the colors will be cycled.

@@ -1,8 +1,7 @@
 {
   "apiUrl": "http://localhost:5001/",
   "apps": [
-    "homology",
-    "gene"
+    "homology"
   ],
   "homology": {
     "alignmentMetadata": [

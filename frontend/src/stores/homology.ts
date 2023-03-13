@@ -1,10 +1,4 @@
-import {
-  CheckCircleOutlined,
-  Loading3QuartersOutlined,
-} from '@ant-design/icons-vue'
-import { ProgressPromise } from '@prezly/progress-promise'
-import { Button as AButton, Progress as AProgress } from 'ant-design-vue'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import colorInterpolate from 'color-interpolate'
 import {
   clamp,
@@ -19,12 +13,12 @@ import {
   union,
 } from 'lodash'
 import { defineStore } from 'pinia'
-import { h } from 'vue'
 
 import {
   DEFAULT_SELECTED_REGION,
   DEFAULT_SORTING,
   THEMES,
+  TRANSITION_SEQUENCES_THRESHOLD,
   TRANSITION_TIME,
 } from '@/constants'
 import {
@@ -702,67 +696,15 @@ export const useHomologyStore = defineStore('homology', {
       const geneLength = homology.alignment_length
       const sequenceCount = homology.members
 
-      const showNotification = (percent: number = 0) => {
-        // User as already switched to a different homology group.
-        if (this.homologyLoadId !== loadId) return
-
-        // Don't show notifications on initial load.
-        if (!this.isInitialized) return
-
-        if (percent < 100) {
-          notification.open({
-            key: 'homology',
-            message: `Loading homology group ${homologyId}.`,
-            description: () => h(AProgress, { percent, showInfo: false }),
-            btn: () =>
-              h(
-                AButton,
-                {
-                  onClick: () => {
-                    // Increment the load id so the result of the
-                    // current load is not handled anymore.
-                    this.homologyLoadId++
-
-                    notification.close('homology')
-                  },
-                },
-                { default: () => 'Cancel' }
-              ),
-            placement: 'bottomRight',
-            duration: null,
-            closeIcon: () => null,
-            icon: () =>
-              h(Loading3QuartersOutlined, {
-                style: 'color: var(--ant-primary-color)',
-                spin: true,
-              }),
-          })
-        } else {
-          notification.open({
-            key: 'homology',
-            message: `Loaded homology group ${homologyId}.`,
-            description: () => h(AProgress, { percent, showInfo: false }),
-            btn: () =>
-              h(
-                AButton,
-                { onClick: () => notification.close('homology') },
-                { default: () => 'Close' }
-              ),
-            placement: 'bottomRight',
-            duration: 1,
-            closeIcon: () => null,
-            icon: () =>
-              h(CheckCircleOutlined, {
-                style: 'color: var(--ant-success-color)',
-              }),
-          })
-        }
+      if (this.isInitialized) {
+        message.loading({
+          key: 'homology',
+          content: `Loading homology group ${homologyId}.`,
+          duration: 0,
+        })
       }
 
-      // Open notification and show initial progress.
-      showNotification()
-
-      await ProgressPromise.all([
+      await Promise.all([
         fetchAlignments(homologyId),
         fetchAnnotations(homologyId, geneLength),
         fetchDendrogramDefault(homologyId),
@@ -822,8 +764,31 @@ export const useHomologyStore = defineStore('homology', {
               root: dendro,
             }
 
+            // Automatically disable transitions for a large number of sequences.
+            const transitionsEnabled =
+              sequences.length >= TRANSITION_SEQUENCES_THRESHOLD
+                ? false
+                : this.transitionsEnabled
+
             // User as already switched to a different homology group.
             if (this.homologyLoadId !== loadId) return
+
+            if (this.isInitialized) {
+              message.success({
+                key: 'homology',
+                content: `Loaded homology group ${homologyId}.`,
+                duration: 2,
+              })
+            }
+
+            if (this.transitionsEnabled && !transitionsEnabled) {
+              message.info({
+                key: 'homology-transitions',
+                content:
+                  'Transitions disabled because of the large number of sequences.',
+                duration: 2,
+              })
+            }
 
             this.$patch({
               alignedPositions,
@@ -848,6 +813,7 @@ export const useHomologyStore = defineStore('homology', {
               sequences,
               sortedDataIndices: range(sequenceCount),
               sorting: DEFAULT_SORTING,
+              transitionsEnabled,
               variablePositions,
             })
           },
@@ -855,15 +821,14 @@ export const useHomologyStore = defineStore('homology', {
             // User as already switched to a different homology group.
             if (this.homologyLoadId !== loadId) return
 
-            notification.close('homology')
+            message.destroy('homology')
 
             const global = useGlobalStore()
             global.setError({
               message: `Unable to load the data for homology group ${homologyId}.`,
               isFatal: !this.isInitialized,
             })
-          },
-          (percent) => showNotification(percent)
+          }
         )
         .catch((error) => {
           // User as already switched to a different homology group.
