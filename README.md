@@ -33,7 +33,7 @@ We'll explain the various options passed to Docker.
   Mounts your custom data directory to the predefined path `/panva/api/data` that the application looks at. \
   **IMPORTANT:** Make sure this directory is writable so the [linkage_matrix.npy](api/docs/data-format.md#linkage_matrixnpy-auto-generated) files can be stored in each homology group directory.
 - `-v /path/to/your/config.json:/panva/frontend/config.json` \
-  Mounts your optional custom `config.json` file to the predefined path `/panva/frontend/config.json` that the application looks at.
+  Mounts your custom `config.json` file to the predefined path `/panva/frontend/config.json` that the application looks at. The `apiUrl` option should be omitted in most cases.
 - `-e APACHE_UID=1000` \
   `-e APACHE_GID=1000` \
   The data directory mounted at `/panva/api/data` needs to be read by the Apache webserver. To prevent permission issues, the user id (uid) and group id (gid) of the user running Apache can be changed to match the data directory on the host machine. Use `ls -n` to see the numeric uid and gid of a directory on the host machine.
