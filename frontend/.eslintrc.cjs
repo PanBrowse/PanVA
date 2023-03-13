@@ -9,10 +9,12 @@ module.exports = {
     '@vue/eslint-config-typescript',
     '@vue/eslint-config-prettier',
   ],
+  plugins: ['simple-import-sort'],
   parserOptions: {
     ecmaVersion: 'latest',
   },
   rules: {
+    'simple-import-sort/imports': 'warn',
     // This prevents us from using <component is="style" />
     'vue/require-component-is': 'off',
     'vue/multi-word-component-names': 'off',

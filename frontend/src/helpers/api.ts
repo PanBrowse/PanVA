@@ -1,35 +1,36 @@
+import Ajv from 'ajv'
 import { parse_newick } from 'biojs-io-newick'
 import * as d3 from 'd3'
-// @ts-ignore
-import schema from '../schema.homologies.json'
-import Ajv from 'ajv'
+import { constant, times, values } from 'lodash'
 
 import {
-  parseNumber,
+  parseBool,
   parseMetadataBoolean,
   parseMetadataCategorical,
-  parseString,
-  parseBool,
+  parseNumber,
   parseOptionalNumber,
+  parseString,
 } from '@/helpers/parse'
+import { useConfigStore } from '@/stores/config'
 import type {
   AlignmentCSVColumns,
-  TreeNode,
+  Annotation,
+  AnnotationCSVColumns,
+  ConfigAnnotation,
+  ConfigMetadata,
   Homology,
+  Metadata,
   mRNAid,
   Nucleotide,
-  Metadata,
   SequenceMetadataCSVColumns,
+  Tree,
+  TreeNode,
   VariablePosition,
   VariablePositionCSVColumns,
-  ConfigMetadata,
-  AnnotationCSVColumns,
-  Annotation,
-  ConfigAnnotation,
-  Tree,
 } from '@/types'
-import { useConfigStore } from '@/stores/config'
-import { constant, times, values } from 'lodash'
+
+// @ts-ignore
+import schema from '../schema.homologies.json'
 
 const parseMetadata = (configMetadata: ConfigMetadata, value?: string) => {
   const { type } = configMetadata
@@ -69,12 +70,14 @@ export const fetchAlignments = async (homologyId: string) => {
       }
 
       // Parse configured metadata.
-      config.alignmentMetadata.forEach((configMetadata: ConfigMetadata) => {
-        data.metadata[configMetadata.column] = parseMetadata(
-          configMetadata,
-          rest[configMetadata.column]
-        )
-      })
+      config.homology.alignmentMetadata.forEach(
+        (configMetadata: ConfigMetadata) => {
+          data.metadata[configMetadata.column] = parseMetadata(
+            configMetadata,
+            rest[configMetadata.column]
+          )
+        }
+      )
 
       return data
     }
@@ -96,7 +99,7 @@ export const fetchAnnotations = async (
   const config = useConfigStore()
 
   // No annotations configured, no need to fetch data.
-  if (config.annotations.length === 0) return []
+  if (config.homology.annotations.length === 0) return []
 
   try {
     const data = await d3.csv<
@@ -113,7 +116,7 @@ export const fetchAnnotations = async (
         }
 
         // Configured additional columns.
-        config.annotations.forEach((annotation: ConfigAnnotation) => {
+        config.homology.annotations.forEach((annotation: ConfigAnnotation) => {
           const { column } = annotation
           data.features[column] = parseBool(rest[column])
         })
@@ -125,7 +128,7 @@ export const fetchAnnotations = async (
     // Default to all configured columns false.
     // The annotations.csv file should not be sparse, but we allow it.
     const emptyAnnotation = Object.fromEntries(
-      config.annotations.map(({ column }) => [column, false])
+      config.homology.annotations.map(({ column }) => [column, false])
     )
 
     const result: Record<mRNAid, Annotation> = {}
@@ -139,10 +142,14 @@ export const fetchAnnotations = async (
     })
 
     return values(result)
-  } catch (error) {
+  } catch (err) {
     // Instead of failing on errors (such as file not found), we simply
-    // return no annotations, but do display the error in console.
-    console.error(error)
+    // return no annotations.
+    const error = err as Error
+    // Only log unexpected errors.
+    if (!error.message?.startsWith('404 ')) {
+      console.error(error)
+    }
     return []
   }
 }
@@ -203,10 +210,12 @@ export const fetchHomologies = async () => {
     }
 
     // Parse configured metadata.
-    config.homologyMetadata.forEach((configMetadata: ConfigMetadata) => {
-      homology.metadata[configMetadata.column] =
-        rest.metadata[configMetadata.column]
-    })
+    config.homology.homologyMetadata.forEach(
+      (configMetadata: ConfigMetadata) => {
+        homology.metadata[configMetadata.column] =
+          rest.metadata[configMetadata.column]
+      }
+    )
 
     return homology
   })
@@ -233,12 +242,14 @@ export const fetchSequenceMetadata = async (homologyId: string) => {
     }
 
     // Parse configured metadata.
-    config.sequenceMetadata.forEach((configMetadata: ConfigMetadata) => {
-      data.metadata[configMetadata.column] = parseMetadata(
-        configMetadata,
-        rest[configMetadata.column]
-      )
-    })
+    config.homology.sequenceMetadata.forEach(
+      (configMetadata: ConfigMetadata) => {
+        data.metadata[configMetadata.column] = parseMetadata(
+          configMetadata,
+          rest[configMetadata.column]
+        )
+      }
+    )
 
     return data
   })
@@ -248,7 +259,7 @@ export const fetchTrees = async () => {
   const config = useConfigStore()
   const trees: Tree[] = []
 
-  const promises = config.trees.map(async ({ filename, label }) => {
+  const promises = config.homology.trees.map(async ({ filename, label }) => {
     const data = await d3.text(`${config.apiUrl}${filename}`)
     const root = parse_newick(data)
     const tree: Tree = {
@@ -309,12 +320,14 @@ export const fetchVariablePositions = async (
       }
 
       // Parse configured metadata.
-      config.variableMetadata.forEach((configMetadata: ConfigMetadata) => {
-        data.metadata[configMetadata.column] = parseMetadata(
-          configMetadata,
-          rest[configMetadata.column]
-        )
-      })
+      config.homology.variableMetadata.forEach(
+        (configMetadata: ConfigMetadata) => {
+          data.metadata[configMetadata.column] = parseMetadata(
+            configMetadata,
+            rest[configMetadata.column]
+          )
+        }
+      )
 
       return data
     }

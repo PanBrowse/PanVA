@@ -1,10 +1,11 @@
 import type { App } from 'vue'
-import { useDataStore } from './stores/data'
+
+import { useGlobalStore } from './stores/global'
 import type { AppError } from './types'
 
 // Show the error in an overlay on the screen.
 export const showError = (error: AppError) => {
-  const store = useDataStore()
+  const store = useGlobalStore()
   store.setError(error)
 }
 

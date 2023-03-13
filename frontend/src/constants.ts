@@ -1,4 +1,17 @@
-import type { Range, Sorting, Theme } from '@/types'
+import type { App, Range, Sorting, Theme } from '@/types'
+
+export const AVAILABLE_APPS: App[] = [
+  {
+    id: 'homology',
+    name: 'Homology',
+    description: 'Browse, filter and group aligned sequences.',
+  },
+  {
+    id: 'gene',
+    name: 'Genes',
+    description: 'This is another app you are able to use.',
+  },
+]
 
 export const DEFAULT_SORTING: Sorting = {
   name: 'tree',
@@ -34,7 +47,6 @@ export const DEFAULT_METADATA_BOOLEAN_LABELS = {
 }
 
 // Different themes for coloring the nucleotide cells.
-// The order of the colors is `ACGTacgt-`.
 export const THEMES: Record<string, Theme> = {
   clustal: {
     name: 'Clustal (default)',

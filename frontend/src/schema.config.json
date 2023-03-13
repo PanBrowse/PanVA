@@ -113,75 +113,87 @@
         }
     },
     "properties": {
-        "alignmentMetadata": {
-            "items": {
-                "$ref": "#/definitions/ConfigMetadata"
-            },
-            "type": "array"
-        },
-        "annotations": {
-            "items": {
-                "additionalProperties": false,
-                "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate-validators",
-                "properties": {
-                    "column": {
-                        "type": "string"
-                    },
-                    "label": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "type": "array"
-        },
         "apiUrl": {
             "type": "string"
         },
-        "defaultHomologyId": {
-            "type": "string"
-        },
-        "defaultSequenceMetadataColumns": {
+        "apps": {
             "items": {
                 "type": "string"
             },
             "type": "array"
         },
-        "homologyMetadata": {
-            "items": {
-                "$ref": "#/definitions/ConfigMetadata"
+        "homology": {
+            "additionalProperties": false,
+            "properties": {
+                "alignmentMetadata": {
+                    "items": {
+                        "$ref": "#/definitions/ConfigMetadata"
+                    },
+                    "type": "array"
+                },
+                "annotations": {
+                    "items": {
+                        "additionalProperties": false,
+                        "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate-validators",
+                        "properties": {
+                            "column": {
+                                "type": "string"
+                            },
+                            "label": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                },
+                "defaultId": {
+                    "type": "string"
+                },
+                "defaultSequenceMetadataColumns": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "homologyMetadata": {
+                    "items": {
+                        "$ref": "#/definitions/ConfigMetadata"
+                    },
+                    "type": "array"
+                },
+                "sequenceMetadata": {
+                    "items": {
+                        "$ref": "#/definitions/ConfigMetadata"
+                    },
+                    "type": "array"
+                },
+                "trees": {
+                    "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                            "filename": {
+                                "type": "string"
+                            },
+                            "label": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                },
+                "variableMetadata": {
+                    "items": {
+                        "$ref": "#/definitions/ConfigMetadata"
+                    },
+                    "type": "array"
+                }
             },
-            "type": "array"
-        },
-        "sequenceMetadata": {
-            "items": {
-                "$ref": "#/definitions/ConfigMetadata"
-            },
-            "type": "array"
+            "type": "object"
         },
         "title": {
             "type": "string"
-        },
-        "trees": {
-            "items": {
-                "additionalProperties": false,
-                "properties": {
-                    "filename": {
-                        "type": "string"
-                    },
-                    "label": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "type": "array"
-        },
-        "variableMetadata": {
-            "items": {
-                "$ref": "#/definitions/ConfigMetadata"
-            },
-            "type": "array"
         }
     },
     "type": "object"

@@ -6,18 +6,20 @@ The PanVA application can be configured with a runtime configuration file `confi
 
 All fields are optional.
 
-| Field                            | Type           | Default                                       |
-|----------------------------------|----------------|-----------------------------------------------|
-| `alignmentMetadata`              | `Metadata[]`   | `[]`                                          |
-| `annotations`                    | `Annotation[]` | `[]`                                          |
-| `apiUrl`                         | `string`       | `"/api/"`                                     |
-| `defaultHomologyId`              | `integer`      | The first homology id in the homologies list. |
-| `defaultSequenceMetadataColumns` | `string[]`     | `[]`                                          |
-| `homologyMetadata`               | `Metadata[]`   | `[]`                                          |
-| `sequenceMetadata`               | `Metadata[]`   | `[]`                                          |
-| `title`                          | `string`       | `"PanVA"`                                     |
-| `trees`                          | `Tree[]`       | `[]`                                          |
-| `variableMetadata`               | `Metadata[]`   | `[]`                                          |
+| Field                                     | Type           | Default                              | Description                                    |
+|-------------------------------------------|----------------|--------------------------------------|------------------------------------------------|
+| `apiUrl`                                  | `string`       | `"/api/"`                            |                                                |
+| `apps`                                    | `string[]`     | `["homology"]`                       |                                                |
+| `homology`                                | `object`       |                                      | Configuration options for the `homology` app.  |
+| `homology.alignmentMetadata`              | `Metadata[]`   | `[]`                                 | Metadata to be displayed when hovering a cell. |
+| `homology.annotations`                    | `Annotation[]` | `[]`                                 |                                                |
+| `homology.defaultId`                      | `integer`      | The first id in the homologies list. |                                                |
+| `homology.defaultSequenceMetadataColumns` | `string[]`     | `[]`                                 |                                                |
+| `homology.homologyMetadata`               | `Metadata[]`   | `[]`                                 |                                                |
+| `homology.sequenceMetadata`               | `Metadata[]`   | `[]`                                 |                                                |
+| `homology.trees`                          | `Tree[]`       | `[]`                                 |                                                |
+| `homology.variableMetadata`               | `Metadata[]`   | `[]`                                 |                                                |
+| `title`                                   | `string`       | `"PanVA"`                            |                                                |
 
 
 ## Annotation
@@ -111,53 +113,49 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
 ```json
 {
   "apiUrl": "/pecto/",
-  "defaultHomologyId": 13803671,
-  "annotations": [
-    {
-      "column": "cds",
-      "label": "CDS"
-    }
-  ],
-  "filters": [
-    {
-      "column": "pheno_specific",
-      "label": "Phenotype specific"
-    }
-  ],
-  "metadata": [
-    {
-      "column": "ft16",
-      "label": "FT16",
-      "type": "quantitative",
-      "width": 80
-    },
-    {
-      "column": "virulence",
-      "label": "Virulence",
-      "labels": {
-        "true": "Virulent",
-        "false": "Avirulent",
-        "null": "Unknown"
-      },
-      "type": "boolean",
-      "values": {
-        "true": "virulent",
-        "false": "avirulent"
+  "homology": {
+    "defaultId": 13803671,
+    "annotations": [
+      {
+        "column": "cds",
+        "label": "CDS"
       }
-    },
-    {
-      "column": "species",
-      "label": "Species",
-      "type": "categorical",
-      "width": 80
-    },
-    {
-      "column": "strain_name",
-      "label": "Strain",
-      "type": "categorical",
-      "width": 120
-    }
-  ],
+    ],
+    "sequencesMetadata": [
+      {
+        "column": "ft16",
+        "label": "FT16",
+        "type": "quantitative",
+        "width": 80
+      },
+      {
+        "column": "virulence",
+        "label": "Virulence",
+        "labels": {
+          "true": "Virulent",
+          "false": "Avirulent",
+          "null": "Unknown"
+        },
+        "type": "boolean",
+        "values": {
+          "true": "virulent",
+          "false": "avirulent"
+        }
+      },
+      {
+        "column": "species",
+        "label": "Species",
+        "type": "categorical",
+        "width": 80
+      },
+      {
+        "column": "strain_name",
+        "label": "Strain",
+        "type": "categorical",
+        "width": 120
+      }
+    ],
+  },
   "title": "PanVA: Pectobacterium"
 }
 ```

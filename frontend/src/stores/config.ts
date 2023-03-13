@@ -1,39 +1,47 @@
+import Ajv from 'ajv'
+import { isArray, mergeWith } from 'lodash'
+import { defineStore } from 'pinia'
+
 import type {
   Config,
-  ConfigMetadata,
   ConfigAnnotation,
+  ConfigMetadata,
   ConfigTree,
 } from '@/types'
-import { defineStore } from 'pinia'
 
 // @ts-ignore
 import schema from '../schema.config.json'
-import Ajv from 'ajv'
-import { useDataStore } from './data'
+import { useGlobalStore } from './global'
 
 export const useConfigStore = defineStore('config', {
   state: () => ({
-    alignmentMetadata: [] as ConfigMetadata[],
-    annotations: [] as ConfigAnnotation[],
     apiUrl: '/api/' as string,
-    defaultHomologyId: null as string | null,
-    defaultSequenceMetadataColumns: [] as string[],
-    homologyMetadata: [] as ConfigMetadata[],
-    sequenceMetadata: [] as ConfigMetadata[],
-    title: '' as string,
-    trees: [] as ConfigTree[],
-    variableMetadata: [] as ConfigMetadata[],
+    apps: ['homology'] as string[],
+    homology: {
+      alignmentMetadata: [] as ConfigMetadata[],
+      annotations: [] as ConfigAnnotation[],
+      defaultId: null as string | null,
+      defaultSequenceMetadataColumns: [] as string[],
+      homologyMetadata: [] as ConfigMetadata[],
+      sequenceMetadata: [] as ConfigMetadata[],
+      trees: [] as ConfigTree[],
+      variableMetadata: [] as ConfigMetadata[],
+    },
+    title: 'PanVA' as string,
   }),
   getters: {
     sequenceMetadataLookup(): Record<string, ConfigMetadata> {
       return Object.fromEntries(
-        this.sequenceMetadata.map((metadata) => [metadata.column, metadata])
+        this.homology.sequenceMetadata.map((metadata) => [
+          metadata.column,
+          metadata,
+        ])
       )
     },
   },
   actions: {
     async loadConfig() {
-      const { setError } = useDataStore()
+      const { setError } = useGlobalStore()
 
       // Fetch config.json, but bypass the browser cache.
       const resp = await fetch('config.json', { cache: 'no-store' })
@@ -63,7 +71,13 @@ export const useConfigStore = defineStore('config', {
         config.apiUrl = config.apiUrl.replace(/\/*$/, '/')
       }
 
-      this.$patch(config)
+      this.$patch((state) =>
+        // Merge the provided config with the default config.
+        mergeWith(state, config, (objValue, srcValue) => {
+          if (isArray(objValue)) return srcValue
+        })
+      )
+
       return true
     },
   },

@@ -1,6 +1,21 @@
 import type { VNode } from 'vue'
 
 /**
+ * Applications.
+ */
+
+export type App = {
+  id: string
+  name: string
+  description: string
+}
+
+export type AppError = {
+  message: string | VNode
+  isFatal?: boolean
+}
+
+/**
  * Common.
  */
 export type mRNAid = string
@@ -20,11 +35,6 @@ export type DataReference = {
 }
 
 export type Reference = GroupReference | DataReference
-
-export type AppError = {
-  message: string | VNode
-  isFatal?: boolean
-}
 
 /**
  * Sorting.
@@ -247,16 +257,19 @@ export type ConfigTree = {
 }
 
 export type Config = {
-  alignmentMetadata?: ConfigMetadata[] // Default: []
-  annotations?: ConfigAnnotation[] // Default: []
   apiUrl?: string // Default: '/'
-  defaultHomologyId?: string // Default: First homology in homologies.
-  defaultSequenceMetadataColumns?: string[] // Default: []
-  homologyMetadata?: ConfigMetadata[] // Default: []
-  sequenceMetadata?: ConfigMetadata[] // Default: []
+  apps?: string[] // Default: ['homology']
+  homology?: {
+    alignmentMetadata?: ConfigMetadata[] // Default: []
+    annotations?: ConfigAnnotation[] // Default: []
+    defaultId?: string // Default: First homology in homologies.
+    defaultSequenceMetadataColumns?: string[] // Default: []
+    homologyMetadata?: ConfigMetadata[] // Default: []
+    sequenceMetadata?: ConfigMetadata[] // Default: []
+    trees?: ConfigTree[] // Default: []
+    variableMetadata?: ConfigMetadata[] // Default: []
+  }
   title?: string // Default `constants.DEFAULT_TITLE`
-  trees?: ConfigTree[] // Default: []
-  variableMetadata?: ConfigMetadata[] // Default: []
 }
 
 export type ConfigHomologies = Homology[]

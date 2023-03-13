@@ -1,79 +1,57 @@
 <script lang="ts">
 import { mapActions, mapState } from 'pinia'
-import { useDataStore } from '@/stores/data'
 
-import Analytics from '@/components/sidebar/Analytics.vue'
-import CustomDendrogram from '@/components/sidebar/CustomDendrogram.vue'
-import ErrorOverlay from '@/components/common/ErrorOverlay.vue'
-import GeneOverview from '@/components/views/GeneOverview.vue'
-import Graphics from '@/components/sidebar/Graphics.vue'
-import Groups from '@/components/sidebar/Groups.vue'
-import HomologySelect from '@/components/sidebar/HomologySelect.vue'
-import HomologyInfo from '@/components/sidebar/HomologyInfo.vue'
-import Layout from '@/components/common/Layout.vue'
-import Legends from '@/components/sidebar/Legends.vue'
-import LoadingScreen from '@/components/common/LoadingScreen.vue'
-import LocusView from '@/components/views/LocusView.vue'
-import Tips from '@/components/sidebar/Tips.vue'
-import Tooltip from '@/components/common/Tooltip.vue'
+import Gene from '@/apps/gene/App.vue'
+import Homology from '@/apps/homology/App.vue'
+import AppSelect from '@/components/AppSelect.vue'
+import ErrorOverlay from '@/components/ErrorOverlay.vue'
+import LoadingScreen from '@/components/LoadingScreen.vue'
+import Tooltip from '@/components/Tooltip.vue'
+import { DEFAULT_TITLE } from '@/constants'
 import { useConfigStore } from '@/stores/config'
 
-import { DEFAULT_TITLE } from '@/constants'
+import { useGlobalStore } from './stores/global'
 
 export default {
   components: {
-    Analytics,
-    CustomDendrogram,
+    AppSelect,
     ErrorOverlay,
-    GeneOverview,
-    Graphics,
-    Groups,
-    HomologySelect,
-    HomologyInfo,
-    Layout,
-    Legends,
+    Gene,
+    Homology,
     LoadingScreen,
-    LocusView,
-    Tips,
     Tooltip,
   },
   head() {
+    const baseTitle = this.title || DEFAULT_TITLE
+    const title = this.currentApp
+      ? `${baseTitle} - ${this.currentApp.name}`
+      : baseTitle
+
     return {
-      title: this.title || DEFAULT_TITLE,
+      title,
     }
   },
-  methods: {
-    ...mapActions(useDataStore, ['initializeApp']),
-  },
   computed: {
-    ...mapState(useDataStore, ['isInitialized']),
+    ...mapState(useGlobalStore, ['currentApp', 'selectedApp', 'isInitialized']),
     ...mapState(useConfigStore, ['title']),
   },
+  methods: {
+    ...mapActions(useGlobalStore, ['initialize']),
+  },
   created() {
-    this.initializeApp()
+    this.initialize()
   },
 }
 </script>
 
 <template>
-  <Layout v-if="isInitialized">
-    <template #sidebar>
-      <HomologySelect />
-      <HomologyInfo />
-      <Legends />
-      <Groups />
-      <Analytics />
-      <CustomDendrogram />
-      <Graphics />
-
-      <Tips />
-    </template>
-
-    <GeneOverview />
-    <LocusView />
-    <Tooltip />
-  </Layout>
+  <template v-if="isInitialized">
+    <Homology v-if="selectedApp === 'homology'" />
+    <Gene v-else-if="selectedApp === 'gene'" />
+    <AppSelect v-else />
+  </template>
   <LoadingScreen v-else />
 
+  <Tooltip />
   <ErrorOverlay />
 </template>
