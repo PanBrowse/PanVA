@@ -1,5 +1,4 @@
 {
-  "apiUrl": "http://localhost:5001/",
   "apps": [
     "homology",
     "geneSet"
@@ -143,5 +142,6 @@
         "label": "Phenotype specific"
       }
     ]
-  }
+  },
+  "title": "PanVA: Pectobacterium"
 }
