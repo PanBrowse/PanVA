@@ -4,7 +4,7 @@ import { mapActions, mapState } from 'pinia'
 import { h } from 'vue'
 
 import { naturalCompare, numberCompare } from '@/helpers/sorting'
-import { useGeneStore } from '@/stores/gene'
+import { useGeneSetStore } from '@/stores/geneSet'
 import { useGlobalStore } from '@/stores/global'
 import type { Homology } from '@/types'
 
@@ -13,7 +13,7 @@ export default {
     ATable: Table,
   },
   computed: {
-    ...mapState(useGeneStore, ['homologies']),
+    ...mapState(useGeneSetStore, ['homologies']),
     tableColumns(): TableColumnsType {
       const columns: TableColumnsType = [
         {

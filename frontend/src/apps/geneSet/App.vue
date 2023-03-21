@@ -3,7 +3,7 @@ import { mapState } from 'pinia'
 
 import Layout from '@/components/Layout.vue'
 import LoadingScreen from '@/components/LoadingScreen.vue'
-import { useGeneStore } from '@/stores/gene'
+import { useGeneSetStore } from '@/stores/geneSet'
 
 import Homologies from './visualizations/Homologies.vue'
 
@@ -14,7 +14,7 @@ export default {
     LoadingScreen,
   },
   computed: {
-    ...mapState(useGeneStore, ['isInitialized']),
+    ...mapState(useGeneSetStore, ['isInitialized']),
   },
 }
 </script>

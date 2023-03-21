@@ -1,7 +1,7 @@
 <script lang="ts">
 import { mapActions, mapState } from 'pinia'
 
-import Gene from '@/apps/gene/App.vue'
+import GeneSet from '@/apps/geneSet/App.vue'
 import Homology from '@/apps/homology/App.vue'
 import AppSelect from '@/components/AppSelect.vue'
 import ErrorOverlay from '@/components/ErrorOverlay.vue'
@@ -16,7 +16,7 @@ export default {
   components: {
     AppSelect,
     ErrorOverlay,
-    Gene,
+    GeneSet,
     Homology,
     LoadingScreen,
     Tooltip,
@@ -47,7 +47,7 @@ export default {
 <template>
   <template v-if="isInitialized">
     <Homology v-if="selectedApp === 'homology'" />
-    <Gene v-else-if="selectedApp === 'gene'" />
+    <GeneSet v-else-if="selectedApp === 'geneSet'" />
     <AppSelect v-else />
   </template>
   <LoadingScreen v-else />

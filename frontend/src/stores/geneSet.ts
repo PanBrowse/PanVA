@@ -1,12 +1,12 @@
 import { sortBy } from 'lodash'
 import { defineStore } from 'pinia'
 
-import { fetchHomologies } from '@/helpers/api'
+import { fetchHomologies } from '@/api/geneSet'
 import type { Homology } from '@/types'
 
 import { useGlobalStore } from './global'
 
-export const useGeneStore = defineStore('gene', {
+export const useGeneSetStore = defineStore('geneSet', {
   state: () => ({
     homologies: [] as Homology[],
     isInitialized: false,

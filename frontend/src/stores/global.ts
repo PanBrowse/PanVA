@@ -4,7 +4,7 @@ import { AVAILABLE_APPS } from '@/constants'
 import type { App, AppError } from '@/types'
 
 import { useConfigStore } from './config'
-import { useGeneStore } from './gene'
+import { useGeneSetStore } from './geneSet'
 import { useHomologyStore } from './homology'
 
 export const useGlobalStore = defineStore('global', {
@@ -54,8 +54,8 @@ export const useGlobalStore = defineStore('global', {
     switchToApp(app: string) {
       if (app === 'homology') {
         this.switchToHomologyApp()
-      } else if (app === 'gene') {
-        this.switchToGeneApp()
+      } else if (app === 'geneSet') {
+        this.switchToGeneSetApp()
       }
     },
     async switchToHomologyApp(homologyId?: string) {
@@ -64,11 +64,11 @@ export const useGlobalStore = defineStore('global', {
       const homology = useHomologyStore()
       await homology.initialize(homologyId)
     },
-    async switchToGeneApp() {
-      this.selectedApp = 'gene'
+    async switchToGeneSetApp() {
+      this.selectedApp = 'geneSet'
 
-      const gene = useGeneStore()
-      await gene.initialize()
+      const geneSet = useGeneSetStore()
+      await geneSet.initialize()
     },
   },
 })

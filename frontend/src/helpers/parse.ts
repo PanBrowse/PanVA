@@ -1,3 +1,5 @@
+import type { ConfigMetadata } from '@/types'
+
 const isTrue = (val?: string) => {
   const v = val?.toLowerCase()
   return v === 'true' || v === 't' || v === 'yes' || v === 'y'
@@ -45,4 +47,21 @@ export const parseMetadataBoolean = (
   }
 
   return parseOptionalBool(val)
+}
+
+export const parseMetadata = (
+  configMetadata: ConfigMetadata,
+  value?: string
+) => {
+  const { type } = configMetadata
+
+  if (type === 'boolean') {
+    return parseMetadataBoolean(value, configMetadata.values)
+  }
+
+  if (type === 'quantitative') {
+    return parseOptionalNumber(value)
+  }
+
+  return parseMetadataCategorical(value)
 }

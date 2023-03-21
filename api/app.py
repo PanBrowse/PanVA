@@ -38,7 +38,7 @@ CORS(app)
 schema = JsonSchema(app)
 
 
-@app.route("/<id>/dendrogram.json", methods=["GET", "POST"])
+@app.route("/homology/<id>/dendrogram.json", methods=["GET", "POST"])
 @schema.validate(
     {
         "type": "object",
@@ -55,8 +55,8 @@ schema = JsonSchema(app)
     }
 )
 def get_dendrogram(id):
-    sequences_path = os.path.join(db_path, id, "sequences.csv")
-    linkage_matrix_path = os.path.join(db_path, id, "linkage_matrix.npy")
+    sequences_path = os.path.join(db_path, "homology", id, "sequences.csv")
+    linkage_matrix_path = os.path.join(db_path, "homology", id, "linkage_matrix.npy")
 
     # Load sequences data.
     sequences = pd.read_csv(sequences_path)

@@ -134,7 +134,7 @@
                 "annotations": {
                     "items": {
                         "additionalProperties": false,
-                        "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate-validators",
+                        "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate-validator",
                         "properties": {
                             "column": {
                                 "type": "string"

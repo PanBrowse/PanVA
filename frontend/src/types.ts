@@ -207,7 +207,7 @@ export type Theme = {
  * Configuration.
  *
  * When making changes, be sure to update the config validator by running:
- *   npm run generate-validators
+ *   npm run generate-validator
  */
 
 export type ConfigAnnotation = {

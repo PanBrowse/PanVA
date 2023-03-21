@@ -7,8 +7,8 @@ export const AVAILABLE_APPS: App[] = [
     description: 'Browse, filter and group aligned sequences.',
   },
   {
-    id: 'gene',
-    name: 'Genes',
+    id: 'geneSet',
+    name: 'Gene sets',
     description: 'This is another app you are able to use.',
   },
 ]

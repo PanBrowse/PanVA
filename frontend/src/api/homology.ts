@@ -1,14 +1,11 @@
-import Ajv from 'ajv'
 import { parse_newick } from 'biojs-io-newick'
 import * as d3 from 'd3'
 import { constant, times, values } from 'lodash'
 
 import {
   parseBool,
-  parseMetadataBoolean,
-  parseMetadataCategorical,
+  parseMetadata,
   parseNumber,
-  parseOptionalNumber,
   parseString,
 } from '@/helpers/parse'
 import { useConfigStore } from '@/stores/config'
@@ -29,23 +26,6 @@ import type {
   VariablePositionCSVColumns,
 } from '@/types'
 
-// @ts-ignore
-import schema from '../schema.homologies.json'
-
-const parseMetadata = (configMetadata: ConfigMetadata, value?: string) => {
-  const { type } = configMetadata
-
-  if (type === 'boolean') {
-    return parseMetadataBoolean(value, configMetadata.values)
-  }
-
-  if (type === 'quantitative') {
-    return parseOptionalNumber(value)
-  }
-
-  return parseMetadataCategorical(value)
-}
-
 // Temporary type that also holds data needed for sorting,
 // but that is removed before aligned positions are stored.
 export type FetchedAlignments = {
@@ -59,7 +39,7 @@ export type FetchedAlignments = {
 export const fetchAlignments = async (homologyId: string) => {
   const config = useConfigStore()
   return await d3.csv<FetchedAlignments, AlignmentCSVColumns | string>(
-    `${config.apiUrl}${homologyId}/alignments.csv`,
+    `${config.apiUrl}homology/${homologyId}/alignments.csv`,
     ({ genome_nr, mRNA_id, nucleotide, position, ...rest }) => {
       const data: FetchedAlignments = {
         genome_nr: parseNumber(genome_nr),
@@ -106,7 +86,7 @@ export const fetchAnnotations = async (
       FetchedAnnotations,
       AnnotationCSVColumns | string
     >(
-      `${config.apiUrl}${homologyId}/annotations.csv`,
+      `${config.apiUrl}homology/${homologyId}/annotations.csv`,
       ({ mRNA_id, position, ...rest }) => {
         // Common columns.
         const data: FetchedAnnotations = {
@@ -160,7 +140,7 @@ export const fetchDendrogramCustom = async (
 ) => {
   const config = useConfigStore()
   const data = await d3.json<TreeNode>(
-    `${config.apiUrl}${homologyId}/dendrogram.json`,
+    `${config.apiUrl}homology/${homologyId}/dendrogram.json`,
     {
       method: 'POST',
       headers: {
@@ -179,7 +159,7 @@ export const fetchDendrogramCustom = async (
 export const fetchDendrogramDefault = async (homologyId: string) => {
   const config = useConfigStore()
   const data = await d3.json<TreeNode>(
-    `${config.apiUrl}${homologyId}/dendrogram.json`
+    `${config.apiUrl}homology/${homologyId}/dendrogram.json`
   )
   if (data === undefined) {
     throw new Error('Received empty dendrogram.')
@@ -189,17 +169,9 @@ export const fetchDendrogramDefault = async (homologyId: string) => {
 
 export const fetchHomologies = async () => {
   const config = useConfigStore()
-  const data = await d3.json<Homology[]>(`${config.apiUrl}homologies.json`)
-
-  // Validate content of data.
-  const ajv = new Ajv()
-  const validate = ajv.compile(schema)
-  const isValid = validate(data)
-
-  if (!isValid) {
-    console.error(validate.errors)
-    throw new Error('Invalid homologies file found.')
-  }
+  const data = await d3.json<Homology[]>(
+    `${config.apiUrl}homology/homologies.json`
+  )
 
   return data!.map(({ id, members, alignment_length, ...rest }) => {
     const homology: Homology = {
@@ -234,25 +206,28 @@ export const fetchSequenceMetadata = async (homologyId: string) => {
   return await d3.csv<
     FetchedSequenceMetadata,
     SequenceMetadataCSVColumns | string
-  >(`${config.apiUrl}${homologyId}/metadata.csv`, ({ mRNA_id, ...rest }) => {
-    // Common columns.
-    const data: FetchedSequenceMetadata = {
-      mrnaId: parseString(mRNA_id),
-      metadata: {},
-    }
-
-    // Parse configured metadata.
-    config.homology.sequenceMetadata.forEach(
-      (configMetadata: ConfigMetadata) => {
-        data.metadata[configMetadata.column] = parseMetadata(
-          configMetadata,
-          rest[configMetadata.column]
-        )
+  >(
+    `${config.apiUrl}homology/${homologyId}/metadata.csv`,
+    ({ mRNA_id, ...rest }) => {
+      // Common columns.
+      const data: FetchedSequenceMetadata = {
+        mrnaId: parseString(mRNA_id),
+        metadata: {},
       }
-    )
 
-    return data
-  })
+      // Parse configured metadata.
+      config.homology.sequenceMetadata.forEach(
+        (configMetadata: ConfigMetadata) => {
+          data.metadata[configMetadata.column] = parseMetadata(
+            configMetadata,
+            rest[configMetadata.column]
+          )
+        }
+      )
+
+      return data
+    }
+  )
 }
 
 export const fetchTrees = async () => {
@@ -260,7 +235,7 @@ export const fetchTrees = async () => {
   const trees: Tree[] = []
 
   const promises = config.homology.trees.map(async ({ filename, label }) => {
-    const data = await d3.text(`${config.apiUrl}${filename}`)
+    const data = await d3.text(`${config.apiUrl}homology/${filename}`)
     const root = parse_newick(data)
     const tree: Tree = {
       name: filename,
@@ -297,7 +272,7 @@ export const fetchVariablePositions = async (
     FetchedVariablePositions,
     VariablePositionCSVColumns | string
   >(
-    `${config.apiUrl}${homologyId}/variable.csv`,
+    `${config.apiUrl}homology/${homologyId}/variable.csv`,
     ({ position, A: As, C: Cs, G: Gs, T: Ts, gap: Gaps, ...rest }) => {
       const A = parseNumber(As)
       const C = parseNumber(Cs)

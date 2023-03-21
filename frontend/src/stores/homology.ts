@@ -15,13 +15,6 @@ import {
 import { defineStore } from 'pinia'
 
 import {
-  DEFAULT_SELECTED_REGION,
-  DEFAULT_SORTING,
-  THEMES,
-  TRANSITION_SEQUENCES_THRESHOLD,
-  TRANSITION_TIME,
-} from '@/constants'
-import {
   fetchAlignments,
   fetchAnnotations,
   fetchDendrogramCustom,
@@ -30,7 +23,14 @@ import {
   fetchSequenceMetadata,
   fetchTrees,
   fetchVariablePositions,
-} from '@/helpers/api'
+} from '@/api/homology'
+import {
+  DEFAULT_SELECTED_REGION,
+  DEFAULT_SORTING,
+  THEMES,
+  TRANSITION_SEQUENCES_THRESHOLD,
+  TRANSITION_TIME,
+} from '@/constants'
 import arrayFlip from '@/helpers/arrayFlip'
 import { arraySlice } from '@/helpers/arraySlice'
 import { filterMetadata } from '@/helpers/filtering'
