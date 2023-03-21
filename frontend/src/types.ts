@@ -144,6 +144,32 @@ export type Homology = {
   metadata: HomologyMetadata
 }
 
+export type SequenceMetrics = {
+  id: number
+  sequence_id: string
+  phasing_chromosome: number
+  phasing_id: string
+  genome_number: number
+  annotation_id: string
+  sequence_length: number
+  total_A: number
+  total_T: number
+  total_C: number
+  total_G: number
+  total_N: number
+  total_other: number
+  GC_content_percent: number
+  sequence_unknown_percent: number
+  gene_count: number
+  gene_length_total: number
+  gene_length_min: number
+  gene_length_max: number
+  gene_length_average: number
+  gene_length_median: number
+  gene_sequence_percent: number
+  gene_density_per_Mbp: number
+}
+
 export type Alignment = {
   nucleotide: Nucleotide
   metadata: Metadata
