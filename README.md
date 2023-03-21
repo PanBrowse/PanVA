@@ -16,10 +16,10 @@ In order to run the PanVA application you will need the following:
 
 To run the application, you **don't** need the code from this repository.
 
-Using the publically available Docker image (NOT YET AVAILABLE), you can start the PanVA application from anywhere using the following command:
+Using the publically available Docker image, you can start the PanVA application from anywhere using the following command:
 
 ```
-docker run -p 8080:80 -v /path/to/your/data:/panva/api/data -v /path/to/your/config.json:/panva/frontend/config.json -e APACHE_UID=1000 -e APACHE_GID=1000 pantools/panva
+docker run -p 8080:80 -v /path/to/your/data:/panva/api/data -v /path/to/your/config.json:/panva/frontend/config.json -e APACHE_UID=1000 -e APACHE_GID=1000 ghcr.io/panbrowse/panva:main
 ```
 
 The application will then be available on http://localhost:8080/.
@@ -42,8 +42,9 @@ We'll explain the various options passed to Docker.
 
 ## Building the application
 
-Instead of using the provided Docker images (NOT YET AVAILABLE), you can build a Docker image of the application yourself.
+To run the application, you **don't** need to build the application yourself. In most cases [running the application](#running-the-application) is what you're looking for.
 
+You can, however, build a Docker image of the application yourself.
 From the root of this repository run the following command:
 
 ```

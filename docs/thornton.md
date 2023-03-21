@@ -28,7 +28,7 @@ services:
       - 6455:80
 
   pecto205:
-    image: ghcr.io/fdev/panva:develop
+    image: ghcr.io/panbrowse/panva:main
     restart: always
     environment:
       APACHE_UID: 17542368 # vlugt012
@@ -38,7 +38,7 @@ services:
       - /home/vries490/panva/pecto205.json:/panva/frontend/config.json
 
   pecto454:
-    image: ghcr.io/fdev/panva:develop
+    image: ghcr.io/panbrowse/panva:main
     restart: always
     environment:
       APACHE_UID: 17591786 # vries490
@@ -53,8 +53,6 @@ This file contains all docker containers that should be running. One for Nginx, 
 The first container called `nginx` is the entrypoint for all http requests for _all_ PanVA instances.
 
 The second and third containers called `pecto205` and `pecto454` are PanVA instances. Consult [this repository's README](../README.md#running-the-application) on how an instance should be configured. Setting the correct `APACHE_UID` and `APACHE_GID` is very important.
-
-All instances above are configured to use the Docker image `ghcr.io/fdev/panva:develop`. This means that the image with the **`develop`** tag will be used. At some point it might be useful to have a specific instance running a specific feature branch. In that case, change the tag in the image name to the appropriate tag in the PanVA container registry, for example `ghcr.io/fdev/panva:feature-graph-explorer`.
 
 
 ## `panva.conf`
