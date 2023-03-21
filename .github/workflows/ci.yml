@@ -1,13 +1,9 @@
 name: CI
 
 on:
-  workflow_dispatch:
   push:
     branches:
-      - 'develop'
-  pull_request:
-    branches:
-      - 'develop'
+      - main
 
 # Prevent simultaneous workflow runs on the same branch.
 concurrency:
