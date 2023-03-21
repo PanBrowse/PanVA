@@ -8,18 +8,18 @@ All fields are optional.
 
 | Field                                     | Type           | Default                              | Description                                    |
 |-------------------------------------------|----------------|--------------------------------------|------------------------------------------------|
-| `apiUrl`                                  | `string`       | `"/api/"`                            |                                                |
-| `apps`                                    | `string[]`     | `["homology"]`                       |                                                |
+| `apiUrl`                                  | `string`       | `"/api/"`                            | Base URI of the API.                           |
+| `apps`                                    | `string[]`     | `["homology"]`                       | Apps that should be enabled.                   |
 | `homology`                                | `object`       |                                      | Configuration options for the `homology` app.  |
-| `homology.alignmentMetadata`              | `Metadata[]`   | `[]`                                 | Metadata to be displayed when hovering a cell. |
-| `homology.annotations`                    | `Annotation[]` | `[]`                                 |                                                |
-| `homology.defaultId`                      | `integer`      | The first id in the homologies list. |                                                |
-| `homology.defaultSequenceMetadataColumns` | `string[]`     | `[]`                                 |                                                |
-| `homology.homologyMetadata`               | `Metadata[]`   | `[]`                                 |                                                |
-| `homology.sequenceMetadata`               | `Metadata[]`   | `[]`                                 |                                                |
-| `homology.trees`                          | `Tree[]`       | `[]`                                 |                                                |
-| `homology.variableMetadata`               | `Metadata[]`   | `[]`                                 |                                                |
-| `title`                                   | `string`       | `"PanVA"`                            |                                                |
+| `homology.alignmentMetadata`              | `Metadata[]`   | `[]`                                 | Alignment cell metadata.                       |
+| `homology.annotations`                    | `Annotation[]` | `[]`                                 | List of available annotations.                 |
+| `homology.defaultId`                      | `integer`      | The first id in the homologies list. | Default homology group to load.                |
+| `homology.defaultSequenceMetadataColumns` | `string[]`     | `[]`                                 | Default sequence metadata columns to be shown. |
+| `homology.homologyMetadata`               | `Metadata[]`   | `[]`                                 | Homology group metadata.                       |
+| `homology.sequenceMetadata`               | `Metadata[]`   | `[]`                                 | Sequence metadata, user-selectable.            |
+| `homology.trees`                          | `Tree[]`       | `[]`                                 | Additional trees.                              |
+| `homology.variableMetadata`               | `Metadata[]`   | `[]`                                 | Variable position metadata.                    |
+| `title`                                   | `string`       | `"PanVA"`                            | Title of the application.                      |
 
 
 ## Annotation
