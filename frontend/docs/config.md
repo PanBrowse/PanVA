@@ -114,14 +114,14 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
 {
   "apiUrl": "/pecto/",
   "homology": {
-    "defaultId": 13803671,
+    "defaultId": "13803671",
     "annotations": [
       {
         "column": "cds",
         "label": "CDS"
       }
     ],
-    "sequencesMetadata": [
+    "sequenceMetadata": [
       {
         "column": "ft16",
         "label": "FT16",
