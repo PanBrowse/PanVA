@@ -203,31 +203,42 @@ export type FetchedSequenceMetadata = {
 export const fetchSequenceMetadata = async (homologyId: string) => {
   const config = useConfigStore()
 
-  return await d3.csv<
-    FetchedSequenceMetadata,
-    SequenceMetadataCSVColumns | string
-  >(
-    `${config.apiUrl}homology/${homologyId}/metadata.csv`,
-    ({ mRNA_id, ...rest }) => {
-      // Common columns.
-      const data: FetchedSequenceMetadata = {
-        mrnaId: parseString(mRNA_id),
-        metadata: {},
-      }
-
-      // Parse configured metadata.
-      config.homology.sequenceMetadata.forEach(
-        (configMetadata: ConfigMetadata) => {
-          data.metadata[configMetadata.column] = parseMetadata(
-            configMetadata,
-            rest[configMetadata.column]
-          )
+  try {
+    return await d3.csv<
+      FetchedSequenceMetadata,
+      SequenceMetadataCSVColumns | string
+    >(
+      `${config.apiUrl}homology/${homologyId}/metadata.csv`,
+      ({ mRNA_id, ...rest }) => {
+        // Common columns.
+        const data: FetchedSequenceMetadata = {
+          mrnaId: parseString(mRNA_id),
+          metadata: {},
         }
-      )
 
-      return data
+        // Parse configured metadata.
+        config.homology.sequenceMetadata.forEach(
+          (configMetadata: ConfigMetadata) => {
+            data.metadata[configMetadata.column] = parseMetadata(
+              configMetadata,
+              rest[configMetadata.column]
+            )
+          }
+        )
+
+        return data
+      }
+    )
+  } catch (err) {
+    // Instead of failing on errors (such as file not found), we simply
+    // return no metadata.
+    const error = err as Error
+    // Only log unexpected errors.
+    if (!error.message?.startsWith('404 ')) {
+      console.error(error)
     }
-  )
+    return []
+  }
 }
 
 export const fetchTrees = async () => {
