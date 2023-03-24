@@ -5,11 +5,13 @@ import Layout from '@/components/Layout.vue'
 import LoadingScreen from '@/components/LoadingScreen.vue'
 import { useGeneSetStore } from '@/stores/geneSet'
 
+import Chromosome from './visualizations/Chromosome.vue'
 import Homologies from './visualizations/Homologies.vue'
 
 export default {
   components: {
     Homologies,
+    Chromosome,
     Layout,
     LoadingScreen,
   },
@@ -21,7 +23,8 @@ export default {
 
 <template>
   <Layout v-if="isInitialized">
-    <Homologies />
+    <Chromosome />
+    <!-- <Homologies /> -->
   </Layout>
   <LoadingScreen v-else>Loading homologies, please wait...</LoadingScreen>
 </template>

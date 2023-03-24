@@ -1,70 +1,59 @@
 <template>
-  <div :id="'container_' + genomeNr" class="svg-container" align="center">
-    <h1>{{ title }}</h1>
-    <svg
-      v-if="redrawToggle === true"
-      :width="svgWidth + 2 * paddingSide"
-      :height="svgHeight + xAxisHeight + xAxisPaddingBottom"
-    >
-      <g :id="'xAxis_' + genomeNr"></g>
-      <g
-        :transform="
-          'translate(' +
-          paddingSide +
-          ',' +
-          (xAxisHeight + xAxisPaddingBottom) +
-          ')'
-        "
+  <div :id="`container_${this.genomeNr}`" class="svg-container" align="center">
+    <div>
+      <h2>G{{ genomeNr }}</h2>
+    </div>
+    <div>
+      <h1>{{ title }}</h1>
+      <svg
+        v-if="redrawToggle === true"
+        :width="svgWidth + 2 * paddingSide"
+        :height="svgHeight + xAxisHeight + xAxisPaddingBottom"
       >
-        <rect
-          v-for="item in data"
-          class="bar-positive"
-          :key="item[yKey]"
-          :y="yScale(item[yKey])"
-          :x="xScale(0)"
-          :height="yScale.bandwidth()"
-          :width="0"
-        ></rect>
-      </g>
-    </svg>
+        <g :id="`xAxis_${this.genomeNr}`"></g>
+        <g
+          :id="name"
+          :transform="
+            'translate(' +
+            paddingSide +
+            ',' +
+            (xAxisHeight + xAxisPaddingBottom) +
+            ')'
+          "
+        ></g>
+      </svg>
+    </div>
   </div>
 </template>
 
 <script>
 import * as d3 from 'd3'
-import { max, min } from 'd3-array'
-import { scaleBand, scaleLinear } from 'd3-scale'
-import { selectAll } from 'd3-selection'
-// import { transition } from 'd3-transition'
 
 export default {
   name: 'BarChart',
   props: {
     title: String,
+    name: String,
     genomeNr: String,
     xKey: String,
     yKey: String,
     data: Array,
   },
   mounted() {
-    let container_name = 'container_' + this.genomeNr
-
-    console.log('container name', container_name, this.title)
-
     this.svgWidth =
-      document.getElementById(container_name).offsetWidth *
+      document.getElementById(this.containerId()).offsetWidth *
       this.svgWidthScaleFactor
 
     this.svgHeight =
-      document.getElementById(container_name).offsetHeight *
+      document.getElementById(this.containerId()).offsetHeight *
       this.svgHeightScaleFactor
 
     this.AddResizeListener()
-    this.drawBars()
+    this.draw()
   },
   data: () => ({
     svgWidth: 0,
-    svgWidthScaleFactor: 0.75,
+    svgWidthScaleFactor: 0.5,
     svgHeight: 0,
     svgHeightScaleFactor: 0.2,
     xAxisHeight: 20,
@@ -74,24 +63,48 @@ export default {
     redrawToggle: true,
   }),
   methods: {
-    drawBars() {
-      selectAll('rect')
-        .data(this.data)
-        // .transition()
-        // .delay((d, i) => {
-        //   return i * 150
-        // })
-        // .duration(300)
-        .attr('y', (d) => {
-          return this.yScale(d[this.yKey])
-        })
-        .attr('width', (d) => {
-          return this.xScale(d[this.xKey])
-        })
+    svg() {
+      return d3.select(`#${this.name}`)
+    },
+    axis() {
+      return d3.select(`#xAxis_${this.genomeNr}`)
+    },
+    containerId() {
+      return `container_${this.genomeNr}`
+    },
+    draw() {
+      this.svg()
+        .selectAll('rect.bar-chr')
+        .data(this.data, (d) => d)
+        .join(
+          (enter) =>
+            enter
+              .append('rect')
+              .attr('class', 'bar-chr')
+              .attr('x', this.xScale(0))
+              .attr('y', (d) => {
+                return this.yScale(d[this.yKey])
+              })
+              .attr('width', (d) => {
+                return this.xScale(d[this.xKey])
+              })
+              .attr('height', this.yScale.bandwidth()),
 
-      let axisName = '#xAxis_' + this.genomeNr
+          (update) =>
+            update
+              .attr('x', this.xScale(0))
+              .attr('y', (d) => {
+                return this.yScale(d[this.yKey])
+              })
+              .attr('width', (d) => {
+                return this.xScale(d[this.xKey])
+              })
+              .attr('height', this.yScale.bandwidth()),
 
-      d3.select(axisName)
+          (exit) => exit.remove()
+        )
+
+      this.axis()
         .attr(
           'transform',
           'translate(' + this.paddingSide + ',' + this.xAxisHeight + ')'
@@ -103,42 +116,42 @@ export default {
     AddResizeListener() {
       // redraw the chart 300ms after the window has been resized
 
-      let container_name = 'container_' + this.genomeNr
-
       window.addEventListener('resize', () => {
         this.$data.redrawToggle = false
         setTimeout(() => {
           this.$data.redrawToggle = true
           this.$data.svgWidth =
-            document.getElementById(container_name).offsetWidth *
+            document.getElementById(this.containerId()).offsetWidth *
             this.$data.svgWidthScaleFactor
           this.$data.svgHeight =
-            document.getElementById(container_name).offsetHeight *
+            document.getElementById(this.containerId()).offsetHeight *
               this.$data.svgHeightScaleFactor +
             this.$data.xAxisHeight
-          this.drawBars()
+          this.draw()
         }, 300)
       })
     },
   },
   computed: {
     dataMax() {
-      return max(this.data, (d) => {
+      return d3.max(this.data, (d) => {
         return d[this.xKey]
       })
     },
     dataMin() {
-      return min(this.data, (d) => {
+      return d3.min(this.data, (d) => {
         return d[this.xKey]
       })
     },
     xScale() {
-      return scaleLinear()
+      return d3
+        .scaleLinear()
         .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
         .rangeRound([0, this.svgWidth])
     },
     yScale() {
-      return scaleBand()
+      return d3
+        .scaleBand()
         .rangeRound([0, this.svgHeight])
         .domain(
           this.data.map((d) => {
@@ -154,12 +167,12 @@ export default {
 <style lang="scss">
 @import '@/assets/colors.module.scss';
 
-.bar-positive {
+.bar-chr {
   fill: $gray-9;
   transition: r 0.2s ease-in-out;
 }
 
-.bar-positive:hover {
+.bar-chr:hover {
   fill: $gray-7;
 }
 
@@ -171,5 +184,9 @@ export default {
   padding-bottom: 1%;
   vertical-align: top;
   overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 </style>

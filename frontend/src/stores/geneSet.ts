@@ -39,4 +39,5 @@ export const useGeneSetStore = defineStore('geneSet', {
       this.isInitialized = true
     },
   },
+  getters: {},
 })

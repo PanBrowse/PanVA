@@ -55,5 +55,10 @@ export default {
 </script>
 
 <template>
-  <ATable :columns="tableColumns" :dataSource="homologies" rowKey="id" />
+  <ATable
+    :columns="tableColumns"
+    :dataSource="homologies"
+    rowKey="id"
+    size="small"
+  />
 </template>

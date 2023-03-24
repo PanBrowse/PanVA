@@ -1,7 +1,6 @@
 {
   "apiUrl": "http://localhost:5001/",
   "apps": [
-    "homology",
     "geneSet"
   ],
   "homology": {
