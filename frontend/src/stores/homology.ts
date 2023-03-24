@@ -719,6 +719,13 @@ export const useHomologyStore = defineStore('homology', {
             sequenceMetadata,
             variablePositions,
           ]) => {
+            // Ensure alignment length matches specified data in homologies.json.
+            if (alignments.length !== geneLength * sequenceCount) {
+              throw new Error(
+                `Number of rows in alignment.csv (${alignments.length}) does not match the alignment length (${geneLength}) multiplied by the member count (${sequenceCount}) as specified in homologies.json.`
+              )
+            }
+
             // Get mRNA id order from default dendrogram.
             const mrnaIds = leafNodes(dendro)
             const mrnaIdsLookup = Object.fromEntries(
@@ -836,7 +843,7 @@ export const useHomologyStore = defineStore('homology', {
 
           const global = useGlobalStore()
           global.setError({
-            message: `There was an error processing the data for homology group ${homologyId}.`,
+            message: `There was an error processing the data for homology group ${homologyId}.\n${error.message}`,
             isFatal: true,
           })
           throw error
