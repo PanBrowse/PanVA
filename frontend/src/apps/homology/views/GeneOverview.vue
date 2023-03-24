@@ -52,6 +52,7 @@ export default {
   computed: {
     ...mapState(useHomologyStore, [
       'annotation',
+      'annotations',
       'annotationColors',
       'geneLength',
       'homology',
