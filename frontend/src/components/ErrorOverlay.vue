@@ -4,6 +4,7 @@ import type { ModalFunc } from 'ant-design-vue/lib/modal/Modal'
 import { mapWritableState } from 'pinia'
 import { h } from 'vue'
 
+import { arrayInsertBetween } from '@/helpers/arrayInsertBetween'
 import { useGlobalStore } from '@/stores/global'
 
 export default {
@@ -27,11 +28,16 @@ export default {
 
       if (!this.error) return
 
+      const message = h(
+        'p',
+        arrayInsertBetween(this.error.message.split('\n'), h('br'))
+      )
+
       if (this.error.isFatal) {
         this.modal = Modal.error({
           content: () =>
             h('div', [
-              h('p', this.error?.message),
+              message,
               'A reload of the application is required. If the error persists please contact your system administrator.',
             ]),
           keyboard: false,
@@ -49,7 +55,7 @@ export default {
           cancelText: 'Reload application',
           content: () =>
             h('div', [
-              h('p', this.error?.message),
+              message,
               'You can continue using the application, but a reload might be required if the error persists.',
             ]),
           keyboard: false,

@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "HomologyMetadata": {
+            "type": "object"
+        }
+    },
+    "items": {
+        "properties": {
+            "alignment_length": {
+                "type": "number"
+            },
+            "id": {
+                "type": "string"
+            },
+            "members": {
+                "type": "number"
+            },
+            "metadata": {
+                "$ref": "#/definitions/HomologyMetadata"
+            }
+        },
+        "required": [
+            "alignment_length",
+            "id",
+            "members",
+            "metadata"
+        ],
+        "type": "object"
+    },
+    "type": "array"
+}
+

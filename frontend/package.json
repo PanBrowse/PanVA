@@ -10,7 +10,9 @@
     "build-only": "vite build",
     "build": "run-p type-check build-only",
     "dev": "vite",
-    "generate-validator": "typescript-json-schema --noExtraProps --out src/schema.config.json src/types.ts Config",
+    "generate-validators": "npm run generate-validator:config && npm run generate-validator:homologies",
+    "generate-validator:config": "typescript-json-schema --required --noExtraProps --out src/schema.config.json src/types.ts Config",
+    "generate-validator:homologies": "typescript-json-schema --required --out src/schema.homologies.json src/types.ts ConfigHomologies",
     "lint": "eslint --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore .",
     "postinstall": "patch-package",
     "prettier": "prettier --write --ignore-path .gitignore .",
@@ -20,6 +22,7 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^6.1.0",
+    "@apideck/better-ajv-errors": "^0.3.6",
     "@popperjs/core": "^2.11.6",
     "@vueuse/head": "^1.0.19",
     "ajv": "^8.12.0",

@@ -1,5 +1,3 @@
-import type { VNode } from 'vue'
-
 /**
  * Applications.
  */
@@ -11,7 +9,7 @@ export type App = {
 }
 
 export type AppError = {
-  message: string | VNode
+  message: string
   isFatal?: boolean
 }
 
@@ -207,7 +205,7 @@ export type Theme = {
  * Configuration.
  *
  * When making changes, be sure to update the config validator by running:
- *   npm run generate-validator
+ *   npm run generate-validators
  */
 
 export type ConfigAnnotation = {

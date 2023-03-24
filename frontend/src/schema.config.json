@@ -37,6 +37,11 @@
                             "type": "string"
                         }
                     },
+                    "required": [
+                        "false",
+                        "null",
+                        "true"
+                    ],
                     "type": "object"
                 },
                 "type": {
@@ -55,9 +60,18 @@
                             "type": "string"
                         }
                     },
+                    "required": [
+                        "false",
+                        "true"
+                    ],
                     "type": "object"
                 }
             },
+            "required": [
+                "column",
+                "label",
+                "type"
+            ],
             "type": "object"
         },
         "ConfigMetadataCategorical": {
@@ -79,6 +93,11 @@
                     "type": "number"
                 }
             },
+            "required": [
+                "column",
+                "label",
+                "type"
+            ],
             "type": "object"
         },
         "ConfigMetadataQuantitative": {
@@ -109,6 +128,11 @@
                     "type": "number"
                 }
             },
+            "required": [
+                "column",
+                "label",
+                "type"
+            ],
             "type": "object"
         }
     },
@@ -134,7 +158,7 @@
                 "annotations": {
                     "items": {
                         "additionalProperties": false,
-                        "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate-validator",
+                        "description": "Configuration.\n\nWhen making changes, be sure to update the config validator by running:\n  npm run generate-validators",
                         "properties": {
                             "column": {
                                 "type": "string"
@@ -143,6 +167,10 @@
                                 "type": "string"
                             }
                         },
+                        "required": [
+                            "column",
+                            "label"
+                        ],
                         "type": "object"
                     },
                     "type": "array"
@@ -179,6 +207,10 @@
                                 "type": "string"
                             }
                         },
+                        "required": [
+                            "filename",
+                            "label"
+                        ],
                         "type": "object"
                     },
                     "type": "array"

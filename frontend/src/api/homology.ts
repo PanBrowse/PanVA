@@ -1,7 +1,10 @@
+import { betterAjvErrors } from '@apideck/better-ajv-errors'
+import Ajv from 'ajv'
 import { parse_newick } from 'biojs-io-newick'
 import * as d3 from 'd3'
-import { constant, times, values } from 'lodash'
+import { constant, map, times, values } from 'lodash'
 
+import { arraySplitAt } from '@/helpers/arraySplitAt'
 import {
   parseBool,
   parseMetadata,
@@ -9,6 +12,7 @@ import {
   parseString,
 } from '@/helpers/parse'
 import { useConfigStore } from '@/stores/config'
+import { useGlobalStore } from '@/stores/global'
 import type {
   AlignmentCSVColumns,
   Annotation,
@@ -25,6 +29,9 @@ import type {
   VariablePosition,
   VariablePositionCSVColumns,
 } from '@/types'
+
+// @ts-ignore
+import schema from '../schema.homologies.json'
 
 // Temporary type that also holds data needed for sorting,
 // but that is removed before aligned positions are stored.
@@ -169,11 +176,63 @@ export const fetchDendrogramDefault = async (homologyId: string) => {
 
 export const fetchHomologies = async () => {
   const config = useConfigStore()
-  const data = await d3.json<Homology[]>(
-    `${config.apiUrl}homology/homologies.json`
-  )
+  const global = useGlobalStore()
 
-  return data!.map(({ id, members, alignment_length, ...rest }) => {
+  let homologies: Homology[]
+
+  try {
+    const data = await d3.json<Homology[]>(
+      `${config.apiUrl}homology/homologies.json`
+    )
+    if (!data) {
+      global.setError({
+        message: 'Could not load homologies.',
+        isFatal: true,
+      })
+      return
+    }
+
+    homologies = data
+  } catch (error: any) {
+    const err = error.message.replace(/\n/g, '')
+    global.setError({
+      message: `Could not parse homologies.\n${err}`,
+      isFatal: true,
+    })
+    throw error
+  }
+
+  // Validate content of homologies.
+  const ajv = new Ajv({ allErrors: true })
+  const validate = ajv.compile(schema)
+  const isValid = validate(homologies)
+
+  if (!isValid) {
+    // Format errors.
+    const betterErrors = betterAjvErrors({
+      // @ts-ignore
+      schema,
+      data: homologies,
+      basePath: 'document',
+      errors: validate.errors,
+    })
+
+    // Limit the number of errors we display to 5.
+    const [head, tail] = arraySplitAt(map(betterErrors, 'message'), 5)
+
+    // Create error message.
+    let message = 'Invalid homologies content.'
+    if (head.length > 0) message += '\n' + head.join('\n')
+    if (tail.length > 0) message += `\nand ${tail.length} more error(s).`
+
+    global.setError({
+      message,
+      isFatal: true,
+    })
+    throw new Error('Invalid homologies file found.')
+  }
+
+  return homologies.map(({ id, members, alignment_length, ...rest }) => {
     const homology: Homology = {
       id,
       members,
