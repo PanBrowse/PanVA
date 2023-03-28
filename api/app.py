@@ -1,5 +1,6 @@
 from flask import Flask, request
 from flask_cors import CORS
+import sys
 import os
 import pandas as pd
 from dotenv import load_dotenv
@@ -11,6 +12,10 @@ from cluster_functions import (
     load_linkage_matrix,
     save_linkage_matrix,
 )
+
+# Dendrogram can be very deep.
+# Default recursion depth (1000) is hit when encoding to JSON.
+sys.setrecursionlimit(2500)
 
 # Load config from `.env` file into environment variables.
 load_dotenv(".env")
