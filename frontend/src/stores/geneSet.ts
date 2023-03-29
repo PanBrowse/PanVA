@@ -1,8 +1,8 @@
 import { sortBy } from 'lodash'
 import { defineStore } from 'pinia'
 
-import { fetchHomologies, fetchSequences } from '@/api/geneSet'
-import type { Homology, SequenceMetrics } from '@/types'
+import { fetchGroupInfo, fetchHomologies, fetchSequences } from '@/api/geneSet'
+import type { GroupInfo, Homology, SequenceMetrics } from '@/types'
 
 import { useGlobalStore } from './global'
 
@@ -10,6 +10,7 @@ export const useGeneSetStore = defineStore('geneSet', {
   state: () => ({
     homologies: [] as Homology[],
     sequences: [] as SequenceMetrics[],
+    groupInfo: [] as GroupInfo[],
     isInitialized: false,
   }),
   actions: {
@@ -31,6 +32,16 @@ export const useGeneSetStore = defineStore('geneSet', {
       } catch (error) {
         global.setError({
           message: 'Could not load or parse sequence metrics.',
+          isFatal: true,
+        })
+        throw error
+      }
+
+      try {
+        this.groupInfo = await fetchGroupInfo()
+      } catch (error) {
+        global.setError({
+          message: 'Could not load or parse group info.',
           isFatal: true,
         })
         throw error

@@ -170,6 +170,26 @@ export type SequenceMetrics = {
   gene_density_per_Mbp: number
 }
 
+export type GroupInfo = {
+  homology_id: number
+  gene_id: string
+  gene_name: string
+  mRNA_id: string
+  mRNA_name: string
+  genome_number: number
+  sequence_number: number
+  mRNA_start_position: number
+  mRNA_end_position: number
+  gene_start_position: number
+  gene_end_position: number
+  chromosome: string
+  strand: string
+  gene_length_nuc: number
+  mRNA_length_nuc: number
+  cds_length_nuc: number
+  protein_length_AA: number
+}
+
 export type Alignment = {
   nucleotide: Nucleotide
   metadata: Metadata

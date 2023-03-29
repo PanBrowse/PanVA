@@ -1,16 +1,15 @@
 <template>
-  <div :id="`container_${this.genomeNr}`" class="svg-container" align="center">
+  <div :id="`container_${this.genomeNr}`" class="svg-container" align="left">
+    <!-- <div>
+      <h1>G{{ genomeNr }}</h1>
+    </div> -->
     <div>
-      <h2>G{{ genomeNr }}</h2>
-    </div>
-    <div>
-      <h1>{{ title }}</h1>
+      <!-- <h1>{{ title }}</h1> -->
       <svg
         v-if="redrawToggle === true"
         :width="svgWidth + 2 * paddingSide"
         :height="svgHeight + xAxisHeight + xAxisPaddingBottom"
       >
-        <g :id="`xAxis_${this.genomeNr}`"></g>
         <g
           :id="name"
           :transform="
@@ -38,6 +37,8 @@ export default {
     xKey: String,
     yKey: String,
     data: Array,
+    dataMinimum: Number,
+    dataMaximum: Number,
   },
   mounted() {
     this.svgWidth =
@@ -53,12 +54,12 @@ export default {
   },
   data: () => ({
     svgWidth: 0,
-    svgWidthScaleFactor: 0.5,
+    svgWidthScaleFactor: 0.95,
     svgHeight: 0,
-    svgHeightScaleFactor: 0.2,
-    xAxisHeight: 20,
+    svgHeightScaleFactor: 0.95,
+    xAxisHeight: 0,
     xAxisPaddingBottom: 5,
-    yScaleGutter: 0.2,
+    yScaleGutter: 0.3,
     paddingSide: 10,
     redrawToggle: true,
   }),
@@ -75,7 +76,7 @@ export default {
     draw() {
       this.svg()
         .selectAll('rect.bar-chr')
-        .data(this.data, (d) => d)
+        .data(this.data, (d) => d.index)
         .join(
           (enter) =>
             enter
@@ -104,14 +105,14 @@ export default {
           (exit) => exit.remove()
         )
 
-      this.axis()
-        .attr(
-          'transform',
-          'translate(' + this.paddingSide + ',' + this.xAxisHeight + ')'
-        )
-        .call(d3.axisTop(this.xScale))
-        .selectAll('text')
-        .style('text-anchor', 'middle')
+      //   this.axis()
+      //     .attr(
+      //       'transform',
+      //       'translate(' + this.paddingSide + ',' + this.xAxisHeight + ')'
+      //     )
+      //     .call(d3.axisTop(this.xScale))
+      //     .selectAll('text')
+      //     .style('text-anchor', 'middle')
     },
     AddResizeListener() {
       // redraw the chart 300ms after the window has been resized
@@ -143,10 +144,16 @@ export default {
         return d[this.xKey]
       })
     },
+    // xScale() {
+    //   return d3
+    //     .scaleLinear()
+    //     .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+    //     .rangeRound([0, this.svgWidth])
+    // },
     xScale() {
       return d3
         .scaleLinear()
-        .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+        .domain([this.dataMinimum > 0 ? 0 : this.dataMinimum, this.dataMaximum])
         .rangeRound([0, this.svgWidth])
     },
     yScale() {
@@ -167,21 +174,23 @@ export default {
 <style lang="scss">
 @import '@/assets/colors.module.scss';
 
-.bar-chr {
-  fill: $gray-9;
-  transition: r 0.2s ease-in-out;
-}
+// .bar-chr {
+//   fill: $gray-9;
+//   transition: r 0.2s ease-in-out;
+// }
 
-.bar-chr:hover {
-  fill: $gray-7;
-}
+// .bar-chr:hover {
+//   fill: $gray-7;
+// }
 
 .svg-container {
   display: inline-block;
+  //   background-color: $gray-1;
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   padding-bottom: 1%;
+  padding-top: 1%;
   vertical-align: top;
   overflow: hidden;
   display: flex;

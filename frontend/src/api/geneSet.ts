@@ -1,13 +1,18 @@
 import * as d3 from 'd3'
 
-import { useConfigStore } from '@/stores/config'
 import {
   parseBool,
   parseMetadata,
   parseNumber,
   parseString,
 } from '@/helpers/parse'
-import type { ConfigMetadata, Homology, SequenceMetrics } from '@/types'
+import { useConfigStore } from '@/stores/config'
+import type {
+  ConfigMetadata,
+  GroupInfo,
+  Homology,
+  SequenceMetrics,
+} from '@/types'
 
 export const fetchHomologies = async () => {
   const config = useConfigStore()
@@ -37,7 +42,8 @@ export const fetchHomologies = async () => {
 
 export const fetchSequences = async () => {
   const config = useConfigStore()
-  return await d3.csv<SequenceMetrics, string>(`${config.apiUrl}geneSet/sequences.csv`,
+  return await d3.csv<SequenceMetrics, string>(
+    `${config.apiUrl}geneSet/sequences.csv`,
     ({
       id,
       sequence_id,
@@ -61,8 +67,7 @@ export const fetchSequences = async () => {
       gene_length_average,
       gene_length_median,
       gene_sequence_percent,
-      gene_density_per_Mbp
-
+      gene_density_per_Mbp,
     }) => {
       const data: SequenceMetrics = {
         id: parseNumber(id),
@@ -95,4 +100,50 @@ export const fetchSequences = async () => {
   )
 }
 
+export const fetchGroupInfo = async () => {
+  const config = useConfigStore()
+  return await d3.csv<GroupInfo, string>(
+    `${config.apiUrl}geneSet/group_info.csv`,
+    ({
+      homology_id,
+      gene_id,
+      gene_name,
+      mRNA_id,
+      mRNA_name,
+      genome_number,
+      sequence_number,
+      mRNA_start_position,
+      mRNA_end_position,
+      gene_start_position,
+      gene_end_position,
+      chromosome,
+      strand,
+      gene_length_nuc,
+      mRNA_length_nuc,
+      cds_length_nuc,
+      protein_length_AA,
+    }) => {
+      const data: GroupInfo = {
+        homology_id: parseNumber(homology_id),
+        gene_id: parseString(gene_id),
+        gene_name: parseString(gene_name),
+        mRNA_id: parseString(mRNA_id),
+        mRNA_name: parseString(mRNA_name),
+        genome_number: parseNumber(genome_number),
+        sequence_number: parseNumber(sequence_number),
+        mRNA_start_position: parseNumber(mRNA_start_position),
+        mRNA_end_position: parseNumber(mRNA_end_position),
+        gene_start_position: parseNumber(gene_start_position),
+        gene_end_position: parseNumber(gene_end_position),
+        chromosome: parseString(chromosome),
+        strand: parseString(strand),
+        gene_length_nuc: parseNumber(gene_length_nuc),
+        mRNA_length_nuc: parseNumber(mRNA_length_nuc),
+        cds_length_nuc: parseNumber(cds_length_nuc),
+        protein_length_AA: parseNumber(protein_length_AA),
+      }
 
+      return data
+    }
+  )
+}
