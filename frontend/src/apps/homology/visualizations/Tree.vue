@@ -95,7 +95,7 @@ export default {
             this.selectedDataIndices = flatten(
               // The leaf nodes of custom trees are genome number strings.
               leafNodes(data).map((leaf) => {
-                const genomeNr = parseInt(leaf)
+                const genomeNr = Number(leaf)
 
                 // Not all genome numbers occur in each homology
                 // group, so lookup could result in undefined.

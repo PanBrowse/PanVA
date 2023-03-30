@@ -17,7 +17,39 @@ export type AppError = {
  * Common.
  */
 export type mRNAid = string
-export type Nucleotide = 'A' | 'C' | 'G' | 'T' | 'a' | 'c' | 'g' | 't' | '-'
+export type Nucleotide =
+  | 'A'
+  | 'C'
+  | 'G'
+  | 'T'
+  | 'R'
+  | 'Y'
+  | 'S'
+  | 'W'
+  | 'K'
+  | 'M'
+  | 'B'
+  | 'D'
+  | 'H'
+  | 'V'
+  | 'N'
+  | 'a'
+  | 'c'
+  | 'g'
+  | 't'
+  | 'r'
+  | 'y'
+  | 's'
+  | 'w'
+  | 'k'
+  | 'm'
+  | 'b'
+  | 'd'
+  | 'h'
+  | 'v'
+  | 'n'
+  | '-'
+export type NucleotideSimplified = 'A' | 'C' | 'G' | 'T' | 'N' | '-'
 export type Range = [number, number]
 export type DataIndexCollapsed = number | Group
 export type TreeOption = 'dendroDefault' | 'dendroCustom' | string
@@ -186,10 +218,7 @@ export type ThemeCellColors = {
   C: string
   G: string
   T: string
-  a: string
-  c: string
-  g: string
-  t: string
+  N: string
   '-': string
   empty: string
   aggregate: string

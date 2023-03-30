@@ -19,12 +19,12 @@ export const parseOptionalBool = (val?: string): boolean | null => {
 export const parseBool = (val?: string): boolean => isTrue(val)
 
 export const parseNumber = (val?: string): number => {
-  if (val !== undefined && val !== '') return parseInt(val)
+  if (val !== undefined && val !== '') return Number(val)
   return 0
 }
 
 export const parseOptionalNumber = (val?: string): number | null => {
-  if (val !== undefined && val !== '') return parseInt(val)
+  if (val !== undefined && val !== '') return Number(val)
   return null
 }
 

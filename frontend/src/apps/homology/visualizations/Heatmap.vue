@@ -8,8 +8,11 @@ import { CELL_SIZE } from '@/constants'
 import { groupCounts } from '@/helpers/groupCounts'
 import { groupName } from '@/helpers/groupName'
 import { isGroup } from '@/helpers/isGroup'
-import { drawNucleotide } from '@/helpers/nucleotide'
-import { sortNucleotideString } from '@/helpers/nucleotide'
+import {
+  drawNucleotide,
+  simplifyNucleotideString,
+  sortNucleotideString,
+} from '@/helpers/nucleotide'
 import { valueKey } from '@/helpers/valueKey'
 import { useConfigStore } from '@/stores/config'
 import { useHomologyStore } from '@/stores/homology'
@@ -21,7 +24,7 @@ type Cell = {
   row: number
 }
 
-type GroupCounts = Record<Nucleotide, number>
+type GroupCounts = Partial<Record<Nucleotide, number>>
 
 type GroupAggregates = Record<
   // Group id
@@ -74,25 +77,20 @@ export default {
       return Object.fromEntries(
         this.groupsFiltered.map(({ id, dataIndices }) => {
           const aggregates = this.filteredPositions.map((position) => {
-            const counts: GroupCounts = {
-              A: 0,
-              C: 0,
-              G: 0,
-              T: 0,
-              a: 0,
-              c: 0,
-              g: 0,
-              t: 0,
-              '-': 0,
-            }
+            const counts: GroupCounts = {}
 
             dataIndices.forEach((dataIndex) => {
               const { nucleotide } = this.dataAtPosition(dataIndex, position)
-              counts[nucleotide]++
+              if (nucleotide in counts) {
+                // @ts-ignore
+                counts[nucleotide]++
+              } else {
+                counts[nucleotide] = 1
+              }
             })
 
             const nucleotides = sortNucleotideString(
-              keys(pickBy(counts)).join('')
+              simplifyNucleotideString(keys(pickBy(counts)).join(''))
             )
 
             return { counts, nucleotides }

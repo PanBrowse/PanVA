@@ -1,11 +1,25 @@
-import { CELL_SIZE } from '@/constants'
 import { sortBy } from 'lodash'
 
-import type { Nucleotide, Theme } from '@/types'
+import { CELL_SIZE } from '@/constants'
+import type { NucleotideSimplified, Theme } from '@/types'
 
 export const sortNucleotideString = (value: string) => {
-  const order = 'ACGTacgt-'
+  const order = 'ACGTN-'
   return sortBy(value.split(''), (val) => order.indexOf(val)).join('')
+}
+
+export const simplifyNucleotideString = (value: string): string => {
+  let count = 0
+  return (
+    value
+      .toUpperCase()
+      // Replace first non-ACGT with a N, remove others.
+      .replace(/[^ACGT-]/, () => {
+        count++
+        if (count === 1) return 'N'
+        return ''
+      })
+  )
 }
 
 type DrawNucleotide = {
@@ -18,22 +32,26 @@ type DrawNucleotide = {
 
 export const drawNucleotide = ({
   ctx,
-  nucleotides,
+  nucleotides: nucleotideString,
   x,
   y,
   theme: { cellColors },
 }: DrawNucleotide) => {
   const size = CELL_SIZE
   const halfsize = CELL_SIZE * 0.5
+  const nucleotides = new Set(
+    simplifyNucleotideString(nucleotideString).split('')
+  )
 
   // No nucleotide or matches with reference.
-  if (nucleotides.length === 0) {
+  if (nucleotides.size === 0) {
     ctx.fillStyle = cellColors.empty
     ctx.fillRect(x, y, size, size)
   }
   // Single nucleotide or group with the same nucleotide; solid color square.
-  else if (nucleotides.length === 1) {
-    ctx.fillStyle = cellColors[nucleotides as Nucleotide]
+  else if (nucleotides.size === 1) {
+    const nucleotide = nucleotides.values().next().value as NucleotideSimplified
+    ctx.fillStyle = cellColors[nucleotide]
     ctx.fillRect(x, y, size, size)
   }
   // Multiple nucleotides.
@@ -41,7 +59,7 @@ export const drawNucleotide = ({
     ctx.fillStyle = cellColors.aggregate
     ctx.fillRect(x, y, size, size)
 
-    if (nucleotides.includes('a') || nucleotides.includes('A')) {
+    if (nucleotides.has('A')) {
       ctx.fillStyle = cellColors.A
       ctx.beginPath()
       // Top.
@@ -53,7 +71,7 @@ export const drawNucleotide = ({
       ctx.fill()
     }
 
-    if (nucleotides.includes('c') || nucleotides.includes('C')) {
+    if (nucleotides.has('C')) {
       ctx.fillStyle = cellColors.C
       ctx.beginPath()
       // Right.
@@ -65,7 +83,7 @@ export const drawNucleotide = ({
       ctx.fill()
     }
 
-    if (nucleotides.includes('g') || nucleotides.includes('G')) {
+    if (nucleotides.has('G')) {
       ctx.fillStyle = cellColors.G
       ctx.beginPath()
       // Bottom.
@@ -77,7 +95,7 @@ export const drawNucleotide = ({
       ctx.fill()
     }
 
-    if (nucleotides.includes('t') || nucleotides.includes('T')) {
+    if (nucleotides.has('T')) {
       ctx.fillStyle = cellColors.T
       ctx.beginPath()
       // Left.
@@ -89,7 +107,7 @@ export const drawNucleotide = ({
       ctx.fill()
     }
 
-    if (nucleotides.includes('-')) {
+    if (nucleotides.has('-')) {
       ctx.fillStyle = cellColors['-']
       ctx.strokeStyle = cellColors.aggregate
       ctx.lineWidth = 0.5

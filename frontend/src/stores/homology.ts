@@ -37,7 +37,10 @@ import { filterMetadata } from '@/helpers/filtering'
 import { isGroup } from '@/helpers/isGroup'
 import { medianRight } from '@/helpers/medianRight'
 import { isHighDPI, isMobile } from '@/helpers/mediaQueries'
-import { sortNucleotideString } from '@/helpers/nucleotide'
+import {
+  simplifyNucleotideString,
+  sortNucleotideString,
+} from '@/helpers/nucleotide'
 import { naturalSort, sortingPayload } from '@/helpers/sorting'
 import { leafNodes } from '@/helpers/tree'
 import { zipEqual } from '@/helpers/zipEqual'
@@ -370,15 +373,17 @@ export const useHomologyStore = defineStore('homology', {
         ) as Group
 
         return this.filteredPositions.map((position) => {
-          const nucleotides: Record<string, boolean> = {}
+          const nucleotides = new Set()
 
           dataIndices.forEach((dataIndex) => {
             const { nucleotide } =
               this.alignedPositions[dataIndex * this.geneLength + position - 1]
-            nucleotides[nucleotide] = true
+            nucleotides.add(nucleotide)
           })
 
-          return sortNucleotideString(Object.keys(nucleotides).join(''))
+          return sortNucleotideString(
+            simplifyNucleotideString([...nucleotides].join(''))
+          )
         })
       }
 
@@ -477,7 +482,7 @@ export const useHomologyStore = defineStore('homology', {
             this.sortedDataIndices = flatten(
               // The leaf nodes of custom trees are genome number strings.
               leafNodes(tree.root).map((leaf) => {
-                const genomeNr = parseInt(leaf)
+                const genomeNr = Number(leaf)
 
                 // Not all genome numbers occur in each homology
                 // group, so lookup could result in undefined.

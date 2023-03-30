@@ -58,11 +58,7 @@ export const THEMES: Record<string, Theme> = {
       C: '#80b1d3',
       G: '#fdb462',
       T: '#b3de69',
-
-      a: '#fb8072',
-      c: '#80b1d3',
-      g: '#fdb462',
-      t: '#b3de69',
+      N: '#f759ab',
 
       '-': '#ffffff',
       empty: '#f0f0f0',
@@ -77,11 +73,7 @@ export const THEMES: Record<string, Theme> = {
       C: '#dcbed4',
       G: '#d2dcc5',
       T: '#c5b8a6',
-
-      a: '#c7ceea',
-      c: '#dcbed4',
-      g: '#d2dcc5',
-      t: '#c5b8a6',
+      N: '#f759ab',
 
       '-': '#ffffff',
       empty: '#f0f0f0',
@@ -96,11 +88,7 @@ export const THEMES: Record<string, Theme> = {
       C: '#8fca85',
       G: '#fdcffe',
       T: '#f99372',
-
-      a: '#89b2ff',
-      c: '#8fca85',
-      g: '#fdcffe',
-      t: '#f99372',
+      N: '#f759ab',
 
       '-': '#ffffff',
       empty: '#f0f0f0',
@@ -115,11 +103,7 @@ export const THEMES: Record<string, Theme> = {
       C: '#dfd266',
       G: '#dfd266',
       T: '#e29eb6',
-
-      a: '#e29eb6',
-      c: '#dfd266',
-      g: '#dfd266',
-      t: '#e29eb6',
+      N: '#f759ab',
 
       '-': '#ffffff',
       empty: '#f0f0f0',
@@ -134,11 +118,7 @@ export const THEMES: Record<string, Theme> = {
       C: '#9fd0cb',
       G: '#a463ce',
       T: '#9fd0cb',
-
-      a: '#a463ce',
-      c: '#9fd0cb',
-      g: '#a463ce',
-      t: '#9fd0cb',
+      N: '#f759ab',
 
       '-': '#ffffff',
       empty: '#f0f0f0',

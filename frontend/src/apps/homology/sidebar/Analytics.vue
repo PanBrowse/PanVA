@@ -207,7 +207,7 @@ export default {
     onReferenceChange(value: any) {
       if (value) {
         const [type, indexString] = value.split(':')
-        const index = parseInt(indexString)
+        const index = Number(indexString)
 
         if (type === 'group') {
           this.reference = {

@@ -6,7 +6,7 @@ import colors from '@/assets/colors.module.scss'
 import SidebarItem from '@/components/SidebarItem.vue'
 import { useConfigStore } from '@/stores/config'
 import { useHomologyStore } from '@/stores/homology'
-import type { Nucleotide } from '@/types'
+import type { NucleotideSimplified } from '@/types'
 
 export default {
   components: {
@@ -15,8 +15,8 @@ export default {
   },
   computed: {
     ...mapState(useHomologyStore, ['annotationColors', 'annotations', 'theme']),
-    nucleotides(): Nucleotide[] {
-      return ['A', 'C', 'G', 'T', '-']
+    nucleotides(): NucleotideSimplified[] {
+      return ['A', 'C', 'G', 'T', 'N', '-']
     },
     colors() {
       return colors
@@ -37,7 +37,7 @@ export default {
           <div class="nucleotide" v-for="nucl in nucleotides" v-bind:key="nucl">
             <div
               class="nucleotide-color"
-              :style="{ background: theme.cellColors[nucl as Nucleotide] }"
+              :style="{ background: theme.cellColors[nucl] }"
             ></div>
             <div class="nucleotide-name">{{ nucl === '-' ? 'gap' : nucl }}</div>
           </div>
