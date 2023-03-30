@@ -296,6 +296,14 @@ export default {
           }
 
           const alignment = this.dataAtPosition(data, position)
+          const alignmentMetadata = this.alignmentMetadata.filter(
+            (metadata) => {
+              const value = alignment.metadata[metadata.column]
+              if (value === null) return false
+              if (value === undefined) return false
+              return true
+            }
+          )
 
           return {
             title: this.mrnaIds[data],
@@ -307,7 +315,11 @@ export default {
                 <ADescriptionsItem label="Base">
                   {{ alignment.nucleotide }}
                 </ADescriptionsItem>
-                <ADescriptionsItem :label="metadata.label" v-for="metadata in alignmentMetadata" v-bind:key="metadata.column">
+                <ADescriptionsItem
+                  :label="metadata.label"
+                  v-for="metadata in alignmentMetadata"
+                  v-bind:key="metadata.column"
+                >
                   <MetadataValue
                     :metadata="metadata"
                     :value="alignment.metadata[metadata.column]"
@@ -318,7 +330,7 @@ export default {
             data: {
               position,
               alignment,
-              alignmentMetadata: this.alignmentMetadata,
+              alignmentMetadata,
             },
             isCompact: true,
             isPinnable: true,
