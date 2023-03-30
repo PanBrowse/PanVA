@@ -23,6 +23,7 @@ export default {
         const value = this.homology!.metadata[metadata.column]
         if (value === null) return false
         if (value === undefined) return false
+        if (value === '') return false
         if (Array.isArray(value) && value.length === 0) return false
         return true
       })

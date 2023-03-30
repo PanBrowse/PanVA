@@ -301,6 +301,7 @@ export default {
               const value = alignment.metadata[metadata.column]
               if (value === null) return false
               if (value === undefined) return false
+              if (value === '') return false
               return true
             }
           )
