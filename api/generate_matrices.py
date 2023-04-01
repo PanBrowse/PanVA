@@ -12,7 +12,7 @@ homology_path = os.path.join(db_path, "homology")
 
 # Look up ids in database.
 ids = sorted([os.path.relpath(x[0], homology_path) for x in os.walk(homology_path)][1:])
-ids = ["323312818"]
+ids = ["13806436"]
 
 for id in ids:
     print("Processing {}...".format(id))

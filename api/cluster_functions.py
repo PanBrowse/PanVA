@@ -7,8 +7,8 @@ import sys
 import tanglegram as tg
 
 
-def keep(s, indices):
-    return "".join(ch for i, ch in enumerate(s) if i in indices)
+def keep(s, positions=[]):
+    return "".join(ch for i, ch in enumerate(s) if i + 1 in positions)
 
 
 def load_linkage_matrix(linkage_matrix_path):
@@ -49,9 +49,9 @@ def filtered_linkage_matrix(linkage_matrix, sequences, positions, labels):
     return untangled[0]
 
 
-def create_lv_matrix(sequences, nrs_keep=None):
+def create_lv_matrix(sequences, positions=None):
     seqs = sequences[["mRNA_id", "nuc_trimmed_seq"]].copy()
-    seqs["new_seq"] = [keep(s, nrs_keep) for s in seqs["nuc_trimmed_seq"]]
+    seqs["new_seq"] = [keep(s, positions) for s in seqs["nuc_trimmed_seq"]]
     size = len(sequences["mRNA_id"])
 
     # Create a zero matrix of w x h
