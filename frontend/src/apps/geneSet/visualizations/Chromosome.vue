@@ -13,17 +13,6 @@
       <g :id="name"></g>
     </svg>
   </div>
-
-  <!-- <BarChart
-    name="G1_Chr1"
-    genomeNr="1"
-    title="chr1"
-    xKey="sequence_length"
-    yKey="genome_phased_id"
-    :data="getPhasedChromosomesForGenome(1)"
-    :dataMinimum="dataMin"
-    :dataMaximum="dataMax"
-  /> -->
 </template>
 
 <script lang="ts">
