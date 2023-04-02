@@ -1,11 +1,7 @@
 <template>
   <!-- <Axis chromosome="1" xKey="sequence_length" :data="groupedData" /> -->
   <div>
-    <button @click="sortGenomes({ 1: 0, 2: 1, 3: 2, 4: 3, 5: 4 })">
-      sort ascending genome</button
-    ><button @click="sortGenomes({ 1: 4, 2: 3, 3: 2, 4: 1, 5: 0 })">
-      sort descending genome
-    </button>
+    <button @click="sortSequences()">sort by sequence_id</button>
   </div>
   <!-- <div><svg id="zoom-example"></svg></div> -->
   <div id="content" style="width: 100%; height: 100%">
@@ -38,10 +34,12 @@ export default {
     svgHeightScaleFactor: 0.95,
     name: 'chrTable',
     margin: { top: 10, bottom: 10, right: 10, left: 10, yAxis: 40 },
-    numberOfCols: 1,
-    numberOfRows: 5,
+    transitionTime: 750,
+    numberOfCols: 2,
+    barHeight: 20,
     genomes: [1, 2, 3, 4, 5],
     genomesLookup: { 1: 4, 2: 3, 3: 2, 4: 1, 5: 0 },
+    sortedSequenceIds: [],
     sortedGenomes: [4, 3, 2, 1, 0],
     chromosomeCells: [
       {
@@ -2086,7 +2084,12 @@ export default {
     ],
   }),
   computed: {
-    ...mapState(useGeneSetStore, ['sequences', 'groupInfo']),
+    ...mapState(useGeneSetStore, [
+      'sequences',
+      'groupInfo',
+      'getChromosome',
+      'chromosomeLookup',
+    ]),
     phasedChromosomesLengths() {
       let chromosomes = this.sequences.map(
         ({
@@ -2140,10 +2143,10 @@ export default {
       )
     },
     dataMax() {
-      return d3.max(this.groupedData, (d) => d.sequence_length)
+      return d3.max(this.sequences, (d) => d.sequence_length)
     },
     dataMin() {
-      return d3.min(this.groupedData, (d) => d.sequence_length)
+      return d3.min(this.sequences, (d) => d.sequence_length)
     },
     visWidth() {
       return this.svgWidth - 4 * this.margin.left
@@ -2158,25 +2161,11 @@ export default {
         .range([0, this.visWidth])
         .padding(0.05)
     },
-    rowScale() {
-      return d3
-        .scaleBand()
-        .domain(d3.range(this.numberOfRows))
-        .range([0, this.visHeight])
-        .padding(0.2)
-    },
     xScale() {
       return d3
         .scaleLinear()
         .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
         .rangeRound([0, this.colScale.bandwidth()])
-    },
-    yScale() {
-      return d3
-        .scaleBand()
-        .rangeRound([0, this.rowScale.bandwidth()])
-        .domain(['5_A', '5_B', '5_C', '5_D', '5_U'])
-        .padding(0.1)
     },
     colorScale() {
       return d3
@@ -2248,103 +2237,90 @@ export default {
     svg() {
       return d3.select(`#${this.name}`)
     },
-    g() {
-      return this.svg().selectAll('g.cell')
-    },
-    getChromosomesFromGenome(genome_nr) {
-      return this.phasedChromosomesLengths.filter(
-        (i) => i.genome_number == genome_nr
-      )
-    },
-    getSequencesWithChromosome(chromosome_nr) {
-      return this.phasedChromosomesLengths.filter(
-        (i) => i.chromosome == chromosome_nr
-      )
-    },
-    getPhasedChromosomesForGenome(genome_nr) {
-      return this.groupedData.filter((i) => i.genome_number == genome_nr)
-    },
-    getGenesForGenome(genome_nr) {
-      return this.homologyGroupsSet.filter((i) => i.genome_number == genome_nr)
-    },
     sortGenomes(order) {
       this.genomesLookup = order
       console.log('hello from click', this.genomesLookup)
       this.draw()
     },
+    sortSequences() {
+      this.sortedSequenceIds = this.sortedSequenceIds.reverse()
+      this.draw()
+    },
     draw() {
-      const t = this.svg().transition().duration(750)
-
       this.svg()
-        .selectAll('g')
-        .data(this.chromosome5Cells, (d) => d.genome_number)
-        .join(
-          (enter) =>
-            enter
-              .append('g')
-              .attr('class', 'cell')
-              .attr(
-                'transform',
-                (d) =>
-                  `translate(${this.colScale(d.col)}, ${this.rowScale(
-                    this.genomesLookup[d.genome_number]
-                  )})`
-              ),
-          (update) =>
-            update.call((update) =>
-              update
-                .transition(t)
-                .attr(
-                  'transform',
-                  (d) =>
-                    `translate(${this.colScale(d.col)}, ${this.rowScale(
-                      this.genomesLookup[d.genome_number]
-                    )})`
-                )
-            ),
-          (exit) => exit.remove()
-        )
-
-      this.g()
-        .selectAll('rect.cell-chr')
-        .data((d) => [d.genome_number])
+        .selectAll('rect.bar-chr')
+        .data(this.getChromosome(5), (d) => d.sequence_id)
         .join(
           (enter) =>
             enter
               .append('rect')
-              .attr('class', 'cell-chr')
-              .attr('transform', `translate(${this.margin.yAxis}, 0)`)
               .attr(
-                'width',
-                this.colScale.bandwidth() +
-                  this.margin.left * 4 +
-                  this.margin.right
+                'transform',
+                `translate(${this.margin.yAxis + this.margin.left * 4},${
+                  this.margin.top * 3
+                })`
               )
-              .attr('height', this.rowScale.bandwidth() + this.margin.top * 3)
-              .attr('fill', 'white'),
-          (update) => update,
+              .attr('class', 'bar-chr')
+              .attr('x', this.xScale(0))
+              // .attr('y', (d, i) => i * (this.barHeight + 10))
+              .attr(
+                'y',
+                (d, i) => this.sortedSequenceIds[i] * (this.barHeight + 10)
+              )
+              .attr('width', (d) => this.xScale(d.sequence_length))
+              .attr('height', this.barHeight),
+
+          (update) =>
+            update
+              .transition()
+              .duration(this.transitionTime)
+              .attr(
+                'y',
+                (d, i) => this.sortedSequenceIds[i] * (this.barHeight + 10)
+              ),
           (exit) => exit.remove()
         )
 
-      this.g()
-        .selectAll('text')
-        .data((d) => [d.genome_number])
-        .join('text')
-        .attr('font-size', 15)
-        .attr('font-family', 'sans-serif')
-        .attr('dominant-baseline', 'hanging')
-        .attr('x', 0)
-        .attr('y', this.margin.top)
-        .text((d) => `G${d}`)
-
-      this.drawBars()
-      this.drawGenes()
-
+      this.addLabels()
       this.addXAxis()
-      // this.addYAxis()
+    },
+    addLabels() {
+      this.svg()
+        .selectAll('text.label-chr')
+        .data(this.getChromosome(5), (d) => d.sequence_id)
+        .join(
+          (enter) =>
+            enter
+              .append('text')
+              .attr(
+                'transform',
+                `translate(${this.margin.left * 2},${this.margin.top * 3})`
+              )
+              .attr('class', 'label-chr')
+              .attr('font-size', 15)
+              .attr('font-family', 'sans-serif')
+              .attr('dominant-baseline', 'hanging')
+              .attr('x', 0)
+              .attr(
+                'y',
+                (d, i) => this.sortedSequenceIds[i] * (this.barHeight + 10)
+              )
+              .attr('dy', this.barHeight / 4)
+              .text((d) => d.sequence_id),
+
+          (update) =>
+            update
+              .transition()
+              .duration(this.transitionTime)
+              .attr(
+                'y',
+                (d, i) => this.sortedSequenceIds[i] * (this.barHeight + 10)
+              ),
+          (exit) => exit.remove()
+        )
     },
     addXAxis() {
-      this.g()
+      this.svg()
         .append('g')
         .attr('class', 'x-axis')
         .attr(
@@ -2359,73 +2335,6 @@ export default {
         .call((g) => g.select('.domain').remove())
         .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
         .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
-    },
-    addYAxis() {
-      this.g()
-        .append('g')
-        .attr('class', 'y-axis')
-        .attr(
-          'transform',
-          'translate(' +
-            (this.margin.yAxis + this.margin.left * 4) +
-            ',' +
-            this.margin.top * 3 +
-            ')'
-        )
-        .call(d3.axisLeft(this.yScale))
-        .call((g) => g.select('.domain').remove())
-        .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
-        .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
-    },
-    drawBars() {
-      let vis = this
-
-      this.g()
-        .selectAll('rect.bar-chr')
-        .data((d) => d.subgenomes)
-        .join(
-          (enter) =>
-            enter
-              .append('rect')
-              .attr(
-                'transform',
-                'translate(' +
-                  (this.margin.yAxis + this.margin.left * 4) +
-                  ',' +
-                  this.margin.top * 3 +
-                  ')'
-              )
-              .attr('class', 'bar-chr')
-              .attr('x', vis.xScale(0))
-              // .attr('y', function (d, i) {
-              // not using yScale directly for position because of sorting
-              //   return (
-              //     i * vis.yScale.bandwidth() +
-              //     (i + 1) * (0.1 * vis.yScale.bandwidth())
-              //   )
-              // })
-              .attr('y', (d) => {
-                return vis.yScale(d.phased_chromosome_id)
-              })
-
-              .attr('width', (d) => {
-                return vis.xScale(d.sequence_length)
-              })
-              .attr('height', vis.yScale.bandwidth()),
-
-          (update) =>
-            update
-              // .attr('y', function (d, i) {
-              //   return (
-              //     i * vis.yScale.bandwidth() +
-              //     (i + 1) * (0.1 * vis.yScale.bandwidth())
-              //   )
-              // })
-              .attr('y', (d) => {
-                return vis.yScale(d.phased_chromosome_id)
-              }),
-          (exit) => exit.remove()
-        )
     },
     drawGenes() {
       let vis = this
@@ -2482,19 +2391,16 @@ export default {
     },
   },
   mounted() {
-    console.log(this.phasedChromosomesLengths)
-    console.log(this.getChromosomesFromGenome(2))
-    console.log(this.getSequencesWithChromosome(5))
-    console.log(this.groupedData, this.dataMax, this.dataMin)
-    console.log(this.getPhasedChromosomesForGenome(1))
-    console.log(this.genomesLookup[1])
-
-    console.log(this.groupInfo)
-    console.log(this.getGenesForGenome(1))
-    console.log(this.getGenesForGenome(2))
-    console.log(this.getGenesForGenome(3))
-    console.log(this.getGenesForGenome(4))
-    console.log(this.getGenesForGenome(5))
+    // from store!
+    console.log(this.sequences)
+    console.log(this.chromosomeLookup)
+    console.log(this.getChromosome(5))
+    console.log(
+      d3.min(this.sequences, (d) => d.sequence_length),
+      d3.max(this.sequences, (d) => d.sequence_length)
+    )
+    // this.sortedSequenceIds = this.getChromosome(5).map((d) => d.sequence_id)
+    this.sortedSequenceIds = [...Array(this.getChromosome(5).length).keys()]
 
     this.svgWidth =
       document.getElementById('content').offsetWidth * this.svgWidthScaleFactor
