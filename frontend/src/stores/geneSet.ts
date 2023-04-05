@@ -18,6 +18,7 @@ export const useGeneSetStore = defineStore('geneSet', {
     groupInfo: [] as GroupInfo[],
 
     // Sorting
+    sorting: 'genome_number',
     sortedChromosomeSequenceIndices: {},
 
     isInitialized: false,
@@ -70,6 +71,33 @@ export const useGeneSetStore = defineStore('geneSet', {
 
       this.isInitialized = true
     },
+    changeSorting(sorting) {
+      // Update the sorting
+      this.sorting = sorting
+
+      // default sorting
+      if (sorting === 'genome_number_asc') {
+        const chrLookup = chromosomesLookup(this.sequences)
+        this.sortedChromosomeSequenceIndices =
+          sortedChromosomesIdsLookup(chrLookup)
+
+        return
+      }
+
+      // reverse sorting
+      if (sorting === 'genome_number_desc') {
+        const objectMap = (obj, fn) =>
+          Object.fromEntries(
+            Object.entries(obj).map(([k, v], i) => [k, fn(v, k, i)])
+          )
+
+        this.sortedChromosomeSequenceIndices = objectMap(
+          this.sortedChromosomeSequenceIndices,
+          (v) => [...v].reverse()
+        )
+        return
+      }
+    },
     getChromosome(key) {
       return this.chromosomeLookup[key]
     },
@@ -92,9 +120,9 @@ export const useGeneSetStore = defineStore('geneSet', {
       const lookup = {}
 
       Object.keys(this.chromosomeLookup).forEach((key) => {
-        console.log(key, this.chromosomeLookup[key], [
-          ...Array(this.chromosomeLookup[key].length).keys(),
-        ])
+        // console.log(key, this.chromosomeLookup[key], [
+        //   ...Array(this.chromosomeLookup[key].length).keys(),
+        // ])
 
         const ids = lookup[key] || [
           ...Array(this.chromosomeLookup[key].length).keys(),

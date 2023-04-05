@@ -1,6 +1,11 @@
 <template>
   <div>
-    <button @click="sortSequences()">sort by sequence_id</button>
+    <button @click="changeSorting('genome_number_asc')">
+      ascending sequence_number
+    </button>
+    <button @click="changeSorting('genome_number_desc')">
+      descending sequence_number
+    </button>
   </div>
   <div
     id="content"
@@ -17,29 +22,13 @@
     <Sequences
       v-for="chr in chromosomes"
       v-bind:key="chr"
+      :chromosomeNr="chr"
       :name="`chr${chr}`"
-      :sortedDataIndeces="sortedSequenceIds(chr)"
       :data="getChromosome(chr)"
       :dataMin="dataMin"
       :dataMax="dataMax"
       :nrColumns="numberOfCols"
     />
-    <!-- <Sequences
-      :name="`chr${1}`"
-      :sortedDataIndeces="sortedSequenceIds(1)"
-      :data="getChromosome(1)"
-      :dataMin="dataMin"
-      :dataMax="dataMax"
-      :nrColumns="numberOfCols"
-    />
-    <Sequences
-      :name="`chr${5}`"
-      :sortedDataIndeces="sortedSequenceIds(5)"
-      :data="getChromosome(5)"
-      :dataMin="dataMin"
-      :dataMax="dataMax"
-      :nrColumns="numberOfCols"
-    /> -->
   </div>
 </template>
 
@@ -98,7 +87,11 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useGeneSetStore, ['getChromosome', 'getSortedChromosomeIds']),
+    ...mapActions(useGeneSetStore, [
+      'getChromosome',
+      'getSortedChromosomeIds',
+      'changeSorting',
+    ]),
     sortedSequenceIds(chr) {
       return [...Array(this.getChromosome(chr).length).keys()]
     },
@@ -161,15 +154,10 @@ export default {
 
       svg.call(zoom)
     },
-    sortGenomes(order) {
-      this.genomesLookup = order
-      console.log('hello from click', this.genomesLookup)
-      this.draw()
-    },
     sortSequences() {
       // this.sortedSequenceIds = this.sortedSequenceIds.reverse()
       // this.draw()
-      console.log('hello')
+      console.log('sort')
     },
   },
   created() {},
@@ -181,35 +169,17 @@ export default {
       document.getElementById('content').offsetHeight *
       this.svgHeightScaleFactor
 
-    console.log(
-      'chromosomeLookup',
-      this.chromosomeLookup,
-      this.sortedChromosomeIdsLookup
-    )
+    // console.log(
+    //   'chromosomeLookup',
+    //   this.chromosomeLookup,
+    //   this.sortedChromosomeIdsLookup
+    // )
 
-    console.log(
-      // 'chromosomesLookup helper',
-      // chromosomesLookup(this.sequences),
-      sortedChromosomesIdsLookup(chromosomesLookup(this.sequences))
-    )
-
-    // console.log('chromosomeLookup', this.chromosomeLookup, [
-    //   ...Array(this.chromosomeLookup[1].length).keys(),
-    // ])
-
-    // const lookup = {}
-
-    // Object.keys(this.chromosomeLookup).forEach((key) => {
-    //   console.log(key, this.chromosomeLookup[key], [
-    //     ...Array(this.chromosomeLookup[key].length).keys(),
-    //   ])
-
-    //   const ids = lookup[key] || [
-    //     ...Array(this.chromosomeLookup[key].length).keys(),
-    //   ]
-    //   lookup[key] = ids
-    // })
-    // console.log('lookup ids', lookup)
+    // console.log(
+    //   // 'chromosomesLookup helper',
+    //   // chromosomesLookup(this.sequences),
+    //   sortedChromosomesIdsLookup(chromosomesLookup(this.sequences))
+    // )
   },
 }
 </script>

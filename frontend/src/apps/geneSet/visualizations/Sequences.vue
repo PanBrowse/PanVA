@@ -37,8 +37,8 @@ import type { SequenceMetrics } from '@/types'
 export default {
   name: 'Sequences',
   props: {
+    chromosomeNr: Number,
     name: String,
-    sortedDataIndeces: Array,
     data: Array,
     dataMin: Number,
     dataMax: Number,
@@ -71,6 +71,7 @@ export default {
     sortedSequenceIds: [],
   }),
   computed: {
+    ...mapState(useGeneSetStore, ['sortedChromosomeSequenceIndices']),
     containerWidth() {
       return Math.floor(this.svgWidth / this.nrColumns)
     },
@@ -111,9 +112,6 @@ export default {
         .scaleOrdinal()
         .domain([232273529, 232288684])
         .range(d3.schemeSet2)
-    },
-    dataSequences() {
-      return this.data
     },
   },
   methods: {
@@ -211,7 +209,9 @@ export default {
               // .attr('y', (d, i) => i * (this.barHeight + 10))
               .attr(
                 'y',
-                (d, i) => this.sortedDataIndeces[i] * (this.barHeight + 10)
+                (d, i) =>
+                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+                  (this.barHeight + 10)
               )
               .attr('width', function (d) {
                 return vis.xScale(d.sequence_length)
@@ -224,7 +224,9 @@ export default {
               .duration(this.transitionTime)
               .attr(
                 'y',
-                (d, i) => this.sortedDataIndeces[i] * (this.barHeight + 10)
+                (d, i) =>
+                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+                  (this.barHeight + 10)
               ),
           (exit) => exit.remove()
         )
@@ -233,7 +235,6 @@ export default {
       this.drawBars()
       this.addValues()
       this.addLabels()
-      this.addXAxis()
     },
     addLabels() {
       this.svg()
@@ -251,7 +252,9 @@ export default {
               .attr('x', 0)
               .attr(
                 'y',
-                (d, i) => this.sortedDataIndeces[i] * (this.barHeight + 10)
+                (d, i) =>
+                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+                  (this.barHeight + 10)
               )
               .attr('dy', 2)
               .text((d) => d.sequence_id.split('_')[0]),
@@ -262,7 +265,9 @@ export default {
               .duration(this.transitionTime)
               .attr(
                 'y',
-                (d, i) => this.sortedDataIndeces[i] * (this.barHeight + 10)
+                (d, i) =>
+                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+                  (this.barHeight + 10)
               ),
           (exit) => exit.remove()
         )
@@ -287,7 +292,9 @@ export default {
               .attr('dx', 2)
               .attr(
                 'y',
-                (d, i) => this.sortedDataIndeces[i] * (this.barHeight + 10)
+                (d, i) =>
+                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+                  (this.barHeight + 10)
               )
               .attr('dy', this.barHeight / 4)
               .text((d) => Math.floor(d.sequence_length).toLocaleString()),
@@ -298,12 +305,14 @@ export default {
               .duration(this.transitionTime)
               .attr(
                 'y',
-                (d, i) => this.sortedDataIndeces[i] * (this.barHeight + 10)
+                (d, i) =>
+                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+                  (this.barHeight + 10)
               ),
           (exit) => exit.remove()
         )
     },
-    addXAxis() {
+    drawXAxis() {
       this.svg()
         .append('g')
         .attr('class', 'x-axis')
@@ -365,27 +374,22 @@ export default {
     },
   },
   mounted() {
-    // console.log('this.name', this.name, this.data)
-    // let vis = this
     this.svgWidth =
       document.getElementById('content').offsetWidth * this.svgWidthScaleFactor
 
     this.svgHeight =
-      this.sortedDataIndeces.length * (this.barHeight + 10) +
+      this.sortedChromosomeSequenceIndices[this.chromosomeNr].length *
+        (this.barHeight + 10) +
       this.margin.top * 2
 
-    //   document.getElementById('content').offsetHeight * this.svgWidthScaleFactor
-
-    // console.log(
-    //   this.svgWidth,
-    //   this.nrColumns,
-    //   this.visWidth,
-    //   this.containerWidth
-    // )
-    // console.log(this.xScale.domain(), this.xScale.range())
+    this.drawXAxis() // draw axis one
     this.draw()
   },
-  watch: {},
+  watch: {
+    sortedChromosomeSequenceIndices() {
+      this.draw()
+    },
+  },
 }
 </script>
 
