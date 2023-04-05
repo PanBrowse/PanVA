@@ -47,6 +47,10 @@
 import * as d3 from 'd3'
 import { mapActions, mapState } from 'pinia'
 
+import {
+  chromosomesLookup,
+  sortedChromosomesIdsLookup,
+} from '@/helpers/chromosome'
 import { useGeneSetStore } from '@/stores/geneSet'
 import { useGlobalStore } from '@/stores/global'
 import type { SequenceMetrics } from '@/types'
@@ -59,13 +63,14 @@ export default {
   },
   data: () => ({
     chromosomes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    // chromosomes: [1, 2, 3, 4],
     svgWidth: 0,
     svgHeight: 0,
     svgWidthScaleFactor: 0.95,
     svgHeightScaleFactor: 0.95,
     margin: { top: 10, bottom: 10, right: 10, left: 10, yAxis: 40 },
     transitionTime: 750,
-    numberOfCols: 12,
+    // numberOfCols: 12,
     // sortedSequenceIds: [],
   }),
   computed: {
@@ -73,6 +78,7 @@ export default {
       'sequences',
       'groupInfo',
       'chromosomeLookup',
+      'sortedChromosomeIdsLookup',
     ]),
 
     dataMax() {
@@ -87,9 +93,12 @@ export default {
         .domain([232273529, 232288684])
         .range(d3.schemeSet2)
     },
+    numberOfCols() {
+      return this.chromosomes.length
+    },
   },
   methods: {
-    ...mapActions(useGeneSetStore, ['getChromosome']),
+    ...mapActions(useGeneSetStore, ['getChromosome', 'getSortedChromosomeIds']),
     sortedSequenceIds(chr) {
       return [...Array(this.getChromosome(chr).length).keys()]
     },
@@ -158,8 +167,9 @@ export default {
       this.draw()
     },
     sortSequences() {
-      this.sortedSequenceIds = this.sortedSequenceIds.reverse()
-      this.draw()
+      // this.sortedSequenceIds = this.sortedSequenceIds.reverse()
+      // this.draw()
+      console.log('hello')
     },
   },
   created() {},
@@ -170,6 +180,36 @@ export default {
     this.svgHeight =
       document.getElementById('content').offsetHeight *
       this.svgHeightScaleFactor
+
+    console.log(
+      'chromosomeLookup',
+      this.chromosomeLookup,
+      this.sortedChromosomeIdsLookup
+    )
+
+    console.log(
+      // 'chromosomesLookup helper',
+      // chromosomesLookup(this.sequences),
+      sortedChromosomesIdsLookup(chromosomesLookup(this.sequences))
+    )
+
+    // console.log('chromosomeLookup', this.chromosomeLookup, [
+    //   ...Array(this.chromosomeLookup[1].length).keys(),
+    // ])
+
+    // const lookup = {}
+
+    // Object.keys(this.chromosomeLookup).forEach((key) => {
+    //   console.log(key, this.chromosomeLookup[key], [
+    //     ...Array(this.chromosomeLookup[key].length).keys(),
+    //   ])
+
+    //   const ids = lookup[key] || [
+    //     ...Array(this.chromosomeLookup[key].length).keys(),
+    //   ]
+    //   lookup[key] = ids
+    // })
+    // console.log('lookup ids', lookup)
   },
 }
 </script>

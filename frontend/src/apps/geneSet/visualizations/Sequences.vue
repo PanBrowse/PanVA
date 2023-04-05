@@ -376,12 +376,12 @@ export default {
 
     //   document.getElementById('content').offsetHeight * this.svgWidthScaleFactor
 
-    console.log(
-      this.svgWidth,
-      this.nrColumns,
-      this.visWidth,
-      this.containerWidth
-    )
+    // console.log(
+    //   this.svgWidth,
+    //   this.nrColumns,
+    //   this.visWidth,
+    //   this.containerWidth
+    // )
     // console.log(this.xScale.domain(), this.xScale.range())
     this.draw()
   },
