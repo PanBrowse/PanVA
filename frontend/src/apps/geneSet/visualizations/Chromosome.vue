@@ -1,11 +1,15 @@
 <template>
-  <div>
-    <button @click="changeSorting('genome_number_asc')">
-      ascending sequence_number
-    </button>
-    <button @click="changeSorting('genome_number_desc')">
-      descending sequence_number
-    </button>
+  <div class="sortingMenu">
+    <div class="sortingOptions">
+      <AButton type="primary" @click="changeSorting('genome_number_asc')">
+        ascending genomeNr
+      </AButton>
+    </div>
+    <div class="sortingOptions">
+      <AButton @click="changeSorting('genome_number_desc')">
+        descending genomeNr
+      </AButton>
+    </div>
   </div>
   <div
     id="content"
@@ -33,6 +37,7 @@
 </template>
 
 <script lang="ts">
+import { Button } from 'ant-design-vue'
 import * as d3 from 'd3'
 import { mapActions, mapState } from 'pinia'
 
@@ -49,10 +54,11 @@ import Sequences from './Sequences.vue'
 export default {
   components: {
     Sequences,
+    AButton: Button,
   },
   data: () => ({
-    chromosomes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-    // chromosomes: [1, 2, 3, 4],
+    // chromosomes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    chromosomes: [1, 2, 3, 4],
     svgWidth: 0,
     svgHeight: 0,
     svgWidthScaleFactor: 0.95,
@@ -200,5 +206,14 @@ export default {
   fill: none;
   stroke-width: 1px;
   stroke: black;
+}
+
+.sortingMenu {
+  display: flex;
+}
+
+.sortingOptions {
+  display: flex;
+  padding-right: 6px;
 }
 </style>
