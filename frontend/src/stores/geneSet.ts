@@ -4,6 +4,9 @@ import { defineStore } from 'pinia'
 import { fetchGroupInfo, fetchHomologies, fetchSequences } from '@/api/geneSet'
 import {
   chromosomesLookup,
+  groupInfosLookup,
+  sequencesIdLookup,
+  sortedGroupInfosLookup,
   sortedSequenceIdsLookup,
 } from '@/helpers/chromosome'
 import type { GroupInfo, Homology, SequenceMetrics } from '@/types'
@@ -20,6 +23,7 @@ export const useGeneSetStore = defineStore('geneSet', {
     // Sorting
     sorting: 'genome_number',
     sortedChromosomeSequenceIndices: {},
+    sortedMrnaIndices: {},
 
     isInitialized: false,
   }),
@@ -57,13 +61,28 @@ export const useGeneSetStore = defineStore('geneSet', {
         throw error
       }
 
+      // constants
+      const chrLookup = chromosomesLookup(this.sequences)
+      const grInfoLookup = groupInfosLookup(this.groupInfo)
+      const seqLookup = sequencesIdLookup(chrLookup)
+
       try {
-        const chrLookup = chromosomesLookup(this.sequences)
+        // const chrLookup = chromosomesLookup(this.sequences)
         this.sortedChromosomeSequenceIndices =
           sortedSequenceIdsLookup(chrLookup)
       } catch (error) {
         global.setError({
           message: 'Could not parse sorted chromosome sequence ids.',
+          isFatal: true,
+        })
+        throw error
+      }
+
+      try {
+        this.sortedMrnaIndices = sortedGroupInfosLookup(grInfoLookup, seqLookup)
+      } catch (error) {
+        global.setError({
+          message: 'Could not parse sorted chromosome mrna ids.',
           isFatal: true,
         })
         throw error
@@ -75,17 +94,25 @@ export const useGeneSetStore = defineStore('geneSet', {
       // Update the sorting
       this.sorting = sorting
 
+      const chrLookup = chromosomesLookup(this.sequences)
+      const seqLookup = sequencesIdLookup(chrLookup)
+      const grInfoLookup = groupInfosLookup(this.groupInfo)
+
       // default sorting
       if (sorting === 'genome_number_asc') {
-        const chrLookup = chromosomesLookup(this.sequences)
+        const grInfoLookup = groupInfosLookup(this.groupInfo)
+
         this.sortedChromosomeSequenceIndices =
           sortedSequenceIdsLookup(chrLookup)
+        this.sortedMrnaIndices = sortedGroupInfosLookup(grInfoLookup, seqLookup)
 
         return
       }
 
       // reverse sorting
       if (sorting === 'genome_number_desc') {
+        console.log('seqLookup', seqLookup[5])
+
         const objectMap = (obj, fn) =>
           Object.fromEntries(
             Object.entries(obj).map(([k, v], i) => [k, fn(v, k, i)])
@@ -95,6 +122,30 @@ export const useGeneSetStore = defineStore('geneSet', {
           this.sortedChromosomeSequenceIndices,
           (v) => [...v].reverse()
         )
+        console.log(
+          'reversed sortedChromosomeSequenceIndices',
+          this.sortedChromosomeSequenceIndices[5]
+        )
+
+        // update mrnaIdLookup
+        const seqLookupNew = {} // need to update old?
+        Object.keys(seqLookup).forEach((chr) => {
+          const chrObj = {}
+
+          Object.keys(seqLookup[chr]).forEach((key) => {
+            const idx = seqLookup[chr][key]
+
+            chrObj[key] = this.sortedChromosomeSequenceIndices[chr][idx]
+          })
+          seqLookupNew[chr] = chrObj
+        })
+
+        this.sortedMrnaIndices = sortedGroupInfosLookup(
+          grInfoLookup,
+          seqLookupNew
+        )
+        // console.log('mrna new', this.sortedMrnaIndices)
+
         return
       }
     },
