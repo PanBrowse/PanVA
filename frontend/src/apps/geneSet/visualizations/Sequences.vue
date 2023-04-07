@@ -40,6 +40,7 @@ export default {
     chromosomeNr: Number,
     name: String,
     data: Array,
+    dataGenes: Array,
     dataMin: Number,
     dataMax: Number,
     nrColumns: Number,
@@ -67,11 +68,16 @@ export default {
     cardHeaderHeight: 40,
     transitionTime: 750,
     numberOfCols: 2,
-    barHeight: 15,
+    barHeight: 25,
     sortedSequenceIds: [],
   }),
   computed: {
-    ...mapState(useGeneSetStore, ['sortedChromosomeSequenceIndices']),
+    ...mapState(useGeneSetStore, [
+      'sortedChromosomeSequenceIndices',
+      'sortedGroupInfoLookup',
+      'groupInfoLookup',
+      'sequenceIdLookup',
+    ]),
     containerWidth() {
       return Math.floor(this.svgWidth / this.nrColumns)
     },
@@ -233,7 +239,7 @@ export default {
     },
     draw() {
       this.drawBars()
-      this.addValues()
+      //   this.addValues()
       this.addLabels()
     },
     addLabels() {
@@ -246,8 +252,6 @@ export default {
               .append('text')
               .attr('transform', `translate(0,${this.margin.top * 2})`)
               .attr('class', 'label-chr')
-              .attr('font-size', 15)
-              .attr('font-family', 'sans-serif')
               .attr('dominant-baseline', 'hanging')
               .attr('x', 0)
               .attr(
@@ -256,7 +260,7 @@ export default {
                   this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
                   (this.barHeight + 10)
               )
-              .attr('dy', 2)
+              .attr('dy', this.barHeight / 3)
               .text((d) => d.sequence_id.split('_')[0]),
 
           (update) =>
@@ -285,8 +289,6 @@ export default {
                 `translate(${this.margin.left * 1},${this.margin.top * 2})`
               )
               .attr('class', 'value-chr')
-              .attr('font-size', 12)
-              .attr('font-family', 'sans-serif')
               .attr('dominant-baseline', 'hanging')
               .attr('x', 0)
               .attr('dx', 2)
@@ -334,44 +336,94 @@ export default {
     drawGenes() {
       let vis = this
 
-      this.svg()
-        .selectAll('path.gene')
-        .data((d) => d.genes)
-        .join(
-          (enter) =>
-            enter
-              .append('path')
-              .attr(
-                'd',
-                d3
-                  .symbol()
-                  .type(d3.symbolTriangle)
-                  .size(this.rowScale.bandwidth())
-              )
-              .attr('transform', function (d, i) {
-                return `translate(${
-                  vis.margin.yAxis +
-                  vis.margin.left * 3 +
-                  vis.xScale(d.gene_start_position)
-                },${vis.margin.top * 3 + vis.yScale.bandwidth() / 2.5 + 0.1 * vis.yScale.bandwidth() + vis.yScale(d.phased_chromosome_id)}
-                  )rotate(-270)`
-              })
-              .attr('class', 'gene')
-              .attr('fill', (d) => vis.colorScale(d.homology_id))
-              .attr('opacity', 0.4),
+      if (this.dataGenes !== undefined) {
+        // console.log('data')
+        this.svg()
+          .selectAll('path.gene')
+          .data(this.dataGenes, (d) => d.mRNA_id)
+          .join(
+            (enter) =>
+              enter
+                .append('path')
+                .attr(
+                  'd',
+                  d3
+                    .symbol()
+                    .type(d3.symbolTriangle)
+                    .size(this.barHeight * 4)
+                )
+                .attr('transform', function (d, i) {
+                  const key = `${d.genome_number}_${d.sequence_number}`
+                  console.log(
+                    'd triangle',
+                    key,
+                    d.mRNA_id,
+                    i,
+                    vis.sortedGroupInfoLookup[vis.chromosomeNr][i]
+                  )
+                  return `translate(${
+                    vis.margin.left + vis.xScale(d.gene_start_position)
+                  },${vis.margin.top * 2 + vis.barHeight / 2 + vis.sortedGroupInfoLookup[vis.chromosomeNr][i] * (vis.barHeight + 10)}
+                    )rotate(-270)`
+                })
+                .attr('class', 'gene')
+                .attr('fill', (d) => vis.colorScale(d.homology_id))
+                .attr('opacity', 0.4),
 
-          (update) =>
-            update.attr('transform', function (d, i) {
-              return `translate(${
-                vis.margin.yAxis +
-                vis.margin.left * 3 +
-                vis.xScale(d.gene_start_position)
-              },${vis.margin.top * 3 + vis.yScale.bandwidth() / 2.5 + 0.1 * vis.yScale.bandwidth() + vis.yScale(d.phased_chromosome_id)}
-                  )rotate(-270)`
-            }),
-          (exit) => exit.remove()
-        )
+            //   (update) =>
+            //     update.attr('transform', function (d, i) {
+            //       return `translate(${
+            //         vis.margin.yAxis +
+            //         vis.margin.left * 3 +
+            //         vis.xScale(d.gene_start_position)
+            //       },${vis.margin.top * 3 + vis.yScale.bandwidth() / 2.5 + 0.1 * vis.yScale.bandwidth() + vis.yScale(d.phased_chromosome_id)}
+            //           )rotate(-270)`
+            //     }),
+            (exit) => exit.remove()
+          )
+      }
     },
+    // drawGenes() {
+    //   let vis = this
+
+    //   this.svg()
+    //     .selectAll('path.gene')
+    //     .data((d) => d.genes)
+    //     .join(
+    //       (enter) =>
+    //         enter
+    //           .append('path')
+    //           .attr(
+    //             'd',
+    //             d3
+    //               .symbol()
+    //               .type(d3.symbolTriangle)
+    //               .size(this.rowScale.bandwidth())
+    //           )
+    //           .attr('transform', function (d, i) {
+    //             return `translate(${
+    //               vis.margin.yAxis +
+    //               vis.margin.left * 3 +
+    //               vis.xScale(d.gene_start_position)
+    //             },${vis.margin.top * 3 + vis.yScale.bandwidth() / 2.5 + 0.1 * vis.yScale.bandwidth() + vis.yScale(d.phased_chromosome_id)}
+    //               )rotate(-270)`
+    //           })
+    //           .attr('class', 'gene')
+    //           .attr('fill', (d) => vis.colorScale(d.homology_id))
+    //           .attr('opacity', 0.4),
+
+    //       (update) =>
+    //         update.attr('transform', function (d, i) {
+    //           return `translate(${
+    //             vis.margin.yAxis +
+    //             vis.margin.left * 3 +
+    //             vis.xScale(d.gene_start_position)
+    //           },${vis.margin.top * 3 + vis.yScale.bandwidth() / 2.5 + 0.1 * vis.yScale.bandwidth() + vis.yScale(d.phased_chromosome_id)}
+    //               )rotate(-270)`
+    //         }),
+    //       (exit) => exit.remove()
+    //     )
+    // },
   },
   mounted() {
     this.svgWidth =
@@ -383,7 +435,9 @@ export default {
       this.margin.top * 2
 
     this.drawXAxis() // draw axis one
+
     this.draw()
+    this.drawGenes()
   },
   watch: {
     sortedChromosomeSequenceIndices() {
@@ -405,18 +459,25 @@ export default {
   fill: $gray-9;
   transition: r 0.2s ease-in-out;
 }
+.bar-chr:hover {
+  fill: $gray-7;
+}
 
 .value-chr {
   fill: #c0c0c0;
-}
-
-.bar-chr:hover {
-  fill: $gray-7;
+  font-size: 8;
+  font-family: sans-serif;
 }
 
 .zoom {
   fill: none;
   stroke-width: 1px;
   stroke: black;
+}
+
+.label-chr {
+  fill: #c0c0c0;
+  font-size: 12;
+  font-family: sans-serif;
 }
 </style>

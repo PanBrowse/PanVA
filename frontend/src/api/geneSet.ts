@@ -122,6 +122,7 @@ export const fetchGroupInfo = async () => {
       mRNA_length_nuc,
       cds_length_nuc,
       protein_length_AA,
+      phasing_chromosome,
     }) => {
       const data: GroupInfo = {
         homology_id: parseNumber(homology_id),
@@ -141,6 +142,7 @@ export const fetchGroupInfo = async () => {
         mRNA_length_nuc: parseNumber(mRNA_length_nuc),
         cds_length_nuc: parseNumber(cds_length_nuc),
         protein_length_AA: parseNumber(protein_length_AA),
+        phasing_chromosome: parseString(phasing_chromosome),
       }
 
       return data

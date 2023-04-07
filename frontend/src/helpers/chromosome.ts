@@ -1,4 +1,7 @@
 export const chromosomesLookup = (sequences) => {
+  /**
+   * Returns all sequences per chromosome
+   */
   const lookup = {}
   sequences.forEach((sequence) => {
     const key = sequence.phasing_chromosome
@@ -9,7 +12,10 @@ export const chromosomesLookup = (sequences) => {
   return lookup
 }
 
-export const sortedChromosomesIdsLookup = (chrLookup) => {
+export const sortedSequenceIdsLookup = (chrLookup) => {
+  /**
+   * Returns for each chromosome number the intial sorting order of sequence ids
+   */
   const lookup = {}
 
   Object.keys(chrLookup).forEach((key) => {

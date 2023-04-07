@@ -29,6 +29,7 @@
       :chromosomeNr="chr"
       :name="`chr${chr}`"
       :data="getChromosome(chr)"
+      :dataGenes="getGroupInfo(chr)"
       :dataMin="dataMin"
       :dataMax="dataMax"
       :nrColumns="numberOfCols"
@@ -41,10 +42,6 @@ import { Button } from 'ant-design-vue'
 import * as d3 from 'd3'
 import { mapActions, mapState } from 'pinia'
 
-import {
-  chromosomesLookup,
-  sortedChromosomesIdsLookup,
-} from '@/helpers/chromosome'
 import { useGeneSetStore } from '@/stores/geneSet'
 import { useGlobalStore } from '@/stores/global'
 import type { SequenceMetrics } from '@/types'
@@ -58,7 +55,7 @@ export default {
   },
   data: () => ({
     // chromosomes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-    chromosomes: [1, 2, 3, 4],
+    chromosomes: [5],
     svgWidth: 0,
     svgHeight: 0,
     svgWidthScaleFactor: 0.95,
@@ -73,7 +70,9 @@ export default {
       'sequences',
       'groupInfo',
       'chromosomeLookup',
-      'sortedChromosomeIdsLookup',
+      'groupInfoLookup',
+      'sortedGroupInfoLookup',
+      'sequenceIdLookup',
     ]),
 
     dataMax() {
@@ -95,7 +94,7 @@ export default {
   methods: {
     ...mapActions(useGeneSetStore, [
       'getChromosome',
-      'getSortedChromosomeIds',
+      'getGroupInfo',
       'changeSorting',
     ]),
     sortedSequenceIds(chr) {
@@ -174,18 +173,6 @@ export default {
     this.svgHeight =
       document.getElementById('content').offsetHeight *
       this.svgHeightScaleFactor
-
-    // console.log(
-    //   'chromosomeLookup',
-    //   this.chromosomeLookup,
-    //   this.sortedChromosomeIdsLookup
-    // )
-
-    // console.log(
-    //   // 'chromosomesLookup helper',
-    //   // chromosomesLookup(this.sequences),
-    //   sortedChromosomesIdsLookup(chromosomesLookup(this.sequences))
-    // )
   },
 }
 </script>

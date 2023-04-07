@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import { fetchGroupInfo, fetchHomologies, fetchSequences } from '@/api/geneSet'
 import {
   chromosomesLookup,
-  sortedChromosomesIdsLookup,
+  sortedSequenceIdsLookup,
 } from '@/helpers/chromosome'
 import type { GroupInfo, Homology, SequenceMetrics } from '@/types'
 
@@ -60,7 +60,7 @@ export const useGeneSetStore = defineStore('geneSet', {
       try {
         const chrLookup = chromosomesLookup(this.sequences)
         this.sortedChromosomeSequenceIndices =
-          sortedChromosomesIdsLookup(chrLookup)
+          sortedSequenceIdsLookup(chrLookup)
       } catch (error) {
         global.setError({
           message: 'Could not parse sorted chromosome sequence ids.',
@@ -79,7 +79,7 @@ export const useGeneSetStore = defineStore('geneSet', {
       if (sorting === 'genome_number_asc') {
         const chrLookup = chromosomesLookup(this.sequences)
         this.sortedChromosomeSequenceIndices =
-          sortedChromosomesIdsLookup(chrLookup)
+          sortedSequenceIdsLookup(chrLookup)
 
         return
       }
@@ -101,12 +101,15 @@ export const useGeneSetStore = defineStore('geneSet', {
     getChromosome(key) {
       return this.chromosomeLookup[key]
     },
-    getSortedChromosomeIds(key) {
-      return this.sortedChromosomeIdsLookup[key]
+    getGroupInfo(key) {
+      return this.groupInfoLookup[key]
     },
   },
   getters: {
     chromosomeLookup() {
+      /**
+       * Returns all sequences per chromosome
+       */
       const lookup = {}
       this.sequences.forEach((sequence) => {
         const key = sequence.phasing_chromosome
@@ -116,19 +119,58 @@ export const useGeneSetStore = defineStore('geneSet', {
       })
       return lookup
     },
-    sortedChromosomeIdsLookup() {
+    sequenceIdLookup() {
+      /**
+       * Returns a mapping of sequence ids and their initial order per chromosome
+       */
       const lookup = {}
-
       Object.keys(this.chromosomeLookup).forEach((key) => {
-        // console.log(key, this.chromosomeLookup[key], [
-        //   ...Array(this.chromosomeLookup[key].length).keys(),
-        // ])
+        const object = this.chromosomeLookup[key].reduce(
+          (obj, item, dataIndex) =>
+            Object.assign(obj, { [item.sequence_id]: dataIndex }),
+          {}
+        )
 
-        const ids = lookup[key] || [
-          ...Array(this.chromosomeLookup[key].length).keys(),
-        ]
+        lookup[key] = object
+      })
+
+      return lookup
+    },
+    groupInfoLookup() {
+      /**
+       * Returns all mrNAs per chromosome
+       */
+      const lookup = {}
+      this.groupInfo.forEach((info) => {
+        const key = info.phasing_chromosome
+        const rows = lookup[key] || []
+        rows.push(info)
+        lookup[key] = rows
+      })
+      return lookup
+    },
+    sortedGroupInfoLookup() {
+      /**
+       * Returns intitial sorting indices of gene set per chromosome
+       */
+      const lookup = {}
+      const that = this
+      Object.keys(this.groupInfoLookup).forEach((key) => {
+        const groupLookup = this.groupInfoLookup[key]
+        const ids =
+          lookup[key] ||
+          groupLookup.map(function (item) {
+            const newKey = `${item.genome_number}_${item.sequence_number}`
+            if (key != 'unphased') {
+              return that.sequenceIdLookup[key][newKey]
+            } else {
+              return -99 //map unphased to -99
+            }
+          })
+
         lookup[key] = ids
       })
+
       return lookup
     },
   },

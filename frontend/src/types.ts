@@ -188,6 +188,7 @@ export type GroupInfo = {
   mRNA_length_nuc: number
   cds_length_nuc: number
   protein_length_AA: number
+  phasing_chromosome: string
 }
 
 export type Alignment = {
