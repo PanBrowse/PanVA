@@ -3,7 +3,7 @@
   <ACard
     :title="`${name}`"
     :style="{
-      width: `${containerWidth - 2}px`,
+      width: `${containerWidth - 6}px`,
       height: `${
         svgHeight + cardHeaderHeight + padding.cardBody + margin.top
       }px`,
@@ -53,7 +53,7 @@ export default {
   data: () => ({
     svgWidth: 0,
     svgHeight: 0,
-    svgWidthScaleFactor: 0.99,
+    svgWidthScaleFactor: 1,
     svgHeightScaleFactor: 0.95,
     margin: {
       top: 10,
