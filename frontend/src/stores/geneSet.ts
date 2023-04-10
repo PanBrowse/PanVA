@@ -19,6 +19,8 @@ export const useGeneSetStore = defineStore('geneSet', {
     homologies: [] as Homology[],
     sequences: [] as SequenceMetrics[],
     groupInfo: [] as GroupInfo[],
+    chromosomes: [] as Number,
+    numberOfChromosomes: 0,
 
     // Sorting
     sorting: 'genome_number',
@@ -30,6 +32,9 @@ export const useGeneSetStore = defineStore('geneSet', {
   actions: {
     async initialize() {
       const global = useGlobalStore()
+
+      this.chromosomes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] // to-do: get from data!
+      this.numberOfChromosomes = this.chromosomes.length
 
       try {
         this.homologies = sortBy(await fetchHomologies(), 'id')
@@ -148,6 +153,20 @@ export const useGeneSetStore = defineStore('geneSet', {
 
         return
       }
+    },
+    deleteChromosome(chr) {
+      console.log('delete chromosome', chr)
+      const chromosomesUpdated = [...this.chromosomes]
+      const value = parseInt(chr.split('chr')[1])
+      const index = chromosomesUpdated.indexOf(value)
+
+      if (index > -1) {
+        // only splice array when item is found
+        chromosomesUpdated.splice(index, 1) // 2nd parameter means remove one item only
+      }
+
+      this.numberOfChromosomes = chromosomesUpdated.length
+      this.chromosomes = chromosomesUpdated
     },
     getChromosome(key) {
       return this.chromosomeLookup[key]

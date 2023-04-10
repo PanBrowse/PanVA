@@ -12,7 +12,7 @@
     size="small"
   >
     <template #extra
-      ><AButton type="text" size="small" @click="onDelete(`${name}`)"
+      ><AButton type="text" size="small" @click="deleteChromosome(`${name}`)"
         ><CloseCircleOutlined key="edit" /></AButton
     ></template>
     <svg
@@ -78,9 +78,11 @@ export default {
       'groupInfoLookup',
       'sequenceIdLookup',
       'sortedMrnaIndices',
+      'chromosomes',
+      'numberOfChromosomes',
     ]),
     containerWidth() {
-      return Math.floor(this.svgWidth / this.nrColumns)
+      return Math.floor(this.svgWidth / this.numberOfChromosomes)
     },
     visWidth() {
       return this.containerWidth - 12 - 12 - 10 - 17.5
@@ -99,7 +101,7 @@ export default {
     },
     ticksXdomain() {
       const stepFactor = this.dataMax / 1000000
-      const stepSize = Math.ceil(stepFactor) * this.nrColumns * 100000
+      const stepSize = Math.ceil(stepFactor) * this.numberOfChromosomes * 100000
       const ticks = range(stepSize, this.dataMax, stepSize).concat([
         this.dataMax,
       ])
@@ -122,6 +124,7 @@ export default {
     },
   },
   methods: {
+    ...mapActions(useGeneSetStore, ['deleteChromosome']),
     drawZoomExample() {
       const width = 500
       const height = 180
@@ -184,9 +187,10 @@ export default {
     svg() {
       return d3.select(`#container_${this.name}`)
     },
-    onDelete(chromosome) {
-      console.log('click delete', chromosome)
-    },
+    // onDelete(chromosome) {
+    //   console.log('click delete', chromosome)
+
+    // },
     sortGenomes(order) {
       this.genomesLookup = order
       console.log('hello from click', this.genomesLookup)
@@ -234,7 +238,10 @@ export default {
                 (d, i) =>
                   this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
                   (this.barHeight + 10)
-              ),
+              )
+              .attr('width', function (d) {
+                return vis.xScale(d.sequence_length)
+              }),
           (exit) => exit.remove()
         )
     },
@@ -338,7 +345,7 @@ export default {
     drawGenes() {
       let vis = this
 
-      console.log('sortedMrnaIndices', vis.sortedMrnaIndices)
+      //   console.log('sortedMrnaIndices', vis.sortedMrnaIndices)
 
       if (this.dataGenes !== undefined) {
         this.svg()
@@ -393,11 +400,16 @@ export default {
         (this.barHeight + 10) +
       this.margin.top * 2
 
-    this.drawXAxis() // draw axis one
+    this.drawXAxis() // draw axis once
     this.draw()
   },
   watch: {
     sortedChromosomeSequenceIndices() {
+      this.draw()
+    },
+    numberOfChromosomes() {
+      this.svg().select('g.x-axis').remove()
+      this.drawXAxis() // redraw
       this.draw()
     },
   },

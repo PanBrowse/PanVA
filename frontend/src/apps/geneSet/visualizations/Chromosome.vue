@@ -32,7 +32,6 @@
       :dataGenes="getGroupInfo(chr)"
       :dataMin="dataMin"
       :dataMax="dataMax"
-      :nrColumns="numberOfCols"
     />
   </div>
 </template>
@@ -54,7 +53,7 @@ export default {
     AButton: Button,
   },
   data: () => ({
-    chromosomes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    // chromosomes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
     // chromosomes: [5],
     svgWidth: 0,
     svgHeight: 0,
@@ -69,6 +68,8 @@ export default {
     ...mapState(useGeneSetStore, [
       'sequences',
       'groupInfo',
+      'chromosomes',
+      'numberOfChromosomes',
       'chromosomeLookup',
       'groupInfoLookup',
       'sortedGroupInfoLookup',
@@ -87,7 +88,7 @@ export default {
         .domain([232273529, 232288684])
         .range(d3.schemeSet2)
     },
-    numberOfCols() {
+    numberOfChr() {
       return this.chromosomes.length
     },
   },
@@ -158,11 +159,6 @@ export default {
       })
 
       svg.call(zoom)
-    },
-    sortSequences() {
-      // this.sortedSequenceIds = this.sortedSequenceIds.reverse()
-      // this.draw()
-      console.log('sort')
     },
   },
   created() {},
