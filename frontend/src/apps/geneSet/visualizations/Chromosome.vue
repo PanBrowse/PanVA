@@ -1,16 +1,4 @@
 <template>
-  <div class="sortingMenu">
-    <div class="sortingOptions">
-      <AButton type="primary" @click="changeSorting('genome_number_asc')">
-        ascending genomeNr
-      </AButton>
-    </div>
-    <div class="sortingOptions">
-      <AButton @click="changeSorting('genome_number_desc')">
-        descending genomeNr
-      </AButton>
-    </div>
-  </div>
   <div
     id="content"
     style="
@@ -20,9 +8,6 @@
       justify-content: space-between;
     "
   >
-    <!-- <div v-for="chr in chromosomes">
-      {{ chr }}
-    </div> -->
     <Sequences
       v-for="chr in chromosomes"
       v-bind:key="chr"
@@ -37,7 +22,6 @@
 </template>
 
 <script lang="ts">
-import { Button } from 'ant-design-vue'
 import * as d3 from 'd3'
 import { mapActions, mapState } from 'pinia'
 
@@ -50,7 +34,6 @@ import Sequences from './Sequences.vue'
 export default {
   components: {
     Sequences,
-    AButton: Button,
   },
   data: () => ({
     // chromosomes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
@@ -194,14 +177,5 @@ export default {
   fill: none;
   stroke-width: 1px;
   stroke: black;
-}
-
-.sortingMenu {
-  display: flex;
-}
-
-.sortingOptions {
-  display: flex;
-  padding-right: 6px;
 }
 </style>
