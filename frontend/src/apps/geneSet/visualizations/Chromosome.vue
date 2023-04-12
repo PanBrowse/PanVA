@@ -170,6 +170,11 @@ export default {
       document.getElementById('content').offsetHeight *
       this.svgHeightScaleFactor
   },
+  watch: {
+    svgWidth() {
+      console.log('svg width change', this.svgWidth)
+    },
+  },
 }
 </script>
 

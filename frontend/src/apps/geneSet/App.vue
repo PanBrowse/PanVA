@@ -5,6 +5,7 @@ import Layout from '@/components/Layout.vue'
 import LoadingScreen from '@/components/LoadingScreen.vue'
 import { useGeneSetStore } from '@/stores/geneSet'
 
+import Tips from './sidebar/Tips.vue'
 import Chromosome from './visualizations/Chromosome.vue'
 import Homologies from './visualizations/Homologies.vue'
 
@@ -14,6 +15,7 @@ export default {
     Chromosome,
     Layout,
     LoadingScreen,
+    Tips,
   },
   computed: {
     ...mapState(useGeneSetStore, ['isInitialized']),
@@ -23,6 +25,7 @@ export default {
 
 <template>
   <Layout v-if="isInitialized">
+    <template #sidebar> <Tips /></template>
     <Chromosome />
     <!-- <Homologies /> -->
   </Layout>

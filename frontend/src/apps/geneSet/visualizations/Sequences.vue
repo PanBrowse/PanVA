@@ -55,6 +55,7 @@ export default {
     svgHeight: 0,
     svgWidthScaleFactor: 1,
     svgHeightScaleFactor: 0.95,
+    // resizeObserver: null as ResizeObserver | null,
     margin: {
       top: 10,
       bottom: 10,
@@ -125,6 +126,20 @@ export default {
   },
   methods: {
     ...mapActions(useGeneSetStore, ['deleteChromosome']),
+    // onResize() {
+    //   // Card width minus the padding.
+    //   this.svgWidth = this.$el.offsetWidth - 24
+    //   this.draw()
+    // },
+    observeWidth() {
+      let vis = this
+      const resizeObserver = new ResizeObserver(function () {
+        vis.svgWidth =
+          document.getElementById('content').offsetWidth *
+          vis.svgWidthScaleFactor
+      })
+      resizeObserver.observe(document.getElementById('content'))
+    },
     drawZoomExample() {
       const width = 500
       const height = 180
@@ -402,12 +417,25 @@ export default {
 
     this.drawXAxis() // draw axis once
     this.draw()
+
+    this.observeWidth()
+
+    // this.resizeObserver = new ResizeObserver(this.onResize)
+    // this.resizeObserver.observe(this.$el)
   },
+  // unmounted() {
+  //   this.resizeObserver?.disconnect()
+  // },
   watch: {
     sortedChromosomeSequenceIndices() {
       this.draw()
     },
     numberOfChromosomes() {
+      this.svg().select('g.x-axis').remove()
+      this.drawXAxis() // redraw
+      this.draw()
+    },
+    svgWidth() {
       this.svg().select('g.x-axis').remove()
       this.drawXAxis() // redraw
       this.draw()
