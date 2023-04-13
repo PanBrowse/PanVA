@@ -44,6 +44,8 @@ export default {
     dataMin: Number,
     dataMax: Number,
     nrColumns: Number,
+    maxGC: Number,
+    minGC: Number,
   },
   components: {
     ACard: Card,
@@ -122,6 +124,12 @@ export default {
         .scaleOrdinal()
         .domain([232273529, 232288684])
         .range(d3.schemeSet2)
+    },
+    colorScaleGC() {
+      return d3
+        .scaleSequential()
+        .domain([this.minGC, this.maxGC])
+        .interpolator(d3.interpolateGreys)
     },
   },
   methods: {
@@ -242,7 +250,8 @@ export default {
               .attr('width', function (d) {
                 return vis.xScale(d.sequence_length)
               })
-              .attr('height', this.barHeight),
+              .attr('height', this.barHeight)
+              .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent)),
 
           (update) =>
             update
@@ -420,6 +429,8 @@ export default {
 
     this.observeWidth()
 
+    console.log('GC', this.minGC, this.maxGC)
+
     // this.resizeObserver = new ResizeObserver(this.onResize)
     // this.resizeObserver.observe(this.$el)
   },
@@ -452,13 +463,13 @@ export default {
   filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
 }
 
-.bar-chr {
-  fill: $gray-9;
-  transition: r 0.2s ease-in-out;
-}
-.bar-chr:hover {
-  fill: $gray-7;
-}
+// .bar-chr {
+//   fill: $gray-9;
+//   transition: r 0.2s ease-in-out;
+// }
+// .bar-chr:hover {
+//   fill: $gray-7;
+// }
 
 .value-chr {
   fill: #c0c0c0;

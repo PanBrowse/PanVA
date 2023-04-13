@@ -5,6 +5,7 @@ import Layout from '@/components/Layout.vue'
 import LoadingScreen from '@/components/LoadingScreen.vue'
 import { useGeneSetStore } from '@/stores/geneSet'
 
+import ContextOptions from './sidebar/ContextOptions.vue'
 import Filters from './sidebar/Filters.vue'
 import Sorting from './sidebar/Sorting.vue'
 import Unphased from './sidebar/Unphased.vue'
@@ -20,6 +21,7 @@ export default {
     Sorting,
     Unphased,
     Filters,
+    ContextOptions,
   },
   computed: {
     ...mapState(useGeneSetStore, ['isInitialized']),
@@ -32,6 +34,8 @@ export default {
     <template #sidebar>
       <Filters />
       <Sorting />
+
+      <ContextOptions />
       <Unphased />
     </template>
     <Chromosome />

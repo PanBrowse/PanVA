@@ -17,6 +17,8 @@
       :dataGenes="getGroupInfo(chr)"
       :dataMin="dataMin"
       :dataMax="dataMax"
+      :maxGC="GCcontentMax"
+      :minGC="GCcontentMin"
     />
   </div>
 </template>
@@ -65,6 +67,16 @@ export default {
     dataMin() {
       return d3.min(this.sequences, (d) => d.sequence_length)
     },
+    GCfiltered() {
+      const CGcontentArray = this.sequences.map((d) => d.GC_content_percent)
+      return this.filterOutliers(CGcontentArray)
+    },
+    GCcontentMax() {
+      return d3.max(this.GCfiltered, (d) => d)
+    },
+    GCcontentMin() {
+      return d3.min(this.GCfiltered, (d) => d)
+    },
     colorScale() {
       return d3
         .scaleOrdinal()
@@ -83,6 +95,32 @@ export default {
     ]),
     sortedSequenceIds(chr) {
       return [...Array(this.getChromosome(chr).length).keys()]
+    },
+    filterOutliers(someArray) {
+      if (someArray.length < 4) return someArray
+
+      let values, q1, q3, iqr, maxValue, minValue
+
+      values = someArray.slice().sort((a, b) => a - b) //copy array fast and sort
+
+      if ((values.length / 4) % 1 === 0) {
+        //find quartiles
+        q1 =
+          (1 / 2) * (values[values.length / 4] + values[values.length / 4 + 1])
+        q3 =
+          (1 / 2) *
+          (values[values.length * (3 / 4)] +
+            values[values.length * (3 / 4) + 1])
+      } else {
+        q1 = values[Math.floor(values.length / 4 + 1)]
+        q3 = values[Math.ceil(values.length * (3 / 4) + 1)]
+      }
+
+      iqr = q3 - q1
+      maxValue = q3 + iqr * 1.5
+      minValue = q1 - iqr * 1.5
+
+      return values.filter((x) => x >= minValue && x <= maxValue)
     },
     drawZoomExample() {
       const width = 500
@@ -164,14 +202,14 @@ export default {
 <style lang="scss">
 @import '@/assets/colors.module.scss';
 
-.bar-chr {
-  fill: $gray-9;
-  transition: r 0.2s ease-in-out;
-}
+// .bar-chr {
+//   fill: $gray-9;
+//   transition: r 0.2s ease-in-out;
+// }
 
-.bar-chr:hover {
-  fill: $gray-7;
-}
+// .bar-chr:hover {
+//   fill: $gray-7;
+// }
 
 .zoom {
   fill: none;
