@@ -1,7 +1,9 @@
 <script lang="ts">
 import { Form, FormItem, Switch } from 'ant-design-vue'
+import { mapWritableState } from 'pinia'
 
 import SidebarItem from '@/components/SidebarItem.vue'
+import { useGeneSetStore } from '@/stores/geneSet'
 
 export default {
   components: {
@@ -9,6 +11,9 @@ export default {
     ASwitch: Switch,
     AForm: Form,
     AFormItem: FormItem,
+  },
+  computed: {
+    ...mapWritableState(useGeneSetStore, ['percentageGC']),
   },
 }
 </script>
@@ -22,7 +27,7 @@ export default {
     >
       <AFormItem label="Gene density"> <ASwitch size="small" /></AFormItem>
       <AFormItem label="GC %">
-        <ASwitch size="small" />
+        <ASwitch size="small" v-model:checked="percentageGC" />
       </AFormItem>
       <AFormItem label="ACGT %">
         <ASwitch size="small" />

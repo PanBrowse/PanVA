@@ -27,6 +27,12 @@ export const useGeneSetStore = defineStore('geneSet', {
     sortedChromosomeSequenceIndices: {},
     sortedMrnaIndices: {},
 
+    // Clustering
+    linkage: 1,
+
+    //Context
+    percentageGC: true,
+
     isInitialized: false,
   }),
   actions: {

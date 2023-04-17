@@ -292,7 +292,7 @@ export default {
               .append('rect')
               .attr(
                 'transform',
-                `translate(${this.margin.left * 1},${this.margin.top * 2})`
+                `translate(${this.margin.left * 3},${this.margin.top * 2})`
               )
               .attr('class', 'bar-chr')
               .attr('x', this.xScale(0))
@@ -338,7 +338,7 @@ export default {
               .append('rect')
               .attr(
                 'transform',
-                `translate(${this.margin.left * 1},${this.margin.top * 2})`
+                `translate(${this.margin.left * 3},${this.margin.top * 2})`
               )
               .attr('class', 'bar-chr-context')
               .attr('x', this.xScale(0))
@@ -397,7 +397,8 @@ export default {
                   (this.barHeight + 10)
               )
               .attr('dy', this.barHeight / 3)
-              .text((d) => d.sequence_id.split('_')[0]),
+              // .text((d) => d.sequence_id.split('_')[0]),
+              .text((d) => d.sequence_id),
 
           (update) =>
             update
@@ -451,12 +452,14 @@ export default {
         )
     },
     drawXAxis() {
+      this.svg().select('g.x-axis').remove() //needed because otherwise draws twice in some cases. To-do: fix side effect
+
       this.svg()
         .append('g')
         .attr('class', 'x-axis')
         .attr(
           'transform',
-          'translate(' + this.margin.left * 1 + ',' + this.margin.top * 2 + ')'
+          'translate(' + this.margin.left * 3 + ',' + this.margin.top * 2 + ')'
         )
         .call(
           d3
@@ -493,7 +496,7 @@ export default {
                   const key = `${d.genome_number}_${d.sequence_number}`
 
                   return `translate(${
-                    vis.margin.left + vis.xScale(d.gene_start_position)
+                    vis.margin.left * 3 + vis.xScale(d.gene_start_position)
                   },${vis.margin.top * 2 + vis.barHeight / 2 + vis.sortedMrnaIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
                     )rotate(-270)`
                 })
@@ -510,7 +513,7 @@ export default {
                   const key = `${d.genome_number}_${d.sequence_number}`
 
                   return `translate(${
-                    vis.margin.left + vis.xScale(d.gene_start_position)
+                    vis.margin.left * 3 + vis.xScale(d.gene_start_position)
                   },${vis.margin.top * 2 + vis.barHeight / 2 + vis.sortedMrnaIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
                     )rotate(-270)`
                 }),
