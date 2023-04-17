@@ -120,10 +120,66 @@ export default {
       return ticks
     },
     colorScale() {
-      return d3
-        .scaleOrdinal()
-        .domain([232273529, 232288684])
-        .range(d3.schemeSet2)
+      return (
+        d3
+          .scaleOrdinal()
+          .domain([
+            [
+              232273544, 232274322, 232273685, 232256926, 232274335, 232290464,
+              232256927, 232273967, 232289205, 232273851, 232273853, 232291136,
+              232273731, 232290249, 232273868, 232289749, 232273892, 232289646,
+              232292464, 232273529,
+            ],
+          ])
+          // .domain([232273529, 232288684])
+          // https://sashamaps.net/docs/resources/20-colors/
+          // https://github.com/d3/d3-3.x-api-reference/blob/master/Ordinal-Scales.md
+          .range([
+            '#1f77b4',
+            '#ff7f0e',
+            '#2ca02c',
+            '#d62728',
+            '#9467bd',
+            '#8c564b',
+            '#e377c2',
+            '#7f7f7f',
+            '#bcbd22',
+            '#17becf',
+            '#ffbb78',
+            '#98df8a',
+            '#ff9896',
+            '#c5b0d5',
+            '#c49c94',
+            '#f7b6d2',
+            '#c7c7c7',
+            '#dbdb8d',
+            '#9edae5',
+          ])
+        // http://vrl.cs.brown.edu/color
+        // .range([
+        //   '#41bbc5',
+        //   '#bf3854',
+        //   '#6bdd8c',
+        //   '#e84fe1',
+        //   '#09f54c',
+        //   '#7c338b',
+        //   '#b1e632',
+        //   '#4533d6',
+        //   '#f4d403',
+        //   '#22577a',
+        //   '#a8c280',
+        //   '#a17bf2',
+        //   '#638123',
+        //   '#fcc2fb',
+        //   '#1c9820',
+        //   '#ff0087',
+        //   '#a3c9fe',
+        //   '#713529',
+        //   '#fba55c',
+        //   '#ee0d0e',
+        // ])
+      )
+      // .range(d3.schemeCategory10)
     },
     colorScaleGC() {
       return d3
@@ -251,8 +307,54 @@ export default {
                 return vis.xScale(d.sequence_length)
               })
               .attr('height', this.barHeight)
-              .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent)),
+              .attr('fill', '#f0f2f5'),
+          // .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent)),
+          (update) =>
+            update
+              .transition()
+              .duration(this.transitionTime)
+              .attr(
+                'y',
+                (d, i) =>
+                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+                  (this.barHeight + 10)
+              )
+              .attr('width', function (d) {
+                return vis.xScale(d.sequence_length)
+              }),
+          (exit) => exit.remove()
+        )
+    },
+    drawContextBars() {
+      let vis = this
 
+      this.svg()
+        .selectAll('rect.bar-chr-context')
+        // .data(this.getChromosome(5), (d) => d.sequence_id)
+        .data(this.data, (d) => d.sequence_id)
+        .join(
+          (enter) =>
+            enter
+              .append('rect')
+              .attr(
+                'transform',
+                `translate(${this.margin.left * 1},${this.margin.top * 2})`
+              )
+              .attr('class', 'bar-chr-context')
+              .attr('x', this.xScale(0))
+              // .attr('y', (d, i) => i * (this.barHeight + 10))
+              .attr(
+                'y',
+                (d, i) =>
+                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+                  (this.barHeight + 10)
+              )
+              .attr('width', function (d) {
+                return vis.xScale(d.sequence_length)
+              })
+              .attr('height', this.barHeight / 4)
+              // .attr('fill', '#f0f2f5'),
+              .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent)),
           (update) =>
             update
               .transition()
@@ -271,6 +373,7 @@ export default {
     },
     draw() {
       this.drawBars()
+      this.drawContextBars()
       //   this.addValues()
       this.addLabels()
       this.drawGenes()
@@ -395,8 +498,9 @@ export default {
                     )rotate(-270)`
                 })
                 .attr('class', 'gene')
+                .attr('z-index', 100)
                 .attr('fill', (d) => vis.colorScale(d.homology_id))
-                .attr('opacity', 0.4),
+                .attr('opacity', 0.8),
 
             (update) =>
               update
