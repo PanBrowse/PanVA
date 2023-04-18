@@ -67,12 +67,12 @@ def create_lv_matrix(sequences, positions=None):
     return matrix
 
 
-def create_linkage_matrix(data_matrix):
+def create_linkage_matrix(data_matrix, method='average'):
     # https://towardsdatascience.com/introduction-hierarchical-clustering-d3066c6b560e
     # https://www.cs.rice.edu/~ogilvie/comp571/2018/11/01/neighbor-joining.html
     # https://medium.com/geekculture/phylogenetic-trees-implement-in-python-3f9df96c0c32
     dists = squareform(data_matrix)
-    return linkage(dists, "average")
+    return linkage(dists, method)
 
 
 def label_tree(n, labels):
