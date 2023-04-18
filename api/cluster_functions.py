@@ -1,5 +1,5 @@
 import Levenshtein as lv
-from scipy.cluster.hierarchy import linkage, to_tree
+from scipy.cluster.hierarchy import linkage, to_tree, leaves_list
 from scipy.spatial.distance import squareform
 import numpy as np
 import os
@@ -117,3 +117,21 @@ def create_dendrogram(linkage_matrix, labels):
     label_tree(dendrogram["children"][0], labels)
 
     return dendrogram
+
+#### GeneSet clustering functions ####
+
+def get_clustering_leaves(sequence_info, linkage_matrix, labels):
+
+    leaf_indices = leaves_list(linkage_matrix)
+    leaf_labels = [labels[i] for i in leaf_indices]
+
+    # make dict for each chromosome
+    sortingDict = dict()
+
+    # filter sequences per chromosome nr and add to dict 
+    chromosomes = [1,2,3,4,5,6,7,8,9,10,11,12]
+    for i in chromosomes:
+        sequences = sequence_info[sequence_info['phasing_chromosome']==i]['sequence_id'].to_list()
+        sortingDict[i] = [s for s in leaf_labels if s in sequences]
+
+    return sortingDict 

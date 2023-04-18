@@ -1,8 +1,10 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
+import json
 import sys
 import os
 import pandas as pd
+import numpy as np
 from dotenv import load_dotenv
 from flask_json_schema import JsonSchema
 
@@ -11,6 +13,8 @@ from cluster_functions import (
     filtered_linkage_matrix,
     load_linkage_matrix,
     save_linkage_matrix,
+    create_linkage_matrix,
+    get_clustering_leaves
 )
 
 # Dendrogram can be very deep.
@@ -81,6 +85,40 @@ def get_dendrogram(id):
         )
 
     return create_dendrogram(linkage_matrix, labels)
+
+@app.route("/geneSet/clustering.json", methods=["GET", "POST"])
+def get_clustering_order():
+
+    sequences_path = os.path.join(db_path, "geneSet", "sequences.csv")
+    matrix_path = os.path.join(db_path, "geneSet", "protein_distance_matrix.npy")
+
+    # Load sequences data.
+    sequences = pd.read_csv(sequences_path)
+    labels = sequences["sequence_id"].to_list()
+
+    # Load data matrix
+    data_matrix_proteins = np.load(matrix_path)
+
+    
+    # Create linkage matrix
+    linkage_matrix = create_linkage_matrix(data_matrix_proteins, "average")
+    
+    if request.method == "POST":
+        method = request.json["method"]
+        methods = ["average", "complete", "single", "ward"]
+   
+        print("method", methods[method])
+
+        # Create linkage matrix
+        linkage_matrix = create_linkage_matrix(data_matrix_proteins,  methods[method])
+
+    # Load linkage matrix
+    sorting_dict = get_clustering_leaves(sequences, linkage_matrix, labels)
+
+
+    json_object = json.dumps(sorting_dict, indent = 4) 
+
+    return jsonify(sorting_dict)
 
 
 if __name__ == "__main__":

@@ -9,10 +9,22 @@
     "
   >
     <Sequences
-      v-for="chr in chromosomes"
+      v-for="chr in chromosomes.filter((chr) => chr !== 'unphased')"
       v-bind:key="chr"
       :chromosomeNr="chr"
       :name="`chr${chr}`"
+      :data="getChromosome(chr)"
+      :dataGenes="getGroupInfo(chr)"
+      :dataMin="dataMin"
+      :dataMax="dataMax"
+      :maxGC="GCcontentMax"
+      :minGC="GCcontentMin"
+    />
+    <Sequences
+      v-for="chr in chromosomes.filter((chr) => chr == 'unphased')"
+      v-bind:key="chr"
+      :chromosomeNr="chr"
+      :name="`${chr}`"
       :data="getChromosome(chr)"
       :dataGenes="getGroupInfo(chr)"
       :dataMin="dataMin"

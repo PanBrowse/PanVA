@@ -46,7 +46,9 @@ export default {
         <AButton danger @click="changeSorting('genome_number_desc')">
           descending genomeNr
         </AButton>
-        <AButton type="primary" ghost> Protein </AButton>
+        <AButton type="primary" ghost @click="changeSorting('protein')">
+          Protein
+        </AButton>
         <AButton type="primary" ghost> Orientation </AButton>
         <AButton type="primary" ghost> Size </AButton>
         <AButton type="primary" ghost> Position </AButton>
@@ -73,10 +75,10 @@ export default {
       </AFormItem>
       <AFormItem label="Linkage">
         <ARadioGroup v-model:value="linkage">
-          <ARadio :value="1">Average</ARadio>
-          <ARadio :value="2">Complete</ARadio>
-          <ARadio :value="3">Single</ARadio>
-          <ARadio :value="4">Ward</ARadio>
+          <ARadio :value="0">Average</ARadio>
+          <ARadio :value="1">Complete</ARadio>
+          <ARadio :value="2">Single</ARadio>
+          <ARadio :value="3">Ward</ARadio>
         </ARadioGroup>
       </AFormItem>
     </AForm>

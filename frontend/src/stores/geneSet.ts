@@ -1,7 +1,13 @@
+import { ConsoleSqlOutlined } from '@ant-design/icons-vue'
 import { sortBy } from 'lodash'
 import { defineStore } from 'pinia'
 
-import { fetchGroupInfo, fetchHomologies, fetchSequences } from '@/api/geneSet'
+import {
+  fetchClusteringOrder,
+  fetchGroupInfo,
+  fetchHomologies,
+  fetchSequences,
+} from '@/api/geneSet'
 import {
   chromosomesLookup,
   groupInfosLookup,
@@ -28,7 +34,8 @@ export const useGeneSetStore = defineStore('geneSet', {
     sortedMrnaIndices: {},
 
     // Clustering
-    linkage: 1,
+    linkage: 3,
+    clusteringOrder: {},
 
     //Context
     percentageGC: true,
@@ -39,7 +46,7 @@ export const useGeneSetStore = defineStore('geneSet', {
     async initialize() {
       const global = useGlobalStore()
 
-      this.chromosomes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] // to-do: get from data!
+      this.chromosomes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 'unphased'] // to-do: get from data!
       this.numberOfChromosomes = this.chromosomes.length
 
       try {
@@ -99,9 +106,22 @@ export const useGeneSetStore = defineStore('geneSet', {
         throw error
       }
 
+      try {
+        this.clusteringOrder = await fetchClusteringOrder(this.linkage)
+      } catch (error) {
+        global.setError({
+          message: 'Could not load or parse clustering result.',
+          isFatal: true,
+        })
+        throw error
+      }
+
       this.isInitialized = true
     },
-    changeSorting(sorting) {
+    async recalculate() {
+      this.clusteringOrder = await fetchClusteringOrder(this.linkage)
+    },
+    async changeSorting(sorting) {
       // Update the sorting
       this.sorting = sorting
 
@@ -122,8 +142,6 @@ export const useGeneSetStore = defineStore('geneSet', {
 
       // reverse sorting
       if (sorting === 'genome_number_desc') {
-        console.log('seqLookup', seqLookup[5])
-
         const objectMap = (obj, fn) =>
           Object.fromEntries(
             Object.entries(obj).map(([k, v], i) => [k, fn(v, k, i)])
@@ -156,6 +174,57 @@ export const useGeneSetStore = defineStore('geneSet', {
           seqLookupNew
         )
         // console.log('mrna new', this.sortedMrnaIndices)
+
+        return
+      }
+
+      if (sorting === 'protein') {
+        this.clusteringOrder = await fetchClusteringOrder(this.linkage)
+        // console.log('protein sorting', this.linkage, this.clusteringOrder)
+        // console.log('sequenceLookup', seqLookup)
+
+        const lookup = {}
+        Object.keys(seqLookup).forEach((chr) => {
+          const proteinArray = this.clusteringOrder[chr]
+
+          const newLookupProt = Object.fromEntries(
+            proteinArray.map((sequenceID, dataIndex) => [sequenceID, dataIndex])
+          )
+          const proteinIndices = []
+          // console.log('newLookupProt', newLookupProt)
+
+          Object.keys(seqLookup[chr]).forEach((key) => {
+            console.log(key, newLookupProt[key])
+            proteinIndices.push(newLookupProt[key])
+          })
+
+          // // Pass a function to map
+          // const proteinIndices = proteinArray.map(
+          //   (item) => this.sequenceIdLookup[chr][item]
+          // )
+          // console.log(proteinIndices)
+          lookup[chr] = proteinIndices
+        })
+        console.log('lookup', lookup)
+        this.sortedChromosomeSequenceIndices = lookup
+
+        // update mrnaIdLookup
+        const seqLookupNew = {} // need to update old?
+        Object.keys(seqLookup).forEach((chr) => {
+          const chrObj = {}
+
+          Object.keys(seqLookup[chr]).forEach((key) => {
+            const idx = seqLookup[chr][key]
+
+            chrObj[key] = this.sortedChromosomeSequenceIndices[chr][idx]
+          })
+          seqLookupNew[chr] = chrObj
+        })
+
+        this.sortedMrnaIndices = sortedGroupInfosLookup(
+          grInfoLookup,
+          seqLookupNew
+        )
 
         return
       }

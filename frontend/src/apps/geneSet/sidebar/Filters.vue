@@ -20,10 +20,12 @@ export default {
       'numberOfChromosomes',
     ]),
     chrOptions() {
-      return [...Array(12)].map((_, i) => ({
+      let arrayChromosomes = [...Array(12)].map((_, i) => ({
         //to-do: change array to data import!
         value: i + 1,
       }))
+      // arrayChromosomes.push('unphased')
+      return arrayChromosomes
     },
   },
   watch: {

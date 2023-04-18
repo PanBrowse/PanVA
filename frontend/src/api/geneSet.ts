@@ -149,3 +149,22 @@ export const fetchGroupInfo = async () => {
     }
   )
 }
+
+export const fetchClusteringOrder = async (method) => {
+  const config = useConfigStore()
+
+  const data = await d3.json(
+    `${config.apiUrl}geneSet/clustering.json`,
+
+    {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ method }),
+    }
+  )
+
+  return data
+}

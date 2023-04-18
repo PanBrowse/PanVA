@@ -372,13 +372,16 @@ export default {
         )
     },
     draw() {
-      this.drawBars()
-      this.drawContextBars()
-      //   this.addValues()
-      this.addLabels()
-      this.drawGenes()
+      if (this.chromosomeNr !== 'unphased') {
+        this.drawBars()
+        this.drawContextBars()
+        //   this.addValues()
+        this.addLabels()
+        this.drawGenes()
+      }
     },
     addLabels() {
+      let vis = this
       this.svg()
         .selectAll('text.label-chr')
         .data(this.data, (d) => d.sequence_id)
@@ -396,6 +399,7 @@ export default {
                   this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
                   (this.barHeight + 10)
               )
+
               .attr('dy', this.barHeight / 3)
               // .text((d) => d.sequence_id.split('_')[0]),
               .text((d) => d.sequence_id),
@@ -404,12 +408,25 @@ export default {
             update
               .transition()
               .duration(this.transitionTime)
-              .attr(
-                'y',
-                (d, i) =>
-                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
-                  (this.barHeight + 10)
-              ),
+              // .attr(
+              //   'y',
+              //   (d, i) =>
+              //     this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+              //     (this.barHeight + 10)
+              // ),
+              .attr('y', function (d, i) {
+                console.log(
+                  'd',
+                  d.sequence_id,
+                  'i',
+                  i,
+                  vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i]
+                )
+                return (
+                  vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
+                  (vis.barHeight + 10)
+                )
+              }),
           (exit) => exit.remove()
         )
     },
@@ -526,10 +543,15 @@ export default {
     this.svgWidth =
       document.getElementById('content').offsetWidth * this.svgWidthScaleFactor
 
-    this.svgHeight =
-      this.sortedChromosomeSequenceIndices[this.chromosomeNr].length *
-        (this.barHeight + 10) +
-      this.margin.top * 2
+    if (this.chromosomeNr == 'unphased') {
+      this.sortedChromosomeSequenceIndices[12].length * (this.barHeight + 10) +
+        this.margin.top * 2
+    } else {
+      this.svgHeight =
+        this.sortedChromosomeSequenceIndices[this.chromosomeNr].length *
+          (this.barHeight + 10) +
+        this.margin.top * 2
+    }
 
     this.drawXAxis() // draw axis once
     this.draw()
