@@ -73,7 +73,7 @@ export default {
     cardHeaderHeight: 40,
     transitionTime: 750,
     numberOfCols: 2,
-    barHeight: 15,
+    barHeight: 30,
     sortedSequenceIds: [],
   }),
   computed: {
@@ -291,6 +291,22 @@ export default {
     sortSequences() {
       this.sortedDataIndeces = this.sortedDataIndeces.reverse()
       this.draw()
+    },
+    addClipPath() {
+      this.svg()
+        .append('defs')
+        .append('svg:clipPath')
+        .attr('id', 'clip')
+        .append('svg:rect')
+        .attr('width', this.visWidth)
+        .attr('height', this.visHeight)
+        .attr('x', this.margin.left * 3)
+        .attr('y', 0)
+    },
+    updateChart({ selection }) {
+      console.log('hello from brush!')
+
+      console.log(selection)
     },
     drawBars() {
       let vis = this
@@ -569,11 +585,25 @@ export default {
     }
 
     this.drawXAxis() // draw axis once
+    this.addClipPath()
+
     this.draw()
+
+    // Add brushing
+    let vis = this
+    this.svg().call(
+      d3
+        .brushX() // Add the brush feature using the d3.brush function
+        .extent([
+          [this.margin.left * 3, 0],
+          [this.visWidth, this.visHeight],
+        ])
+        .on('end', this.updateChart)
+    )
 
     this.observeWidth()
 
-    console.log('GC', this.minGC, this.maxGC)
+    // console.log('GC', this.minGC, this.maxGC)
 
     // this.resizeObserver = new ResizeObserver(this.onResize)
     // this.resizeObserver.observe(this.$el)

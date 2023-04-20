@@ -1,10 +1,12 @@
 <script lang="ts">
 import {
   Button,
+  Col,
   Form,
   FormItem,
   Radio,
   RadioGroup,
+  Row,
   Slider,
 } from 'ant-design-vue'
 import { mapActions, mapWritableState } from 'pinia'
@@ -21,6 +23,8 @@ export default {
     AFormItem: FormItem,
     ARadioGroup: RadioGroup,
     ARadio: Radio,
+    ARow: Row,
+    ACol: Col,
   },
   methods: {
     ...mapActions(useGeneSetStore, ['changeSorting']),
@@ -75,10 +79,16 @@ export default {
       </AFormItem>
       <AFormItem label="Linkage">
         <ARadioGroup v-model:value="linkage">
-          <ARadio :value="0">Average</ARadio>
-          <ARadio :value="1">Complete</ARadio>
-          <ARadio :value="2">Single</ARadio>
-          <ARadio :value="3">Ward</ARadio>
+          <ARow type="flex">
+            <ACol :span="12">
+              <ARadio :value="0">Average</ARadio>
+              <ARadio :value="1">Complete</ARadio>
+            </ACol>
+            <ACol :span="12">
+              <ARadio :value="2">Single</ARadio>
+              <ARadio :value="3">Ward</ARadio>
+            </ACol>
+          </ARow>
         </ARadioGroup>
       </AFormItem>
     </AForm>

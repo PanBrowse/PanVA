@@ -40,6 +40,7 @@ export const useGeneSetStore = defineStore('geneSet', {
 
     //Context
     percentageGC: true,
+    allSequences: true,
 
     isInitialized: false,
   }),
