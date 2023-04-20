@@ -3,30 +3,17 @@
     id="content"
     style="
       width: 100%;
-      height: 100%;
+      height: 50%;
       display: flex;
       justify-content: space-between;
     "
   >
-    <Sequences
-      v-for="chr in chromosomes.filter((chr) => chr !== 'unphased')"
-      v-bind:key="chr"
-      :chromosomeNr="chr"
-      :name="`chr${chr}`"
-      :data="getChromosome(chr)"
-      :dataGenes="getGroupInfo(chr)"
-      :dataMin="dataMin"
-      :dataMax="dataMax"
-      :maxGC="GCcontentMax"
-      :minGC="GCcontentMin"
-    />
-    <Sequences
-      v-for="chr in chromosomes.filter((chr) => chr == 'unphased')"
-      v-bind:key="chr"
-      :chromosomeNr="chr"
-      :name="`${chr}`"
-      :data="getChromosome(chr)"
-      :dataGenes="getGroupInfo(chr)"
+    <SequencesDetails
+      v-bind:key="`chr${chrFocus}_focus`"
+      :chromosomeNr="chrFocus"
+      :name="`chr${chrFocus}_focus`"
+      :data="getChromosome(chrFocus)"
+      :dataGenes="getGroupInfo(chrFocus)"
       :dataMin="dataMin"
       :dataMax="dataMax"
       :maxGC="GCcontentMax"
@@ -43,11 +30,11 @@ import { useGeneSetStore } from '@/stores/geneSet'
 import { useGlobalStore } from '@/stores/global'
 import type { SequenceMetrics } from '@/types'
 
-import Sequences from './Sequences.vue'
+import SequencesDetails from './SequencesDetails.vue'
 
 export default {
   components: {
-    Sequences,
+    SequencesDetails,
   },
   data: () => ({
     // chromosomes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
@@ -67,6 +54,7 @@ export default {
       'groupInfo',
       'chromosomes',
       'numberOfChromosomes',
+      'chrFocus',
       'chromosomeLookup',
       'groupInfoLookup',
       'sortedGroupInfoLookup',

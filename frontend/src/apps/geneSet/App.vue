@@ -9,13 +9,15 @@ import ContextOptions from './sidebar/ContextOptions.vue'
 import Filters from './sidebar/Filters.vue'
 import Sorting from './sidebar/Sorting.vue'
 import Unphased from './sidebar/Unphased.vue'
-import Chromosome from './visualizations/Chromosome.vue'
+import ChromosomeDetails from './visualizations/ChromosomeDetails.vue'
+import ChromosomeOverview from './visualizations/ChromosomeOverview.vue'
 import Homologies from './visualizations/Homologies.vue'
 
 export default {
   components: {
     Homologies,
-    Chromosome,
+    ChromosomeOverview,
+    ChromosomeDetails,
     Layout,
     LoadingScreen,
     Sorting,
@@ -38,7 +40,8 @@ export default {
       <ContextOptions />
       <Unphased />
     </template>
-    <Chromosome />
+    <ChromosomeOverview />
+    <ChromosomeDetails />
     <!-- <Homologies /> -->
   </Layout>
   <LoadingScreen v-else>Loading homologies, please wait...</LoadingScreen>

@@ -27,6 +27,7 @@ export const useGeneSetStore = defineStore('geneSet', {
     groupInfo: [] as GroupInfo[],
     chromosomes: [] as Number,
     numberOfChromosomes: 0,
+    chrFocus: 5,
 
     // Sorting
     sorting: 'genome_number',

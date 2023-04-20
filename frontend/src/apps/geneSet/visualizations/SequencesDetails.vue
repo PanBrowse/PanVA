@@ -1,9 +1,10 @@
 <template>
   <!-- <div><svg id="zoom-example"></svg></div> -->
   <ACard
-    :title="`${name}`"
+    :title="`${cardName}`"
     :style="{
-      width: `${containerWidth - 6}px`,
+      // width: `${containerWidth - 6}px`,
+      width: `${100}%`,
       //   height: `${
       //     svgHeight + cardHeaderHeight + padding.cardBody + margin.top
       //   }px`,
@@ -36,14 +37,14 @@ import { useGlobalStore } from '@/stores/global'
 import type { SequenceMetrics } from '@/types'
 
 export default {
-  name: 'Sequences',
+  name: 'SequencesDetails',
   props: {
     chromosomeNr: Number,
     name: String,
     data: Array,
     dataGenes: Array,
     dataMin: Number,
-    dataMax: Number,
+
     nrColumns: Number,
     maxGC: Number,
     minGC: Number,
@@ -85,8 +86,11 @@ export default {
       'chromosomes',
       'numberOfChromosomes',
     ]),
+    cardName() {
+      return this.name.split('_')[0]
+    },
     containerWidth() {
-      return Math.floor(this.svgWidth / this.numberOfChromosomes)
+      return this.svgWidth
     },
     visWidth() {
       return this.containerWidth - 12 - 12 - 10 - 17.5
@@ -94,43 +98,51 @@ export default {
     visHeight() {
       return this.svgHeight
     },
+    dataMax() {
+      return d3.max(this.data, (d) => d.sequence_length)
+    },
     xScale() {
-      return d3
-        .scaleLinear()
-        .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
-        .rangeRound([
-          0,
-          this.visWidth - this.margin.yAxis + this.margin.left * 4,
-        ])
+      return (
+        d3
+          .scaleLinear()
+          // .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+          .domain([4000000, 5000000])
+          .rangeRound([
+            0,
+            this.visWidth - this.margin.yAxis + this.margin.left * 4,
+          ])
+      )
     },
-    ticksXdomain() {
-      const stepFactor = this.dataMax / 1000000
-      const stepSize = Math.ceil(stepFactor) * this.numberOfChromosomes * 100000
-      const ticks = range(stepSize, this.dataMax, stepSize).concat([
-        this.dataMax,
-      ])
-      ticks.unshift(0)
+    // ticksXdomain() {
+    //   const stepFactor = this.dataMax / 1000000
+    //   const stepSize = Math.ceil(stepFactor) * this.numberOfChromosomes * 100000
+    //   const ticks = range(stepSize, this.dataMax, stepSize).concat([
+    //     this.dataMax,
+    //   ])
+    //   ticks.unshift(0)
 
-      // If the last "rounded" tick and the "geneLength" tick are too close together.
-      const [beforeLast, last] = ticks.slice(-2)
-      if (last - beforeLast < stepSize * 0.5) {
-        // Remove the last "rounded" tick and keep the "geneLength" tick.
-        ticks.splice(-2, 1)
-      }
+    //   // If the last "rounded" tick and the "geneLength" tick are too close together.
+    //   const [beforeLast, last] = ticks.slice(-2)
+    //   if (last - beforeLast < stepSize * 0.5) {
+    //     // Remove the last "rounded" tick and keep the "geneLength" tick.
+    //     ticks.splice(-2, 1)
+    //   }
 
-      return ticks
-    },
+    //   return ticks
+    // },
     colorScale() {
       return (
         d3
           .scaleOrdinal()
+          // .domain([
+          //   232273544, 232274322, 232273685, 232256926, 232274335, 232290464,
+          //   232256927, 232273967, 232289205, 232273851, 232273853, 232291136,
+          //   232273731, 232290249, 232273868, 232289749, 232273892, 232289646,
+          //   232292464, 232273529,
+          // ])
           .domain([
-            [
-              232273544, 232274322, 232273685, 232256926, 232274335, 232290464,
-              232256927, 232273967, 232289205, 232273851, 232273853, 232291136,
-              232273731, 232290249, 232273868, 232289749, 232273892, 232289646,
-              232292464, 232273529,
-            ],
+            232290464, 232273731, 232273544, 232290249, 232273868, 232273967,
+            232292464, 232273685, 232273529, 232274335,
           ])
           // .domain([232273529, 232288684])
           // https://sashamaps.net/docs/resources/20-colors/
@@ -282,6 +294,8 @@ export default {
     },
     drawBars() {
       let vis = this
+
+      console.log('data sequence details', this.data)
 
       this.svg()
         .selectAll('rect.bar-chr')
@@ -482,7 +496,7 @@ export default {
         .call(
           d3
             .axisTop(this.xScale)
-            .tickValues(this.ticksXdomain)
+            // .tickValues(this.ticksXdomain)
             .tickFormat(d3.format('~s'))
         )
         .call((g) => g.select('.domain').remove())
