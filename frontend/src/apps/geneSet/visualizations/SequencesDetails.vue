@@ -668,11 +668,31 @@ export default {
                 )
                 .attr('transform', function (d, i) {
                   const key = `${d.genome_number}_${d.sequence_number}`
+                  let rotation
 
-                  return `translate(${
-                    vis.margin.left * 3 + vis.xScale(d.gene_start_position)
-                  },${vis.margin.top * 2 + vis.barHeight / 2 + vis.sortedMrnaIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
+                  if (d.strand === '+') {
+                    rotation = `translate(${
+                      vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                    },${
+                      vis.margin.top * 2 +
+                      vis.barHeight / 2 +
+                      vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                        (vis.barHeight + 10)
+                    }
                     )rotate(-270)`
+                  } else {
+                    return `translate(${
+                      vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                    },${
+                      vis.margin.top * 2 +
+                      vis.barHeight / 2 +
+                      vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                        (vis.barHeight + 10)
+                    }
+                    )rotate(-450)`
+                  }
+
+                  return rotation
                 })
                 .attr('class', 'gene')
                 .attr('z-index', 100)
@@ -683,13 +703,42 @@ export default {
               update
                 .transition()
                 .duration(this.transitionTime)
+                // .attr('transform', function (d, i) {
+                //   const key = `${d.genome_number}_${d.sequence_number}`
+
+                //   return `translate(${
+                //     vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                //   },${vis.margin.top * 2 + vis.barHeight / 2 + vis.sortedMrnaIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
+                //     )rotate(-270)`
+                // }),
                 .attr('transform', function (d, i) {
                   const key = `${d.genome_number}_${d.sequence_number}`
 
-                  return `translate(${
-                    vis.margin.left * 3 + vis.xScale(d.gene_start_position)
-                  },${vis.margin.top * 2 + vis.barHeight / 2 + vis.sortedMrnaIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
+                  let rotation
+
+                  if (d.strand === '+') {
+                    rotation = `translate(${
+                      vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                    },${
+                      vis.margin.top * 2 +
+                      vis.barHeight / 2 +
+                      vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                        (vis.barHeight + 10)
+                    }
                     )rotate(-270)`
+                  } else {
+                    return `translate(${
+                      vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                    },${
+                      vis.margin.top * 2 +
+                      vis.barHeight / 2 +
+                      vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                        (vis.barHeight + 10)
+                    }
+                    )rotate(-450)`
+                  }
+
+                  return rotation
                 }),
             (exit) => exit.remove()
           )
