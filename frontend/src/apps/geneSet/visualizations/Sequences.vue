@@ -74,6 +74,7 @@ export default {
     numberOfCols: 2,
     barHeight: 15,
     sortedSequenceIds: [],
+    idleTimeout: null,
   }),
   computed: {
     ...mapState(useGeneSetStore, [
@@ -285,6 +286,86 @@ export default {
       this.sortedDataIndeces = this.sortedDataIndeces.reverse()
       this.draw()
     },
+    addClipPath() {
+      this.svg().select('defs').remove() //needed because otherwise draws twice in some cases. To-do: fix side effect
+
+      this.svg()
+        .append('defs')
+        .append('svg:clipPath')
+        .attr('id', 'clipOverview')
+        .append('svg:rect')
+        .attr('width', this.visWidth)
+        .attr('height', this.visHeight)
+        .attr('x', 0)
+        .attr('y', 0)
+    },
+    updateChart({ selection }) {
+      console.log('brush selection', selection)
+
+      // If no selection, back to initial coordinate. Otherwise, update X axis domain
+      if (!selection) {
+        if (!this.idleTimeout)
+          return (this.idleTimeout = setTimeout(this.idled, 350)) // This allows to wait a little bit
+        this.xScale.domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+      } else {
+        // x.domain([ x.invert(extent[0]), x.invert(extent[1]) ])
+
+        console.log(
+          'range',
+
+          this.xScale.invert(selection[0]),
+          this.xScale.invert(selection[1])
+        )
+        this.xScale.domain([
+          this.xScale.invert(selection[0]),
+          this.xScale.invert(selection[1]),
+        ])
+
+        this.svg().select('.brush').call(this.brush.move, null) // This remove the grey brush area as soon as the selection has been done
+        console.log('there is a selection')
+
+        this.svg()
+          .select('.x-axis')
+          .transition()
+          .duration(1000)
+          .call(
+            d3
+              .axisTop(this.xScale)
+
+              // .tickValues(this.ticksXdomain)
+              .tickFormat(d3.format('~s'))
+          )
+          .call((g) => g.select('.domain').remove())
+          .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
+          .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+        this.draw()
+      }
+    },
+    resetZoom() {
+      let vis = this
+      this.svg().on('dblclick', function () {
+        vis.xScale.domain([vis.dataMin > 0 ? 0 : vis.dataMin, vis.dataMax])
+
+        vis
+          .svg()
+          .select('.x-axis')
+          .transition()
+          .duration(1000)
+          .call(
+            d3
+              .axisTop(vis.xScale)
+              .tickValues(vis.ticksXdomain)
+              .tickFormat(d3.format('~s'))
+          )
+          .call((g) => g.select('.domain').remove())
+          .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
+          .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+        vis.draw()
+      })
+    },
+    idled() {
+      this.idleTimeout = null
+    },
     drawBars() {
       let vis = this
 
@@ -313,10 +394,12 @@ export default {
                 return vis.xScale(d.sequence_length)
               })
               .attr('height', this.barHeight)
-              .attr('fill', '#f0f2f5'),
+              .attr('fill', '#f0f2f5')
+              .attr('clip-path', 'url(#clipOverview)'),
           // .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent)),
           (update) =>
             update
+              .attr('clip-path', 'url(#clipOverview)')
               .transition()
               .duration(this.transitionTime)
               .attr(
@@ -360,9 +443,11 @@ export default {
               })
               .attr('height', this.barHeight / 4)
               // .attr('fill', '#f0f2f5'),
-              .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent)),
+              .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent))
+              .attr('clip-path', 'url(#clipOverview)'),
           (update) =>
             update
+              .attr('clip-path', 'url(#clipOverview)')
               .transition()
               .duration(this.transitionTime)
               .attr(
@@ -562,9 +647,26 @@ export default {
     this.drawXAxis() // draw axis once
     this.draw()
 
+    // Add brushing
+    var brush = d3
+      .brushX() // Add the brush feature using the d3.brush function
+      .extent([
+        [this.margin.left * 3, 0],
+        [this.visWidth, this.visHeight],
+      ])
+      .on('end', this.updateChart)
+
+    this.brush = brush
+
+    // Add brushing
+    this.svg().append('g').attr('class', 'brush').call(brush)
+
+    this.addClipPath()
+    this.resetZoom()
+
     this.observeWidth()
 
-    console.log('GC', this.minGC, this.maxGC)
+    // console.log('GC', this.minGC, this.maxGC)
 
     // this.resizeObserver = new ResizeObserver(this.onResize)
     // this.resizeObserver.observe(this.$el)
@@ -578,12 +680,34 @@ export default {
     },
     numberOfChromosomes() {
       this.svg().select('g.x-axis').remove()
+      this.svg().select('svg.clipPath').remove()
+      this.svg().select('g.brush').remove()
+      this.addClipPath()
       this.drawXAxis() // redraw
+      // Add brushing
+      this.brush // Add the brush feature using the d3.brush function
+        .extent([
+          [this.margin.left * 3, 0],
+          [this.visWidth, this.visHeight],
+        ])
+
+      this.svg().append('g').attr('class', 'brush').call(this.brush)
       this.draw()
     },
     svgWidth() {
       this.svg().select('g.x-axis').remove()
+      this.svg().select('svg.clipPath').remove()
+      this.svg().select('g.brush').remove()
+      this.addClipPath()
       this.drawXAxis() // redraw
+      // Add brushing
+      this.brush // Add the brush feature using the d3.brush function
+        .extent([
+          [this.margin.left * 3, 0],
+          [this.visWidth, this.visHeight],
+        ])
+
+      this.svg().append('g').attr('class', 'brush').call(this.brush)
       this.draw()
     },
   },

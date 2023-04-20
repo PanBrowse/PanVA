@@ -44,7 +44,7 @@ export default {
     data: Array,
     dataGenes: Array,
     dataMin: Number,
-
+    dataMax: Number,
     nrColumns: Number,
     maxGC: Number,
     minGC: Number,
@@ -101,9 +101,9 @@ export default {
     visHeight() {
       return this.svgHeight
     },
-    dataMax() {
-      return d3.max(this.data, (d) => d.sequence_length)
-    },
+    // dataMax() {
+    //   return d3.max(this.data, (d) => d.sequence_length)
+    // },
     xScale() {
       return (
         d3
@@ -116,23 +116,23 @@ export default {
           ])
       )
     },
-    // ticksXdomain() {
-    //   const stepFactor = this.dataMax / 1000000
-    //   const stepSize = Math.ceil(stepFactor) * this.numberOfChromosomes * 100000
-    //   const ticks = range(stepSize, this.dataMax, stepSize).concat([
-    //     this.dataMax,
-    //   ])
-    //   ticks.unshift(0)
+    ticksXdomain() {
+      const stepFactor = this.dataMax / 1000000
+      const stepSize = Math.ceil(stepFactor) * this.numberOfChromosomes * 100000
+      const ticks = range(stepSize, this.dataMax, stepSize).concat([
+        this.dataMax,
+      ])
+      ticks.unshift(0)
 
-    //   // If the last "rounded" tick and the "geneLength" tick are too close together.
-    //   const [beforeLast, last] = ticks.slice(-2)
-    //   if (last - beforeLast < stepSize * 0.5) {
-    //     // Remove the last "rounded" tick and keep the "geneLength" tick.
-    //     ticks.splice(-2, 1)
-    //   }
+      // If the last "rounded" tick and the "geneLength" tick are too close together.
+      const [beforeLast, last] = ticks.slice(-2)
+      if (last - beforeLast < stepSize * 0.5) {
+        // Remove the last "rounded" tick and keep the "geneLength" tick.
+        ticks.splice(-2, 1)
+      }
 
-    //   return ticks
-    // },
+      return ticks
+    },
     colorScale() {
       return (
         d3
@@ -346,10 +346,7 @@ export default {
           .select('.x-axis')
           .transition()
           .duration(1000)
-          .call(
-            d3.axisTop(vis.xScale)
-            // .tickValues(this.ticksXdomain)
-          )
+          .call(d3.axisTop(vis.xScale).tickValues(vis.ticksXdomain))
           .call((g) => g.select('.domain').remove())
           .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
           .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
@@ -641,7 +638,7 @@ export default {
         .call(
           d3
             .axisTop(this.xScale)
-            // .tickValues(this.ticksXdomain)
+            .tickValues(this.ticksXdomain)
             .tickFormat(d3.format('~s'))
         )
         .call((g) => g.select('.domain').remove())
