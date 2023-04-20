@@ -86,11 +86,13 @@ def get_dendrogram(id):
 
     return create_dendrogram(linkage_matrix, labels)
 
+#### new route geneSets ####
 @app.route("/geneSet/clustering.json", methods=["GET", "POST"])
 def get_clustering_order():
 
     sequences_path = os.path.join(db_path, "geneSet", "sequences.csv")
-    matrix_path = os.path.join(db_path, "geneSet", "protein_distance_matrix.npy")
+    # matrix_path = os.path.join(db_path, "geneSet", "protein_distance_matrix.npy")
+    matrix_path = os.path.join(db_path, "geneSet", "protein_distance_matrix_cdf1_5.npy")
 
     # Load sequences data.
     sequences = pd.read_csv(sequences_path)
@@ -106,11 +108,14 @@ def get_clustering_order():
     if request.method == "POST":
         method = request.json["method"]
         methods = ["average", "complete", "single", "ward"]
-   
+        if method == None:
+            linkage_method = "ward"
+        else:
+            linkage_method = methods[method]
         print("method", methods[method])
 
         # Create linkage matrix
-        linkage_matrix = create_linkage_matrix(data_matrix_proteins,  methods[method])
+        linkage_matrix = create_linkage_matrix(data_matrix_proteins,  linkage_method)
 
     # Load linkage matrix
     sorting_dict = get_clustering_leaves(sequences, linkage_matrix, labels)

@@ -103,7 +103,8 @@ export const fetchSequences = async () => {
 export const fetchGroupInfo = async () => {
   const config = useConfigStore()
   return await d3.csv<GroupInfo, string>(
-    `${config.apiUrl}geneSet/group_info.csv`,
+    // `${config.apiUrl}geneSet/group_info.csv`,
+    `${config.apiUrl}geneSet/group_info_cdf1_5neighbors.csv`,
     ({
       homology_id,
       gene_id,
