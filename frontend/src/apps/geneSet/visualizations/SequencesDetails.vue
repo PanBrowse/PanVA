@@ -75,6 +75,7 @@ export default {
     numberOfCols: 2,
     barHeight: 30,
     sortedSequenceIds: [],
+    idleTimeout: null,
   }),
   computed: {
     ...mapState(useGeneSetStore, [
@@ -105,8 +106,8 @@ export default {
       return (
         d3
           .scaleLinear()
-          // .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
-          .domain([4000000, 5000000])
+          .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+          // .domain([4000000, 5000000])
           .rangeRound([
             0,
             this.visWidth - this.margin.yAxis + this.margin.left * 4,
@@ -217,67 +218,73 @@ export default {
       })
       resizeObserver.observe(document.getElementById('content'))
     },
-    drawZoomExample() {
-      const width = 500
-      const height = 180
-      const padding = { top: 10, bottom: 50, left: 40, right: 20 }
+    // drawZoomExample() {
+    //   const width = 500
+    //   const height = 180
+    //   const padding = { top: 10, bottom: 50, left: 40, right: 20 }
 
-      const svg = d3
-        .select('#zoom-example')
-        .attr('width', width + padding.right + padding.left)
-        .attr('height', height + padding.top + padding.bottom)
+    //   const svg = d3
+    //     .select('#zoom-example')
+    //     .attr('width', width + padding.right + padding.left)
+    //     .attr('height', height + padding.top + padding.bottom)
 
-      const plotArea = svg
-        .append('g')
-        .attr('transform', 'translate(' + [padding.left, padding.top] + ')')
+    //   const plotArea = svg
+    //     .append('g')
+    //     .attr('transform', 'translate(' + [padding.left, padding.top] + ')')
 
-      const clippingRect = plotArea
-        .append('clipPath')
-        .attr('id', 'clippy')
-        .append('rect')
-        .attr('width', width)
-        .attr('height', height)
-        .attr('fill', 'none')
+    //   const clippingRect = plotArea
+    //     .append('clipPath')
+    //     .attr('id', 'clippy')
+    //     .append('rect')
+    //     .attr('width', width)
+    //     .attr('height', height)
+    //     .attr('fill', 'none')
 
-      const data = d3.range(100).map(function (d) {
-        return { value: Math.random(), sample: d }
-      })
+    //   const data = d3.range(100).map(function (d) {
+    //     return { value: Math.random(), sample: d }
+    //   })
 
-      const x = d3.scaleLinear().range([0, width]).domain([0, 100])
-      let x2 = x.copy()
-      const y = d3.scaleLinear().range([height, 0]).domain([0, 1])
+    //   const x = d3.scaleLinear().range([0, width]).domain([0, 100])
+    //   let x2 = x.copy()
+    //   const y = d3.scaleLinear().range([height, 0]).domain([0, 1])
 
-      const line = d3
-        .line()
-        .x((d) => x2(d.sample))
-        .y((d) => y(d.value))
+    //   const line = d3
+    //     .line()
+    //     .x((d) => x2(d.sample))
+    //     .y((d) => y(d.value))
 
-      const xAxis = d3.axisBottom(x2)
-      const xAxisG = plotArea
-        .append('g')
-        .attr('transform', 'translate(' + [0, height] + ')')
-        .call(xAxis)
+    //   const xAxis = d3.axisBottom(x2)
+    //   const xAxisG = plotArea
+    //     .append('g')
+    //     .attr('transform', 'translate(' + [0, height] + ')')
+    //     .call(xAxis)
 
-      const yAxis = d3.axisLeft(y)
-      const yAxisG = plotArea.append('g').call(yAxis)
+    //   const yAxis = d3.axisLeft(y)
+    //   const yAxisG = plotArea.append('g').call(yAxis)
 
-      const path = plotArea
-        .append('path')
-        .attr('class', 'zoom')
-        .datum(data)
-        .attr('d', line)
-        .attr('clip-path', 'url(#clippy)')
+    //   const path = plotArea
+    //     .append('path')
+    //     .attr('class', 'zoom')
+    //     .datum(data)
+    //     .attr('d', line)
+    //     .attr('clip-path', 'url(#clippy)')
 
-      const zoom = d3.zoom().on('zoom', function (event) {
-        x2 = event.transform.rescaleX(x)
-        xAxisG.call(xAxis.scale(x2))
-        path.attr('d', line)
-      })
+    //   const zoom = d3.zoom().on('zoom', function (event) {
+    //     x2 = event.transform.rescaleX(x)
+    //     xAxisG.call(xAxis.scale(x2))
+    //     path.attr('d', line)
+    //   })
 
-      svg.call(zoom)
-    },
+    //   svg.call(zoom)
+    // },
     svg() {
       return d3.select(`#container_${this.name}`)
+    },
+    g() {
+      return d3
+        .select(`#container_${this.name}`)
+        .append('g')
+        .attr('class', 'genes')
     },
     // onDelete(chromosome) {
     //   console.log('click delete', chromosome)
@@ -300,13 +307,48 @@ export default {
         .append('svg:rect')
         .attr('width', this.visWidth)
         .attr('height', this.visHeight)
-        .attr('x', this.margin.left * 3)
+        .attr('x', 0)
         .attr('y', 0)
     },
     updateChart({ selection }) {
-      console.log('hello from brush!')
+      console.log('brush selection', selection)
 
-      console.log(selection)
+      // If no selection, back to initial coordinate. Otherwise, update X axis domain
+      if (!selection) {
+        if (!this.idleTimeout)
+          return (this.idleTimeout = setTimeout(this.idled, 350)) // This allows to wait a little bit
+        this.xScale.domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+      } else {
+        // x.domain([ x.invert(extent[0]), x.invert(extent[1]) ])
+        this.xScale.domain([
+          this.xScale.invert(selection[0]),
+          this.xScale.invert(selection[1]),
+        ])
+
+        this.svg().select('.brush').call(this.brush.move, null) // This remove the grey brush area as soon as the selection has been done
+        console.log('there is a selection')
+
+        this.svg().select('.x-axis').transition().duration(1000).call(
+          d3.axisTop(this.xScale)
+          // .tickValues(this.ticksXdomain)
+        )
+        this.draw()
+      }
+    },
+    resetZoom() {
+      let vis = this
+      this.svg().on('dblclick', function () {
+        vis.xScale.domain([vis.dataMin > 0 ? 0 : vis.dataMin, vis.dataMax])
+
+        vis.svg().select('.x-axis').transition().duration(1000).call(
+          d3.axisTop(vis.xScale)
+          // .tickValues(this.ticksXdomain)
+        )
+        vis.draw()
+      })
+    },
+    idled() {
+      this.idleTimeout = null
     },
     drawBars() {
       let vis = this
@@ -338,7 +380,8 @@ export default {
                 return vis.xScale(d.sequence_length)
               })
               .attr('height', this.barHeight)
-              .attr('fill', '#f0f2f5'),
+              .attr('fill', '#f0f2f5')
+              .attr('clip-path', 'url(#clip)'),
           // .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent)),
           (update) =>
             update
@@ -385,7 +428,8 @@ export default {
               })
               .attr('height', this.barHeight / 4)
               // .attr('fill', '#f0f2f5'),
-              .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent)),
+              .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent))
+              .attr('clip-path', 'url(#clip)'),
           (update) =>
             update
               .transition()
@@ -404,6 +448,7 @@ export default {
     },
     draw() {
       if (this.chromosomeNr !== 'unphased') {
+        // this.svg().attr('clip-path', 'url(#clip)') //added per feature
         this.drawBars()
         this.drawContextBars()
         //   this.addValues()
@@ -585,21 +630,31 @@ export default {
     }
 
     this.drawXAxis() // draw axis once
-    this.addClipPath()
+
+    // var genes = d3
+    //   .select(`#container_${this.name}`)
+    //   .append('g')
+    //   .attr('class', 'genes')
+    // this.genes = genes
 
     this.draw()
 
     // Add brushing
-    let vis = this
-    this.svg().call(
-      d3
-        .brushX() // Add the brush feature using the d3.brush function
-        .extent([
-          [this.margin.left * 3, 0],
-          [this.visWidth, this.visHeight],
-        ])
-        .on('end', this.updateChart)
-    )
+    var brush = d3
+      .brushX() // Add the brush feature using the d3.brush function
+      .extent([
+        [this.margin.left * 3, 0],
+        [this.visWidth, this.visHeight],
+      ])
+      .on('end', this.updateChart)
+
+    this.brush = brush
+
+    // Add brushing
+    this.svg().append('g').attr('class', 'brush').call(brush)
+
+    this.addClipPath()
+    this.resetZoom()
 
     this.observeWidth()
 
