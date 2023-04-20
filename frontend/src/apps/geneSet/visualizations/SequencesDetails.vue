@@ -73,7 +73,7 @@ export default {
     cardHeaderHeight: 40,
     transitionTime: 750,
     numberOfCols: 2,
-    barHeight: 30,
+    barHeight: 25,
     sortedSequenceIds: [],
     idleTimeout: null,
   }),
@@ -86,6 +86,8 @@ export default {
       'sortedMrnaIndices',
       'chromosomes',
       'numberOfChromosomes',
+      'percentageGC',
+      'colorGenomes',
     ]),
     cardName() {
       return this.name.split('_')[0]
@@ -149,16 +151,16 @@ export default {
           // https://sashamaps.net/docs/resources/20-colors/
           // https://github.com/d3/d3-3.x-api-reference/blob/master/Ordinal-Scales.md
           .range([
-            '#1f77b4',
             '#ff7f0e',
-            '#2ca02c',
-            '#d62728',
+            '#1f77b4',
             '#9467bd',
+            '#2ca02c',
             '#8c564b',
+            '#d62728',
             '#e377c2',
-            '#7f7f7f',
             '#bcbd22',
             '#17becf',
+            '#7f7f7f',
             '#ffbb78',
             '#98df8a',
             '#ff9896',
@@ -169,37 +171,21 @@ export default {
             '#dbdb8d',
             '#9edae5',
           ])
-        // http://vrl.cs.brown.edu/color
-        // .range([
-        //   '#41bbc5',
-        //   '#bf3854',
-        //   '#6bdd8c',
-        //   '#e84fe1',
-        //   '#09f54c',
-        //   '#7c338b',
-        //   '#b1e632',
-        //   '#4533d6',
-        //   '#f4d403',
-        //   '#22577a',
-        //   '#a8c280',
-        //   '#a17bf2',
-        //   '#638123',
-        //   '#fcc2fb',
-        //   '#1c9820',
-        //   '#ff0087',
-        //   '#a3c9fe',
-        //   '#713529',
-        //   '#fba55c',
-        //   '#ee0d0e',
-        // ])
+          // http://vrl.cs.brown.edu/color
+          .range(d3.schemeSet3)
       )
-      // .range(d3.schemeCategory10)
     },
     colorScaleGC() {
       return d3
         .scaleSequential()
         .domain([this.minGC, this.maxGC])
         .interpolator(d3.interpolateGreys)
+    },
+    colorScaleGenome() {
+      return d3
+        .scaleSequential()
+        .domain([1, 5])
+        .interpolator(d3.interpolateViridis)
     },
   },
   methods: {
@@ -320,6 +306,13 @@ export default {
         this.xScale.domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
       } else {
         // x.domain([ x.invert(extent[0]), x.invert(extent[1]) ])
+
+        console.log(
+          'range',
+
+          this.xScale.invert(selection[0]),
+          this.xScale.invert(selection[1])
+        )
         this.xScale.domain([
           this.xScale.invert(selection[0]),
           this.xScale.invert(selection[1]),
@@ -328,10 +321,18 @@ export default {
         this.svg().select('.brush').call(this.brush.move, null) // This remove the grey brush area as soon as the selection has been done
         console.log('there is a selection')
 
-        this.svg().select('.x-axis').transition().duration(1000).call(
-          d3.axisTop(this.xScale)
-          // .tickValues(this.ticksXdomain)
-        )
+        this.svg()
+          .select('.x-axis')
+          .transition()
+          .duration(1000)
+          .call(
+            d3.axisTop(this.xScale)
+
+            // .tickValues(this.ticksXdomain)
+          )
+          .call((g) => g.select('.domain').remove())
+          .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
+          .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
         this.draw()
       }
     },
@@ -340,10 +341,18 @@ export default {
       this.svg().on('dblclick', function () {
         vis.xScale.domain([vis.dataMin > 0 ? 0 : vis.dataMin, vis.dataMax])
 
-        vis.svg().select('.x-axis').transition().duration(1000).call(
-          d3.axisTop(vis.xScale)
-          // .tickValues(this.ticksXdomain)
-        )
+        vis
+          .svg()
+          .select('.x-axis')
+          .transition()
+          .duration(1000)
+          .call(
+            d3.axisTop(vis.xScale)
+            // .tickValues(this.ticksXdomain)
+          )
+          .call((g) => g.select('.domain').remove())
+          .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
+          .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
         vis.draw()
       })
     },
@@ -380,13 +389,51 @@ export default {
                 return vis.xScale(d.sequence_length)
               })
               .attr('height', this.barHeight)
-              .attr('fill', '#f0f2f5')
+              // .attr('fill', '#f0f2f5')
+
+              .attr('fill', function (d) {
+                let color
+                if (vis.colorGenomes == true) {
+                  color = vis.colorScaleGenome(parseInt(d.genome_number))
+                } else {
+                  color = '#f0f2f5'
+                }
+                return color
+              })
+              .attr('opacity', function (d) {
+                let color
+                if (vis.colorGenomes == true) {
+                  color = 0.4
+                } else {
+                  color = 1
+                }
+                return color
+              })
+              // .attr('opacity', 0.4)
               .attr('clip-path', 'url(#clip)'),
           // .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent)),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
+              .attr('fill', function (d) {
+                let color
+                if (vis.colorGenomes == true) {
+                  color = vis.colorScaleGenome(parseInt(d.genome_number))
+                } else {
+                  color = '#f0f2f5'
+                }
+                return color
+              })
+              .attr('opacity', function (d) {
+                let color
+                if (vis.colorGenomes == true) {
+                  color = 0.4
+                } else {
+                  color = 1
+                }
+                return color
+              })
               .attr(
                 'y',
                 (d, i) =>
@@ -396,6 +443,7 @@ export default {
               .attr('width', function (d) {
                 return vis.xScale(d.sequence_length)
               }),
+
           (exit) => exit.remove()
         )
     },
@@ -428,12 +476,48 @@ export default {
               })
               .attr('height', this.barHeight / 4)
               // .attr('fill', '#f0f2f5'),
-              .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent))
+              .attr('fill', function (d) {
+                let color
+                if (vis.percentageGC == true) {
+                  color = vis.colorScaleGC(d.GC_content_percent)
+                } else {
+                  color = 'transparent'
+                }
+                return color
+              })
+              .attr('opacity', function (d) {
+                let color
+                if (vis.percentageGC == true) {
+                  color = 1
+                } else {
+                  color = 0
+                }
+                return color
+              })
+              // .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent))
               .attr('clip-path', 'url(#clip)'),
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
+              .attr('fill', function (d) {
+                let color
+                if (vis.percentageGC == true) {
+                  color = vis.colorScaleGC(d.GC_content_percent)
+                } else {
+                  color = 'transparent'
+                }
+                return color
+              })
+              .attr('opacity', function (d) {
+                let color
+                if (vis.percentageGC == true) {
+                  color = 1
+                } else {
+                  color = 0
+                }
+                return color
+              })
               .attr(
                 'y',
                 (d, i) =>
@@ -595,8 +679,8 @@ export default {
                 })
                 .attr('class', 'gene')
                 .attr('z-index', 100)
-                .attr('fill', (d) => vis.colorScale(d.homology_id))
-                .attr('opacity', 0.8),
+                .attr('fill', (d) => vis.colorScale(d.homology_id)),
+            // .attr('opacity', 0.8),
 
             (update) =>
               update
@@ -667,6 +751,14 @@ export default {
   //   this.resizeObserver?.disconnect()
   // },
   watch: {
+    colorGenomes() {
+      console.log('color genomes')
+      this.drawBars()
+    },
+    percentageGC() {
+      console.log('show GC')
+      this.drawContextBars()
+    },
     sortedChromosomeSequenceIndices() {
       this.draw()
     },

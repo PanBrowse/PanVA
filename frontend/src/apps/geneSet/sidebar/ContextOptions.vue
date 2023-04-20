@@ -13,7 +13,11 @@ export default {
     AFormItem: FormItem,
   },
   computed: {
-    ...mapWritableState(useGeneSetStore, ['percentageGC', 'allSequences']),
+    ...mapWritableState(useGeneSetStore, [
+      'percentageGC',
+      'allSequences',
+      'colorGenomes',
+    ]),
   },
 }
 </script>
@@ -27,6 +31,9 @@ export default {
     >
       <AFormItem label="All sequences">
         <ASwitch size="small" v-model:checked="allSequences"
+      /></AFormItem>
+      <AFormItem label="Color genomes">
+        <ASwitch size="small" v-model:checked="colorGenomes"
       /></AFormItem>
       <AFormItem label="Gene density"> <ASwitch size="small" /></AFormItem>
       <AFormItem label="GC %">

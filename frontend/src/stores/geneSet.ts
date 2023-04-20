@@ -41,6 +41,7 @@ export const useGeneSetStore = defineStore('geneSet', {
     //Context
     percentageGC: true,
     allSequences: true,
+    colorGenomes: false,
 
     isInitialized: false,
   }),
