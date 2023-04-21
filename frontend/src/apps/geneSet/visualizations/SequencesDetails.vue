@@ -32,6 +32,7 @@ import * as d3 from 'd3'
 import { range } from 'lodash'
 import { mapActions, mapState } from 'pinia'
 
+import { groupInfoDensity } from '@/helpers/chromosome'
 import { useGeneSetStore } from '@/stores/geneSet'
 import { useGlobalStore } from '@/stores/global'
 import type { SequenceMetrics } from '@/types'
@@ -572,13 +573,6 @@ export default {
               //     (this.barHeight + 10)
               // ),
               .attr('y', function (d, i) {
-                console.log(
-                  'd',
-                  d.sequence_id,
-                  'i',
-                  i,
-                  vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i]
-                )
                 return (
                   vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
                   (vis.barHeight + 10)
@@ -650,6 +644,7 @@ export default {
       let vis = this
 
       //   console.log('sortedMrnaIndices', vis.sortedMrnaIndices)
+      console.log('this.dataGenes', this.dataGenes)
 
       if (this.dataGenes !== undefined) {
         this.svg()
@@ -758,6 +753,114 @@ export default {
           (this.barHeight + 10) +
         this.margin.top * 2
     }
+
+    const densityObjects = groupInfoDensity(this.dataGenes)
+
+    const dataDensity = {}
+    Object.keys(densityObjects).forEach((key) => {
+      dataDensity[key] = densityObjects[key].map(
+        (item) => item.gene_start_position
+      )
+    })
+    console.log('densityData', dataDensity)
+
+    var bins = d3.bin().domain(this.xScale.domain()).thresholds(40)(dataDensity)
+    console.log('bins', bins)
+
+    // Function to compute density
+    function kernelDensityEstimator(kernel, X) {
+      return function (V) {
+        return X.map(function (x) {
+          return [
+            x,
+            d3.mean(V, function (v) {
+              return kernel(x - v)
+            }),
+          ]
+        })
+      }
+    }
+    function kernelEpanechnikov(k) {
+      return function (v) {
+        return Math.abs((v /= k)) <= 1 ? (0.75 * (1 - v * v)) / k : 0
+      }
+    }
+
+    // add the y Axis
+    var y = d3.scaleLinear().range([20, 0]).domain([0, 0.001])
+
+    // Y axis: scale and draw:
+    var yBin = d3.scaleLinear().range([20, 0])
+    y.domain([
+      0,
+      d3.max(bins, function (d) {
+        return d.length
+      }),
+    ])
+
+    var x = d3
+      .scaleLinear()
+      .domain([4285531, 4685531])
+      .range([this.visWidth, this.visHeight])
+
+    // Compute kernel density estimation for one sequence
+    var kde = kernelDensityEstimator(
+      kernelEpanechnikov(7),
+      this.xScale.ticks(40)
+    )
+    var density = kde(
+      dataDensity['1_5'].map(function (d) {
+        return d
+      })
+    )
+    console.log('densityData estimation', density)
+
+    let vis = this
+    // Plot the area
+    this.svg()
+      .append('path')
+      .attr('class', 'mypath')
+      .datum(density)
+      .attr('transform', `translate(${vis.margin.left * 3},${-20})`)
+      .attr('fill', '#69b3a2')
+      .attr('opacity', '.8')
+      .attr('stroke', '#000')
+      .attr('stroke-width', 1)
+      .attr('stroke-linejoin', 'round')
+      .attr(
+        'd',
+        d3
+          .line()
+          .curve(d3.curveBasis)
+          .x(function (d) {
+            return vis.xScale(d[0])
+          })
+          .y(function (d) {
+            return y(d[1])
+          })
+      )
+
+    // append the bar rectangles to the svg element
+    this.svg()
+      .append('g')
+      .attr('transform', `translate(${vis.margin.left * 3},${-10})`)
+
+      .selectAll('rect.density')
+      .data(bins)
+      .enter()
+      .append('rect')
+      .attr('class', 'density')
+      .attr('x', 1)
+      .attr('transform', function (d) {
+        return 'translate(' + vis.xScale(d.x0) + ',' + yBin(d.length) + ')'
+      })
+      .attr('width', function (d) {
+        return vis.xScale(d.x1) - vis.xScale(d.x0) - 1
+      })
+      .attr('height', function (d) {
+        return 20 - y(d.length)
+      })
+      .style('fill', '#69b3a2')
 
     this.drawXAxis() // draw axis once
 

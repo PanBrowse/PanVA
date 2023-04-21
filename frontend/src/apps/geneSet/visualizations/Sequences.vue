@@ -506,13 +506,13 @@ export default {
               //     (this.barHeight + 10)
               // ),
               .attr('y', function (d, i) {
-                console.log(
-                  'd',
-                  d.sequence_id,
-                  'i',
-                  i,
-                  vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i]
-                )
+                // console.log(
+                //   'd',
+                //   d.sequence_id,
+                //   'i',
+                //   i,
+                //   vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i]
+                // )
                 return (
                   vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
                   (vis.barHeight + 10)

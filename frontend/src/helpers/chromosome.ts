@@ -26,6 +26,20 @@ export const groupInfosLookup = (groupInfo) => {
   return lookup
 }
 
+export const groupInfoDensity = (groupInfo) => {
+  /**
+   * Returns all mrNAs per chromosome
+   */
+  const lookup = {}
+  groupInfo.forEach((item) => {
+    const newKey = `${item.genome_number}_${item.sequence_number}`
+    const rows = lookup[newKey] || []
+    rows.push(item)
+    lookup[newKey] = rows
+  })
+  return lookup
+}
+
 export const sequencesIdLookup = (chrLookup) => {
   /**
    * Returns a mapping of sequence ids and their initial order per chromosome
