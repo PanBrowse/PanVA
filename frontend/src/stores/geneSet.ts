@@ -29,6 +29,8 @@ export const useGeneSetStore = defineStore('geneSet', {
     numberOfChromosomes: 0,
     chrFocus: 5,
     chrFocusDensity: {},
+    homologyFocus: 232273529, //set to CDF1
+    homologyGroups: [],
 
     // Sorting
     sorting: 'genome_number',
@@ -52,6 +54,11 @@ export const useGeneSetStore = defineStore('geneSet', {
 
       this.chromosomes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 'unphased'] // to-do: get from data!
       this.numberOfChromosomes = this.chromosomes.length
+
+      this.homologyGroups = [
+        232273967, 232290249, 232273731, 232273868, 232273685, 232273529,
+        232274335, 232292464, 232273544, 232290464,
+      ]
 
       try {
         this.homologies = sortBy(await fetchHomologies(), 'id')

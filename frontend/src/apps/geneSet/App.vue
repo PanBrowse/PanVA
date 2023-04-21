@@ -11,11 +11,11 @@ import Sorting from './sidebar/Sorting.vue'
 import Unphased from './sidebar/Unphased.vue'
 import ChromosomeDetails from './visualizations/ChromosomeDetails.vue'
 import ChromosomeOverview from './visualizations/ChromosomeOverview.vue'
-import Homologies from './visualizations/Homologies.vue'
+// import Homologies from './visualizations/Homologies.vue'
 
 export default {
   components: {
-    Homologies,
+    // Homologies,
     ChromosomeOverview,
     ChromosomeDetails,
     Layout,

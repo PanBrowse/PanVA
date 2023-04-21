@@ -33,6 +33,7 @@ import { range } from 'lodash'
 import { mapActions, mapState } from 'pinia'
 
 import { groupInfoDensity } from '@/helpers/chromosome'
+import { asterisk, cross, plus } from '@/helpers/customSymbols'
 import { useGeneSetStore } from '@/stores/geneSet'
 import { useGlobalStore } from '@/stores/global'
 import type { SequenceMetrics } from '@/types'
@@ -601,7 +602,6 @@ export default {
       //     (exit) => exit.remove()
       //   )
 
-      console.log('d3.symbols', d3.symbolsFill)
       this.svg()
         .selectAll('path.genome')
         .data(this.data, (d) => d.sequence_id)
@@ -613,17 +613,18 @@ export default {
                 'd',
                 d3
                   .symbol()
-                  .size(this.barHeight * 3)
+
                   .type(function (d) {
                     console.log('d shape', d.genome_number)
                     if (d.genome_number === 1) {
-                      return d3.symbolsFill[0]
+                      return cross
                     }
                     if (d.genome_number === 2) {
-                      return d3.symbolsFill[1]
+                      // return d3.symbolsFill[6]
+                      return d3.symbolWye
                     }
                     if (d.genome_number === 3) {
-                      return d3.symbolsFill[2]
+                      return d3.symbolsStroke[2]
                     }
                     if (d.genome_number === 4) {
                       return d3.symbolsFill[3]
@@ -634,29 +635,59 @@ export default {
                       return d3.symbolsFill[5]
                     }
                   })
+                  .size(this.barHeight * 3)
               )
 
               .attr('transform', function (d, i) {
-                return `translate(${
-                  vis.margin.left
-                },${vis.margin.top + vis.barHeight + vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
+                if (d.genome_number === 1) {
+                  return `translate(${vis.margin.left},${
+                    vis.margin.top +
+                    vis.barHeight +
+                    vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
+                      (vis.barHeight + 10)
+                  }
+                    )rotate(-45)`
+                } else {
+                  return `translate(${vis.margin.left},${
+                    vis.margin.top +
+                    vis.barHeight +
+                    vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
+                      (vis.barHeight + 10)
+                  }
                     )`
+                }
               })
               .attr('class', 'genome')
-              .attr('z-index', 100)
-              .attr('fill', '#c0c0c0'),
-          // .attr('fill', (d) => vis.colorScale(d.homology_id)),
-          // .attr('opacity', 0.8),
+              .attr('style', function (d) {
+                if ((d.genome_number === 1) | (d.genome_number === 3)) {
+                  return 'stroke: red'
+                }
+              })
+
+              .attr('z-index', 100),
 
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
               .attr('transform', function (d, i) {
-                return `translate(${
-                  vis.margin.left
-                },${vis.margin.top + vis.barHeight + vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
+                if (d.genome_number === 1) {
+                  return `translate(${vis.margin.left},${
+                    vis.margin.top +
+                    vis.barHeight +
+                    vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
+                      (vis.barHeight + 10)
+                  }
+                    )rotate(-45)`
+                } else {
+                  return `translate(${vis.margin.left},${
+                    vis.margin.top +
+                    vis.barHeight +
+                    vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
+                      (vis.barHeight + 10)
+                  }
                     )`
+                }
               }),
           (exit) => exit.remove()
         )
@@ -725,6 +756,14 @@ export default {
 
       //   console.log('sortedMrnaIndices', vis.sortedMrnaIndices)
       console.log('this.dataGenes', this.dataGenes)
+
+      let shapes = [
+        d3.symbolStar,
+        d3.symbolWye,
+        d3.symbolTriangle,
+        d3.symbolSquare,
+        d3.symbolPlus,
+      ]
 
       if (this.dataGenes !== undefined) {
         this.svg()
@@ -845,7 +884,6 @@ export default {
     console.log('densityData', dataDensity)
 
     console.log(d3.schemeSet3)
-    debugger
 
     var bins = d3.bin().domain(this.xScale.domain()).thresholds(40)(dataDensity)
     console.log('bins', bins)
@@ -1040,5 +1078,10 @@ export default {
   fill: #c0c0c0;
   font-size: 12;
   font-family: sans-serif;
+}
+
+.asterisk {
+  stroke: red;
+  stroke-width: 2px;
 }
 </style>
