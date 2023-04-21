@@ -1,13 +1,8 @@
 <template>
-  <!-- <div><svg id="zoom-example"></svg></div> -->
   <ACard
     :title="`${cardName}`"
     :style="{
-      // width: `${containerWidth - 6}px`,
       width: `${100}%`,
-      //   height: `${
-      //     svgHeight + cardHeaderHeight + padding.cardBody + margin.top
-      //   }px`,
       height: `${100}%`,
     }"
     :bordered="false"
@@ -90,6 +85,8 @@ export default {
       'numberOfChromosomes',
       'percentageGC',
       'colorGenomes',
+      'homologyGroups',
+      'upstreamHomologies',
     ]),
     cardName() {
       return this.name.split('_')[0]
@@ -103,20 +100,14 @@ export default {
     visHeight() {
       return this.svgHeight
     },
-    // dataMax() {
-    //   return d3.max(this.data, (d) => d.sequence_length)
-    // },
     xScale() {
-      return (
-        d3
-          .scaleLinear()
-          .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
-          // .domain([4000000, 5000000])
-          .rangeRound([
-            0,
-            this.visWidth - this.margin.yAxis + this.margin.left * 4,
-          ])
-      )
+      return d3
+        .scaleLinear()
+        .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+        .rangeRound([
+          0,
+          this.visWidth - this.margin.yAxis + this.margin.left * 4,
+        ])
     },
     ticksXdomain() {
       const stepFactor = this.dataMax / 1000000
@@ -136,46 +127,10 @@ export default {
       return ticks
     },
     colorScale() {
-      return (
-        d3
-          .scaleOrdinal()
-          // .domain([
-          //   232273544, 232274322, 232273685, 232256926, 232274335, 232290464,
-          //   232256927, 232273967, 232289205, 232273851, 232273853, 232291136,
-          //   232273731, 232290249, 232273868, 232289749, 232273892, 232289646,
-          //   232292464, 232273529,
-          // ])
-          .domain([
-            232290464, 232273731, 232273544, 232290249, 232273868, 232273967,
-            232292464, 232273685, 232274335, 232273529,
-          ])
-          // .domain([232273529, 232288684])
-          // https://sashamaps.net/docs/resources/20-colors/
-          // https://github.com/d3/d3-3.x-api-reference/blob/master/Ordinal-Scales.md
-          .range([
-            '#ff7f0e',
-            '#1f77b4',
-            '#9467bd',
-            '#2ca02c',
-            '#8c564b',
-            '#d62728',
-            '#e377c2',
-            '#bcbd22',
-            '#17becf',
-            '#7f7f7f',
-            '#ffbb78',
-            '#98df8a',
-            '#ff9896',
-            '#c5b0d5',
-            '#c49c94',
-            '#f7b6d2',
-            '#c7c7c7',
-            '#dbdb8d',
-            '#9edae5',
-          ])
-          // http://vrl.cs.brown.edu/color
-          .range(d3.schemeSet3)
-      )
+      return d3
+        .scaleOrdinal()
+        .domain(this.homologyGroups)
+        .range(d3.schemeCategory10)
     },
     colorScaleGC() {
       return d3
@@ -189,14 +144,28 @@ export default {
         .domain([1, 5])
         .interpolator(d3.interpolateViridis)
     },
+    shapeGenerator() {
+      const shapes = [
+        d3.symbolPlus,
+        d3.symbolWye,
+        d3.symbolTriangle,
+        d3.symbolSquare,
+        d3.symbolDiamond,
+        d3.symbolStar,
+        d3.symbolsStroke[0],
+        d3.symbolsStroke[1],
+        d3.symbolsStroke[2],
+        d3.symbolsStroke[3],
+        d3.symbolsStroke[4],
+      ]
+      const obj = Object.fromEntries(
+        this.homologyGroups.map((hg, dataIndex) => [hg, shapes[dataIndex]])
+      )
+      return obj
+    },
   },
   methods: {
     ...mapActions(useGeneSetStore, ['deleteChromosome']),
-    // onResize() {
-    //   // Card width minus the padding.
-    //   this.svgWidth = this.$el.offsetWidth - 24
-    //   this.draw()
-    // },
     observeWidth() {
       let vis = this
       const resizeObserver = new ResizeObserver(function () {
@@ -206,65 +175,6 @@ export default {
       })
       resizeObserver.observe(document.getElementById('content'))
     },
-    // drawZoomExample() {
-    //   const width = 500
-    //   const height = 180
-    //   const padding = { top: 10, bottom: 50, left: 40, right: 20 }
-
-    //   const svg = d3
-    //     .select('#zoom-example')
-    //     .attr('width', width + padding.right + padding.left)
-    //     .attr('height', height + padding.top + padding.bottom)
-
-    //   const plotArea = svg
-    //     .append('g')
-    //     .attr('transform', 'translate(' + [padding.left, padding.top] + ')')
-
-    //   const clippingRect = plotArea
-    //     .append('clipPath')
-    //     .attr('id', 'clippy')
-    //     .append('rect')
-    //     .attr('width', width)
-    //     .attr('height', height)
-    //     .attr('fill', 'none')
-
-    //   const data = d3.range(100).map(function (d) {
-    //     return { value: Math.random(), sample: d }
-    //   })
-
-    //   const x = d3.scaleLinear().range([0, width]).domain([0, 100])
-    //   let x2 = x.copy()
-    //   const y = d3.scaleLinear().range([height, 0]).domain([0, 1])
-
-    //   const line = d3
-    //     .line()
-    //     .x((d) => x2(d.sample))
-    //     .y((d) => y(d.value))
-
-    //   const xAxis = d3.axisBottom(x2)
-    //   const xAxisG = plotArea
-    //     .append('g')
-    //     .attr('transform', 'translate(' + [0, height] + ')')
-    //     .call(xAxis)
-
-    //   const yAxis = d3.axisLeft(y)
-    //   const yAxisG = plotArea.append('g').call(yAxis)
-
-    //   const path = plotArea
-    //     .append('path')
-    //     .attr('class', 'zoom')
-    //     .datum(data)
-    //     .attr('d', line)
-    //     .attr('clip-path', 'url(#clippy)')
-
-    //   const zoom = d3.zoom().on('zoom', function (event) {
-    //     x2 = event.transform.rescaleX(x)
-    //     xAxisG.call(xAxis.scale(x2))
-    //     path.attr('d', line)
-    //   })
-
-    //   svg.call(zoom)
-    // },
     svg() {
       return d3.select(`#container_${this.name}`)
     },
@@ -273,19 +183,6 @@ export default {
         .select(`#container_${this.name}`)
         .append('g')
         .attr('class', 'genes')
-    },
-    // onDelete(chromosome) {
-    //   console.log('click delete', chromosome)
-
-    // },
-    sortGenomes(order) {
-      this.genomesLookup = order
-      console.log('hello from click', this.genomesLookup)
-      this.draw()
-    },
-    sortSequences() {
-      this.sortedDataIndeces = this.sortedDataIndeces.reverse()
-      this.draw()
     },
     addClipPath() {
       this.svg()
@@ -307,8 +204,6 @@ export default {
           return (this.idleTimeout = setTimeout(this.idled, 350)) // This allows to wait a little bit
         this.xScale.domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
       } else {
-        // x.domain([ x.invert(extent[0]), x.invert(extent[1]) ])
-
         console.log(
           'range',
 
@@ -321,7 +216,6 @@ export default {
         ])
 
         this.svg().select('.brush').call(this.brush.move, null) // This remove the grey brush area as soon as the selection has been done
-        console.log('there is a selection')
 
         this.svg()
           .select('.x-axis')
@@ -365,7 +259,6 @@ export default {
 
       this.svg()
         .selectAll('rect.bar-chr')
-        // .data(this.getChromosome(5), (d) => d.sequence_id)
         .data(this.data, (d) => d.sequence_id)
         .join(
           (enter) =>
@@ -377,7 +270,6 @@ export default {
               )
               .attr('class', 'bar-chr')
               .attr('x', this.xScale(0))
-              // .attr('y', (d, i) => i * (this.barHeight + 10))
               .attr(
                 'y',
                 (d, i) =>
@@ -388,7 +280,6 @@ export default {
                 return vis.xScale(d.sequence_length)
               })
               .attr('height', this.barHeight)
-              // .attr('fill', '#f0f2f5')
 
               .attr('fill', function (d) {
                 let color
@@ -408,9 +299,7 @@ export default {
                 }
                 return color
               })
-              // .attr('opacity', 0.4)
               .attr('clip-path', 'url(#clip)'),
-          // .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent)),
           (update) =>
             update
               .transition()
@@ -451,7 +340,6 @@ export default {
 
       this.svg()
         .selectAll('rect.bar-chr-context')
-        // .data(this.getChromosome(5), (d) => d.sequence_id)
         .data(this.data, (d) => d.sequence_id)
         .join(
           (enter) =>
@@ -463,7 +351,6 @@ export default {
               )
               .attr('class', 'bar-chr-context')
               .attr('x', this.xScale(0))
-              // .attr('y', (d, i) => i * (this.barHeight + 10))
               .attr(
                 'y',
                 (d, i) =>
@@ -474,7 +361,6 @@ export default {
                 return vis.xScale(d.sequence_length)
               })
               .attr('height', this.barHeight / 4)
-              // .attr('fill', '#f0f2f5'),
               .attr('fill', function (d) {
                 let color
                 if (vis.percentageGC == true) {
@@ -493,7 +379,6 @@ export default {
                 }
                 return color
               })
-              // .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent))
               .attr('clip-path', 'url(#clip)'),
           (update) =>
             update
@@ -531,10 +416,8 @@ export default {
     },
     draw() {
       if (this.chromosomeNr !== 'unphased') {
-        // this.svg().attr('clip-path', 'url(#clip)') //added per feature
         this.drawBars()
         this.drawContextBars()
-        //   this.addValues()
         this.addLabels()
         this.drawGenes()
       }
@@ -753,17 +636,7 @@ export default {
 
     drawGenes() {
       let vis = this
-
-      //   console.log('sortedMrnaIndices', vis.sortedMrnaIndices)
       console.log('this.dataGenes', this.dataGenes)
-
-      let shapes = [
-        d3.symbolStar,
-        d3.symbolWye,
-        d3.symbolTriangle,
-        d3.symbolSquare,
-        d3.symbolPlus,
-      ]
 
       if (this.dataGenes !== undefined) {
         this.svg()
@@ -777,8 +650,9 @@ export default {
                   'd',
                   d3
                     .symbol()
-                    .type(d3.symbolTriangle)
                     .size(this.barHeight * 4)
+                    // .type(d3.symbolTriangle)
+                    .type((d) => vis.shapeGenerator[d.homology_id])
                 )
                 .attr('transform', function (d, i) {
                   const key = `${d.genome_number}_${d.sequence_number}`
@@ -793,7 +667,7 @@ export default {
                       vis.sortedMrnaIndices[vis.chromosomeNr][i] *
                         (vis.barHeight + 10)
                     }
-                    )rotate(-270)`
+                    )`
                   } else {
                     return `translate(${
                       vis.margin.left * 3 + vis.xScale(d.gene_start_position)
@@ -803,15 +677,23 @@ export default {
                       vis.sortedMrnaIndices[vis.chromosomeNr][i] *
                         (vis.barHeight + 10)
                     }
-                    )rotate(-450)`
+                    )`
                   }
 
                   return rotation
                 })
                 .attr('class', 'gene')
                 .attr('z-index', 100)
-                .attr('fill', (d) => vis.colorScale(d.homology_id)),
-            // .attr('opacity', 0.8),
+                .attr('stroke', (d) =>
+                  vis.upstreamHomologies.includes(d.homology_id)
+                    ? vis.colorScale(d.homology_id)
+                    : ''
+                )
+                .attr('stroke-width', (d) =>
+                  vis.upstreamHomologies.includes(d.homology_id) ? '3px' : ''
+                )
+                .attr('fill', (d) => vis.colorScale(d.homology_id))
+                .attr('opacity', 0.8),
 
             (update) =>
               update
@@ -839,7 +721,7 @@ export default {
                       vis.sortedMrnaIndices[vis.chromosomeNr][i] *
                         (vis.barHeight + 10)
                     }
-                    )rotate(-270)`
+                    )`
                   } else {
                     return `translate(${
                       vis.margin.left * 3 + vis.xScale(d.gene_start_position)
@@ -849,7 +731,7 @@ export default {
                       vis.sortedMrnaIndices[vis.chromosomeNr][i] *
                         (vis.barHeight + 10)
                     }
-                    )rotate(-450)`
+                    )`
                   }
 
                   return rotation
@@ -875,6 +757,13 @@ export default {
 
     const densityObjects = groupInfoDensity(this.dataGenes)
 
+    console.log(
+      'shapeGenerator',
+      this.shapeGenerator,
+      this.shapeGenerator[232273529]
+    )
+    debugger
+
     const dataDensity = {}
     Object.keys(densityObjects).forEach((key) => {
       dataDensity[key] = densityObjects[key].map(
@@ -883,7 +772,7 @@ export default {
     })
     console.log('densityData', dataDensity)
 
-    console.log(d3.schemeSet3)
+    console.log(d3.schemeCategory10)
 
     var bins = d3.bin().domain(this.xScale.domain()).thresholds(40)(dataDensity)
     console.log('bins', bins)

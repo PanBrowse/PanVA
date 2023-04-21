@@ -85,6 +85,7 @@ export default {
       'sortedMrnaIndices',
       'chromosomes',
       'numberOfChromosomes',
+      'homologyGroups',
     ]),
     containerWidth() {
       return Math.floor(this.svgWidth / this.numberOfChromosomes)
@@ -122,71 +123,7 @@ export default {
       return ticks
     },
     colorScale() {
-      return (
-        d3
-          .scaleOrdinal()
-          // .domain([
-          //   [
-          //     232273544, 232274322, 232273685, 232256926, 232274335, 232290464,
-          //     232256927, 232273967, 232289205, 232273851, 232273853, 232291136,
-          //     232273731, 232290249, 232273868, 232289749, 232273892, 232289646,
-          //     232292464, 232273529,
-          //   ],
-          // ])
-          .domain([
-            232290464, 232273731, 232273544, 232290249, 232273868, 232273967,
-            232292464, 232273685, 232273529, 232274335,
-          ])
-          // .domain([232273529, 232288684])
-          // https://sashamaps.net/docs/resources/20-colors/
-          // https://github.com/d3/d3-3.x-api-reference/blob/master/Ordinal-Scales.md
-          // .range([
-          //   '#ff7f0e',
-          //   '#1f77b4',
-          //   '#9467bd',
-          //   '#2ca02c',
-          //   '#8c564b',
-          //   '#d62728',
-          //   '#e377c2',
-          //   '#bcbd22',
-          //   '#17becf',
-          //   '#7f7f7f',
-          //   '#ffbb78',
-          //   '#98df8a',
-          //   '#ff9896',
-          //   '#c5b0d5',
-          //   '#c49c94',
-          //   '#f7b6d2',
-          //   '#c7c7c7',
-          //   '#dbdb8d',
-          //   '#9edae5',
-          // ])
-          .range(d3.schemeSet3)
-        // http://vrl.cs.brown.edu/color
-        // .range([
-        //   '#41bbc5',
-        //   '#bf3854',
-        //   '#6bdd8c',
-        //   '#e84fe1',
-        //   '#09f54c',
-        //   '#7c338b',
-        //   '#b1e632',
-        //   '#4533d6',
-        //   '#f4d403',
-        //   '#22577a',
-        //   '#a8c280',
-        //   '#a17bf2',
-        //   '#638123',
-        //   '#fcc2fb',
-        //   '#1c9820',
-        //   '#ff0087',
-        //   '#a3c9fe',
-        //   '#713529',
-        //   '#fba55c',
-        //   '#ee0d0e',
-        // ])
-      )
-      // .range(d3.schemeCategory10)
+      return d3.scaleOrdinal().domain(this.homologyGroups).range(d3.schemeSet3)
     },
     colorScaleGC() {
       return d3

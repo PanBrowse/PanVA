@@ -31,6 +31,7 @@ export const useGeneSetStore = defineStore('geneSet', {
     chrFocusDensity: {},
     homologyFocus: 232273529, //set to CDF1
     homologyGroups: [],
+    upstreamHomologies: [],
 
     // Sorting
     sorting: 'genome_number',
@@ -57,6 +58,10 @@ export const useGeneSetStore = defineStore('geneSet', {
 
       this.homologyGroups = [
         232273967, 232290249, 232273731, 232273868, 232273685, 232273529,
+        232274335, 232292464, 232273544, 232290464,
+      ]
+      this.upstreamHomologies = [
+        // 232273967, 232290249, 232273731, 232273868, 232273685, 232273529,
         232274335, 232292464, 232273544, 232290464,
       ]
 
