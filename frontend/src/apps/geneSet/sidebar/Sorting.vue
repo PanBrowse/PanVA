@@ -43,22 +43,6 @@ export default {
       :wrapperCol="{ span: 16 }"
       class="view-options"
     >
-      <AFormItem label="Sort sequences">
-        <AButton @click="changeSorting('genome_number_asc')">
-          ascending genomeNr
-        </AButton>
-        <AButton danger @click="changeSorting('genome_number_desc')">
-          descending genomeNr
-        </AButton>
-        <AButton type="primary" ghost @click="changeSorting('protein')">
-          Protein
-        </AButton>
-        <AButton type="primary" ghost> Orientation </AButton>
-        <AButton type="primary" ghost> Size </AButton>
-        <AButton type="primary" ghost> Position </AButton>
-        <AButton type="primary" ghost> Jaccard </AButton>
-        <AButton type="primary" ghost> Order </AButton>
-      </AFormItem>
       <AFormItem label="Proteins">
         <ASlider id="protein" vmodel:value="ref(0)"> </ASlider>
       </AFormItem>
@@ -91,6 +75,43 @@ export default {
           </ARow>
         </ARadioGroup>
       </AFormItem>
+      <!-- <AFormItem label="Calculate"> -->
+      <!-- <AButton @click="changeSorting('genome_number_asc')">
+          ascending genomeNr
+        </AButton>
+        <AButton danger @click="changeSorting('genome_number_desc')">
+          descending genomeNr
+        </AButton> -->
+
+      <!-- <AButton type="primary" ghost> Orientation </AButton>
+        <AButton type="primary" ghost> Size </AButton>
+        <AButton type="primary" ghost> Position </AButton>
+        <AButton type="primary" ghost> Jaccard </AButton>
+        <AButton type="primary" ghost> Order </AButton> -->
+      <!-- </AFormItem> -->
+    </AForm>
+    <AForm class="cluster-options">
+      <AFormItem>
+        <ARow type="flex">
+          <ACol :span="8"> </ACol>
+          <ACol :span="16">
+            <AButton type="primary" ghost @click="changeSorting('protein')">
+              Generate clustering
+            </AButton>
+          </ACol>
+        </ARow>
+      </AFormItem>
     </AForm>
   </SidebarItem>
 </template>
+
+<style lang="scss">
+.cluster-options {
+  .ant-form-item {
+    margin-top: 24px !important;
+  }
+  .ant-form-item {
+    margin-bottom: 8px !important;
+  }
+}
+</style>

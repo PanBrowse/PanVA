@@ -74,7 +74,7 @@ export default {
     cardHeaderHeight: 40,
     transitionTime: 750,
     numberOfCols: 2,
-    barHeight: 25,
+    barHeight: 22,
     sortedSequenceIds: [],
     idleTimeout: null,
   }),
@@ -146,7 +146,7 @@ export default {
           // ])
           .domain([
             232290464, 232273731, 232273544, 232290249, 232273868, 232273967,
-            232292464, 232273685, 232273529, 232274335,
+            232292464, 232273685, 232274335, 232273529,
           ])
           // .domain([232273529, 232288684])
           // https://sashamaps.net/docs/resources/20-colors/
@@ -540,43 +540,123 @@ export default {
     },
     addLabels() {
       let vis = this
+      // this.svg()
+      //   .selectAll('text.label-chr')
+      //   .data(this.data, (d) => d.sequence_id)
+      //   .join(
+      //     (enter) =>
+      //       enter
+      //         .append('text')
+      //         .attr('transform', `translate(20,${this.margin.top * 2})`)
+      //         .attr('class', 'label-chr')
+      //         .attr('dominant-baseline', 'hanging')
+      //         .attr('text-anchor', 'end')
+      //         .attr('x', 0)
+      //         .attr(
+      //           'y',
+      //           (d, i) =>
+      //             this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+      //             (this.barHeight + 10)
+      //         )
+
+      //         .attr('dy', this.barHeight / 3)
+      //         // .text((d) => d.sequence_id.split('_')[0]),
+      //         // .text((d) => d.sequence_id),
+      //         .text(function (d) {
+      //           if (d.genome_number === 1) {
+      //             return '|'
+      //           }
+      //           if (d.genome_number === 2) {
+      //             return '||'
+      //           }
+      //           if (d.genome_number === 3) {
+      //             return '|||'
+      //           }
+      //           if (d.genome_number === 4) {
+      //             return '||||'
+      //           }
+      //           if (d.genome_number === 5) {
+      //             return '|||||'
+      //           } else {
+      //             return d.sequence_id
+      //           }
+      //         }),
+
+      //     (update) =>
+      //       update
+      //         .transition()
+      //         .duration(this.transitionTime)
+      //         // .attr(
+      //         //   'y',
+      //         //   (d, i) =>
+      //         //     this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+      //         //     (this.barHeight + 10)
+      //         // ),
+      //         .attr('y', function (d, i) {
+      //           return (
+      //             vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
+      //             (vis.barHeight + 10)
+      //           )
+      //         }),
+      //     (exit) => exit.remove()
+      //   )
+
+      console.log('d3.symbols', d3.symbolsFill)
       this.svg()
-        .selectAll('text.label-chr')
+        .selectAll('path.genome')
         .data(this.data, (d) => d.sequence_id)
         .join(
           (enter) =>
             enter
-              .append('text')
-              .attr('transform', `translate(0,${this.margin.top * 2})`)
-              .attr('class', 'label-chr')
-              .attr('dominant-baseline', 'hanging')
-              .attr('x', 0)
+              .append('path')
               .attr(
-                'y',
-                (d, i) =>
-                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
-                  (this.barHeight + 10)
+                'd',
+                d3
+                  .symbol()
+                  .size(this.barHeight * 3)
+                  .type(function (d) {
+                    console.log('d shape', d.genome_number)
+                    if (d.genome_number === 1) {
+                      return d3.symbolsFill[0]
+                    }
+                    if (d.genome_number === 2) {
+                      return d3.symbolsFill[1]
+                    }
+                    if (d.genome_number === 3) {
+                      return d3.symbolsFill[2]
+                    }
+                    if (d.genome_number === 4) {
+                      return d3.symbolsFill[3]
+                    }
+                    if (d.genome_number === 5) {
+                      return d3.symbolsFill[4]
+                    } else {
+                      return d3.symbolsFill[5]
+                    }
+                  })
               )
 
-              .attr('dy', this.barHeight / 3)
-              // .text((d) => d.sequence_id.split('_')[0]),
-              .text((d) => d.sequence_id),
+              .attr('transform', function (d, i) {
+                return `translate(${
+                  vis.margin.left
+                },${vis.margin.top + vis.barHeight + vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
+                    )`
+              })
+              .attr('class', 'genome')
+              .attr('z-index', 100)
+              .attr('fill', '#c0c0c0'),
+          // .attr('fill', (d) => vis.colorScale(d.homology_id)),
+          // .attr('opacity', 0.8),
 
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              // .attr(
-              //   'y',
-              //   (d, i) =>
-              //     this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
-              //     (this.barHeight + 10)
-              // ),
-              .attr('y', function (d, i) {
-                return (
-                  vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
-                  (vis.barHeight + 10)
-                )
+              .attr('transform', function (d, i) {
+                return `translate(${
+                  vis.margin.left
+                },${vis.margin.top + vis.barHeight + vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
+                    )`
               }),
           (exit) => exit.remove()
         )
@@ -764,6 +844,9 @@ export default {
     })
     console.log('densityData', dataDensity)
 
+    console.log(d3.schemeSet3)
+    debugger
+
     var bins = d3.bin().domain(this.xScale.domain()).thresholds(40)(dataDensity)
     console.log('bins', bins)
 
@@ -815,52 +898,52 @@ export default {
     )
     console.log('densityData estimation', density)
 
-    let vis = this
-    // Plot the area
-    this.svg()
-      .append('path')
-      .attr('class', 'mypath')
-      .datum(density)
-      .attr('transform', `translate(${vis.margin.left * 3},${-20})`)
-      .attr('fill', '#69b3a2')
-      .attr('opacity', '.8')
-      .attr('stroke', '#000')
-      .attr('stroke-width', 1)
-      .attr('stroke-linejoin', 'round')
-      .attr(
-        'd',
-        d3
-          .line()
-          .curve(d3.curveBasis)
-          .x(function (d) {
-            return vis.xScale(d[0])
-          })
-          .y(function (d) {
-            return y(d[1])
-          })
-      )
+    // let vis = this
+    // // Plot the area
+    // this.svg()
+    //   .append('path')
+    //   .attr('class', 'mypath')
+    //   .datum(density)
+    //   .attr('transform', `translate(${vis.margin.left * 3},${-20})`)
+    //   .attr('fill', '#69b3a2')
+    //   .attr('opacity', '.8')
+    //   .attr('stroke', '#000')
+    //   .attr('stroke-width', 1)
+    //   .attr('stroke-linejoin', 'round')
+    //   .attr(
+    //     'd',
+    //     d3
+    //       .line()
+    //       .curve(d3.curveBasis)
+    //       .x(function (d) {
+    //         return vis.xScale(d[0])
+    //       })
+    //       .y(function (d) {
+    //         return y(d[1])
+    //       })
+    //   )
 
-    // append the bar rectangles to the svg element
-    this.svg()
-      .append('g')
-      .attr('transform', `translate(${vis.margin.left * 3},${-10})`)
+    // // append the bar rectangles to the svg element
+    // this.svg()
+    //   .append('g')
+    //   .attr('transform', `translate(${vis.margin.left * 3},${-10})`)
 
-      .selectAll('rect.density')
-      .data(bins)
-      .enter()
-      .append('rect')
-      .attr('class', 'density')
-      .attr('x', 1)
-      .attr('transform', function (d) {
-        return 'translate(' + vis.xScale(d.x0) + ',' + yBin(d.length) + ')'
-      })
-      .attr('width', function (d) {
-        return vis.xScale(d.x1) - vis.xScale(d.x0) - 1
-      })
-      .attr('height', function (d) {
-        return 20 - y(d.length)
-      })
-      .style('fill', '#69b3a2')
+    //   .selectAll('rect.density')
+    //   .data(bins)
+    //   .enter()
+    //   .append('rect')
+    //   .attr('class', 'density')
+    //   .attr('x', 1)
+    //   .attr('transform', function (d) {
+    //     return 'translate(' + vis.xScale(d.x0) + ',' + yBin(d.length) + ')'
+    //   })
+    //   .attr('width', function (d) {
+    //     return vis.xScale(d.x1) - vis.xScale(d.x0) - 1
+    //   })
+    //   .attr('height', function (d) {
+    //     return 20 - y(d.length)
+    //   })
+    //   .style('fill', '#69b3a2')
 
     this.drawXAxis() // draw axis once
 
