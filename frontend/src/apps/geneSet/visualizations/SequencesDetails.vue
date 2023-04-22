@@ -190,7 +190,7 @@ export default {
       this.svg()
         .append('defs')
         .append('svg:clipPath')
-        .attr('id', 'clipOverview')
+        .attr('id', 'clipDetails')
         .append('svg:rect')
         .attr('width', this.visWidth)
         .attr(
@@ -257,6 +257,64 @@ export default {
         vis.draw()
       })
     },
+    pan() {
+      let vis = this
+      // Add event listener on keydown
+      document.addEventListener('keydown', (event) => {
+        var name = event.key
+        var code = event.code
+        // Alert the key name and key code on keydown
+        console.log('key', name, code)
+        if (event.key === 'ArrowLeft') {
+          const prevDomain = vis.xScale.domain()
+          console.log('previous domain', prevDomain)
+          const rangeDomain = 100000
+          console.log('range domain', rangeDomain)
+
+          const newDomain = [
+            prevDomain[0] - rangeDomain < 0 ? 0 : prevDomain[0] - rangeDomain,
+            prevDomain[1] - rangeDomain,
+          ]
+          console.log('new domain', newDomain, vis.xScale.domain())
+
+          vis.xScale.domain([vis.dataMin < 0 ? 0 : newDomain[0], newDomain[1]])
+
+          vis
+            .svg()
+            .select('.x-axis')
+            .call(d3.axisTop(vis.xScale))
+            .call((g) => g.select('.domain').remove())
+            .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
+            .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+          vis.draw()
+        }
+        if (event.key === 'ArrowRight') {
+          const prevDomain = vis.xScale.domain()
+          console.log('previous domain', prevDomain)
+          const rangeDomain = 100000
+          console.log('range domain', rangeDomain)
+
+          const newDomain = [
+            prevDomain[0] + rangeDomain,
+            prevDomain[1] + rangeDomain > vis.dataMax
+              ? vis.dataMax
+              : prevDomain[1] + rangeDomain,
+          ]
+          console.log('new domain', newDomain, vis.xScale.domain())
+
+          vis.xScale.domain([vis.dataMin < 0 ? 0 : newDomain[0], newDomain[1]])
+
+          vis
+            .svg()
+            .select('.x-axis')
+            .call(d3.axisTop(vis.xScale))
+            .call((g) => g.select('.domain').remove())
+            .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
+            .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+          vis.draw()
+        }
+      })
+    },
     idled() {
       this.idleTimeout = null
     },
@@ -307,7 +365,7 @@ export default {
                 }
                 return color
               })
-              .attr('clip-path', 'url(#clip)'),
+              .attr('clip-path', 'url(#clipDetails)'),
           (update) =>
             update
               .transition()
@@ -387,7 +445,7 @@ export default {
                 }
                 return color
               })
-              .attr('clip-path', 'url(#clip)'),
+              .attr('clip-path', 'url(#clipDetails)'),
           (update) =>
             update
               .transition()
@@ -752,7 +810,6 @@ export default {
       this.shapeGenerator,
       this.shapeGenerator[232273529]
     )
-    debugger
 
     const dataDensity = {}
     Object.keys(densityObjects).forEach((key) => {
@@ -888,6 +945,7 @@ export default {
 
     this.addClipPath()
     this.resetZoom()
+    this.pan()
 
     this.observeWidth()
 

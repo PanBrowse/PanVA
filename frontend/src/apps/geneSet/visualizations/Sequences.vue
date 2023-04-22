@@ -309,6 +309,7 @@ export default {
         vis.draw()
       })
     },
+
     idled() {
       this.idleTimeout = null
     },
