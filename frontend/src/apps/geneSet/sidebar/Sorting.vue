@@ -98,6 +98,10 @@ export default {
             <AButton type="primary" ghost @click="changeSorting('protein')">
               Generate clustering
             </AButton>
+
+            <AButton @click="changeSorting('genome_number_asc')">
+              ascending genomeNr
+            </AButton>
           </ACol>
         </ARow>
       </AFormItem>

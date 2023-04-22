@@ -119,6 +119,7 @@ def get_clustering_order():
 
     # Load linkage matrix
     sorting_dict = get_clustering_leaves(sequences, linkage_matrix, labels)
+    print(sorting_dict)
 
 
     json_object = json.dumps(sorting_dict, indent = 4) 

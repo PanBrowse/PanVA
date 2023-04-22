@@ -4,9 +4,9 @@
     :title="`${name}`"
     :style="{
       width: `${containerWidth - 6}px`,
-      //   height: `${
-      //     svgHeight + cardHeaderHeight + padding.cardBody + margin.top
-      //   }px`,
+      // height: `${
+      //   svgHeight + cardHeaderHeight + padding.cardBody + margin.top
+      // }px`,
       height: `${100}%`,
     }"
     :bordered="false"
@@ -72,7 +72,7 @@ export default {
     cardHeaderHeight: 40,
     transitionTime: 750,
     numberOfCols: 2,
-    barHeight: 15,
+    barHeight: 7,
     sortedSequenceIds: [],
     idleTimeout: null,
   }),
@@ -123,7 +123,10 @@ export default {
       return ticks
     },
     colorScale() {
-      return d3.scaleOrdinal().domain(this.homologyGroups).range(d3.schemeSet3)
+      return d3
+        .scaleOrdinal()
+        .domain(this.homologyGroups)
+        .range(d3.schemeCategory10)
     },
     colorScaleGC() {
       return d3
@@ -232,7 +235,13 @@ export default {
         .attr('id', 'clipOverview')
         .append('svg:rect')
         .attr('width', this.visWidth)
-        .attr('height', this.visHeight)
+        .attr(
+          'height',
+          this.svgHeight +
+            this.cardHeaderHeight +
+            this.padding.cardBody +
+            this.margin.top
+        )
         .attr('x', 0)
         .attr('y', 0)
     },
@@ -410,162 +419,144 @@ export default {
     },
     addLabels() {
       let vis = this
-      // this.svg()
-      //   .selectAll('text.label-chr')
-      //   .data(this.data, (d) => d.sequence_id)
-      //   .join(
-      //     (enter) =>
-      //       enter
-      //         .append('text')
-      //         .attr('transform', `translate(20,${this.margin.top * 2})`)
-      //         .attr('class', 'label-chr')
-      //         .attr('dominant-baseline', 'hanging')
-      //         .attr('text-anchor', 'end')
-      //         .attr('x', 0)
-      //         .attr(
-      //           'y',
-      //           (d, i) =>
-      //             this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
-      //             (this.barHeight + 10)
-      //         )
-
-      //         // .attr('dy', this.barHeight / 3)
-      //         // .text((d) => d.sequence_id.split('_')[0]),
-      //         // .text((d) => d.sequence_id),
-      //         .text(function (d) {
-      //           if (d.genome_number === 1) {
-      //             return '|'
-      //           }
-      //           if (d.genome_number === 2) {
-      //             return '||'
-      //           }
-      //           if (d.genome_number === 3) {
-      //             return '|||'
-      //           }
-      //           if (d.genome_number === 4) {
-      //             return '||||'
-      //           }
-      //           if (d.genome_number === 5) {
-      //             return '|||||'
-      //           } else {
-      //             return d.sequence_id
-      //           }
-      //         }),
-
-      //     (update) =>
-      //       update
-      //         .transition()
-      //         .duration(this.transitionTime)
-      //         // .attr(
-      //         //   'y',
-      //         //   (d, i) =>
-      //         //     this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
-      //         //     (this.barHeight + 10)
-      //         // ),
-      //         .attr('y', function (d, i) {
-      //           return (
-      //             vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
-      //             (vis.barHeight + 10)
-      //           )
-      //         }),
-      //     (exit) => exit.remove()
-      //   )
       this.svg()
-        .selectAll('path.genome')
-        .data(this.data, (d) => d.sequence_id)
-        .join(
-          (enter) =>
-            enter
-              .append('path')
-              .attr(
-                'd',
-                d3
-                  .symbol()
-                  .size(this.barHeight * 3)
-                  .type(function (d) {
-                    console.log('d shape', d.genome_number)
-                    if (d.genome_number === 1) {
-                      return d3.symbolsFill[0]
-                    }
-                    if (d.genome_number === 2) {
-                      return d3.symbolsFill[1]
-                    }
-                    if (d.genome_number === 3) {
-                      return d3.symbolsFill[2]
-                    }
-                    if (d.genome_number === 4) {
-                      return d3.symbolsFill[3]
-                    }
-                    if (d.genome_number === 5) {
-                      return d3.symbolsFill[4]
-                    } else {
-                      return d3.symbolsFill[5]
-                    }
-                  })
-              )
-
-              .attr('transform', function (d, i) {
-                return `translate(${
-                  vis.margin.left
-                },${vis.margin.top + vis.barHeight + vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
-                    )`
-              })
-              .attr('class', 'genome')
-              .attr('z-index', 100),
-          // .attr('fill', '#c0c0c0'),
-          // .attr('fill', (d) => vis.colorScale(d.homology_id)),
-          // .attr('opacity', 0.8),
-
-          (update) =>
-            update
-              .transition()
-              .duration(this.transitionTime)
-              .attr('transform', function (d, i) {
-                return `translate(${
-                  vis.margin.left
-                },${vis.margin.top + vis.barHeight + vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
-                    )`
-              }),
-          (exit) => exit.remove()
-        )
-    },
-    addValues() {
-      this.svg()
-        .selectAll('text.value-chr')
+        .selectAll('text.label-chr')
         .data(this.data, (d) => d.sequence_id)
         .join(
           (enter) =>
             enter
               .append('text')
-              .attr(
-                'transform',
-                `translate(${this.margin.left * 1},${this.margin.top * 2})`
-              )
-              .attr('class', 'value-chr')
+              .attr('transform', `translate(20,${this.margin.top * 2})`)
+              .attr('class', 'label-chr')
               .attr('dominant-baseline', 'hanging')
-              .attr('x', 0)
-              .attr('dx', 2)
+              .attr('text-anchor', 'end')
+              .attr('font-size', 10)
+              .attr('x', 5)
               .attr(
                 'y',
                 (d, i) =>
                   this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
                   (this.barHeight + 10)
               )
-              .attr('dy', this.barHeight / 4)
-              .text((d) => Math.floor(d.sequence_length).toLocaleString()),
+
+              .attr('dy', this.barHeight / 3)
+              // .text((d) => d.sequence_id.split('_')[0]),
+              .text((d) => d.sequence_id),
 
           (update) =>
             update
               .transition()
               .duration(this.transitionTime)
-              .attr(
-                'y',
-                (d, i) =>
-                  this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
-                  (this.barHeight + 10)
-              ),
+              // .attr(
+              //   'y',
+              //   (d, i) =>
+              //     this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+              //     (this.barHeight + 10)
+              // ),
+              .attr('y', function (d, i) {
+                return (
+                  vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] *
+                  (vis.barHeight + 10)
+                )
+              }),
           (exit) => exit.remove()
         )
+      //   this.svg()
+      //     .selectAll('path.genome')
+      //     .data(this.data, (d) => d.sequence_id)
+      //     .join(
+      //       (enter) =>
+      //         enter
+      //           .append('path')
+      //           .attr(
+      //             'd',
+      //             d3
+      //               .symbol()
+      //               .size(this.barHeight * 3)
+      //               .type(function (d) {
+      //                 console.log('d shape', d.genome_number)
+      //                 if (d.genome_number === 1) {
+      //                   return d3.symbolsFill[0]
+      //                 }
+      //                 if (d.genome_number === 2) {
+      //                   return d3.symbolsFill[1]
+      //                 }
+      //                 if (d.genome_number === 3) {
+      //                   return d3.symbolsFill[2]
+      //                 }
+      //                 if (d.genome_number === 4) {
+      //                   return d3.symbolsFill[3]
+      //                 }
+      //                 if (d.genome_number === 5) {
+      //                   return d3.symbolsFill[4]
+      //                 } else {
+      //                   return d3.symbolsFill[5]
+      //                 }
+      //               })
+      //           )
+
+      //           .attr('transform', function (d, i) {
+      //             return `translate(${
+      //               vis.margin.left
+      //             },${vis.margin.top + vis.barHeight + vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
+      //                 )`
+      //           })
+      //           .attr('class', 'genome')
+      //           .attr('z-index', 100),
+      //       // .attr('fill', '#c0c0c0'),
+      //       // .attr('fill', (d) => vis.colorScale(d.homology_id)),
+      //       // .attr('opacity', 0.8),
+
+      //       (update) =>
+      //         update
+      //           .transition()
+      //           .duration(this.transitionTime)
+      //           .attr('transform', function (d, i) {
+      //             return `translate(${
+      //               vis.margin.left
+      //             },${vis.margin.top + vis.barHeight + vis.sortedChromosomeSequenceIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
+      //                 )`
+      //           }),
+      //       (exit) => exit.remove()
+      //     )
+      // },
+      // addValues() {
+      //   this.svg()
+      //     .selectAll('text.value-chr')
+      //     .data(this.data, (d) => d.sequence_id)
+      //     .join(
+      //       (enter) =>
+      //         enter
+      //           .append('text')
+      //           .attr(
+      //             'transform',
+      //             `translate(${this.margin.left * 1},${this.margin.top * 2})`
+      //           )
+      //           .attr('class', 'value-chr')
+      //           .attr('dominant-baseline', 'hanging')
+      //           .attr('x', 0)
+      //           .attr('dx', 2)
+      //           .attr(
+      //             'y',
+      //             (d, i) =>
+      //               this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+      //               (this.barHeight + 10)
+      //           )
+      //           .attr('dy', this.barHeight / 4)
+      //           .text((d) => Math.floor(d.sequence_length).toLocaleString()),
+
+      //       (update) =>
+      //         update
+      //           .transition()
+      //           .duration(this.transitionTime)
+      //           .attr(
+      //             'y',
+      //             (d, i) =>
+      //               this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
+      //               (this.barHeight + 10)
+      //           ),
+      //       (exit) => exit.remove()
+      //     )
     },
     drawXAxis() {
       this.svg().select('g.x-axis').remove() //needed because otherwise draws twice in some cases. To-do: fix side effect
