@@ -797,80 +797,88 @@ export default {
       this.sortedChromosomeSequenceIndices[12].length * (this.barHeight + 10) +
         this.margin.top * 2
     } else {
-      this.svgHeight =
-        this.sortedChromosomeSequenceIndices[this.chromosomeNr].length *
-          (this.barHeight + 10) +
-        this.margin.top * 2
+      // this.svgHeight =
+      //   this.sortedChromosomeSequenceIndices[this.chromosomeNr].length *
+      //     (this.barHeight + 10) +
+      //   this.margin.top * 2
+      this.svgHeight = document.getElementById('content').offsetHeight
     }
 
-    const densityObjects = groupInfoDensity(this.dataGenes)
+    const containerHeight = document.getElementById('content').offsetHeight
+    console.log('containerHeight', containerHeight)
+    const barHeightScaled =
+      (containerHeight - 7 * this.margin.top) /
+      this.sortedChromosomeSequenceIndices[this.chromosomeNr].length
+    console.log('barHeightScaled', barHeightScaled)
 
-    console.log(
-      'shapeGenerator',
-      this.shapeGenerator,
-      this.shapeGenerator[232273529]
-    )
+    this.barHeight = barHeightScaled - 10
 
-    const dataDensity = {}
-    Object.keys(densityObjects).forEach((key) => {
-      dataDensity[key] = densityObjects[key].map(
-        (item) => item.gene_start_position
-      )
-    })
-    console.log('densityData', dataDensity)
+    // const densityObjects = groupInfoDensity(this.dataGenes)
 
-    console.log(d3.schemeCategory10)
+    // console.log(
+    //   'shapeGenerator',
+    //   this.shapeGenerator,
+    //   this.shapeGenerator[232273529]
+    // )
 
-    var bins = d3.bin().domain(this.xScale.domain()).thresholds(40)(dataDensity)
-    console.log('bins', bins)
+    // const dataDensity = {}
+    // Object.keys(densityObjects).forEach((key) => {
+    //   dataDensity[key] = densityObjects[key].map(
+    //     (item) => item.gene_start_position
+    //   )
+    // })
+    // console.log('densityData', dataDensity)
 
-    // Function to compute density
-    function kernelDensityEstimator(kernel, X) {
-      return function (V) {
-        return X.map(function (x) {
-          return [
-            x,
-            d3.mean(V, function (v) {
-              return kernel(x - v)
-            }),
-          ]
-        })
-      }
-    }
-    function kernelEpanechnikov(k) {
-      return function (v) {
-        return Math.abs((v /= k)) <= 1 ? (0.75 * (1 - v * v)) / k : 0
-      }
-    }
+    // var bins = d3.bin().domain(this.xScale.domain()).thresholds(40)(dataDensity)
+    // console.log('bins', bins)
 
-    // add the y Axis
-    var y = d3.scaleLinear().range([20, 0]).domain([0, 0.001])
+    // // Function to compute density
+    // function kernelDensityEstimator(kernel, X) {
+    //   return function (V) {
+    //     return X.map(function (x) {
+    //       return [
+    //         x,
+    //         d3.mean(V, function (v) {
+    //           return kernel(x - v)
+    //         }),
+    //       ]
+    //     })
+    //   }
+    // }
+    // function kernelEpanechnikov(k) {
+    //   return function (v) {
+    //     return Math.abs((v /= k)) <= 1 ? (0.75 * (1 - v * v)) / k : 0
+    //   }
+    // }
 
-    // Y axis: scale and draw:
-    var yBin = d3.scaleLinear().range([20, 0])
-    y.domain([
-      0,
-      d3.max(bins, function (d) {
-        return d.length
-      }),
-    ])
+    // // add the y Axis
+    // var y = d3.scaleLinear().range([20, 0]).domain([0, 0.001])
 
-    var x = d3
-      .scaleLinear()
-      .domain([4285531, 4685531])
-      .range([this.visWidth, this.visHeight])
+    // // Y axis: scale and draw:
+    // var yBin = d3.scaleLinear().range([20, 0])
+    // y.domain([
+    //   0,
+    //   d3.max(bins, function (d) {
+    //     return d.length
+    //   }),
+    // ])
 
-    // Compute kernel density estimation for one sequence
-    var kde = kernelDensityEstimator(
-      kernelEpanechnikov(7),
-      this.xScale.ticks(40)
-    )
-    var density = kde(
-      dataDensity['1_5'].map(function (d) {
-        return d
-      })
-    )
-    console.log('densityData estimation', density)
+    // var x = d3
+    //   .scaleLinear()
+    //   .domain([4285531, 4685531])
+    //   .range([this.visWidth, this.visHeight])
+
+    // // Compute kernel density estimation for one sequence
+    // var kde = kernelDensityEstimator(
+    //   kernelEpanechnikov(7),
+    //   this.xScale.ticks(40)
+    // )
+    // var density = kde(
+    //   dataDensity['1_5'].map(function (d) {
+    //     return d
+    //   })
+    // )
+    // console.log('densityData estimation', density)
 
     // let vis = this
     // // Plot the area

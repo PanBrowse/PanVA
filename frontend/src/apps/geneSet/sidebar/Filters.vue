@@ -18,6 +18,7 @@ export default {
     ...mapWritableState(useGeneSetStore, [
       'chromosomes',
       'numberOfChromosomes',
+      'chrFocus',
     ]),
     chrOptions() {
       let arrayChromosomes = [...Array(12)].map((_, i) => ({
@@ -54,6 +55,13 @@ export default {
           :dropdownMatchSelectWidth="false"
           showSearch
           showArrow
+        />
+      </AFormItem>
+      <AFormItem label="Selected chromosome">
+        <ASelect
+          placeholder="None"
+          v-model:value="chrFocus"
+          :options="chrOptions"
         />
       </AFormItem>
     </AForm>
