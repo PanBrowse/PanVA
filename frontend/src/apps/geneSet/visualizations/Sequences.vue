@@ -72,7 +72,7 @@ export default {
     cardHeaderHeight: 40,
     transitionTime: 750,
     numberOfCols: 2,
-    barHeight: 7,
+    barHeight: 20,
     sortedSequenceIds: [],
     idleTimeout: null,
   }),

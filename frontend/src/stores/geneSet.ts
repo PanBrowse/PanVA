@@ -41,6 +41,12 @@ export const useGeneSetStore = defineStore('geneSet', {
     // Clustering
     linkage: 3,
     clusteringOrder: {},
+    protein: 100,
+    orientation: 0,
+    size: 0,
+    location: 0,
+    jaccard: 0,
+    order: 100,
 
     //Context
     percentageGC: true,

@@ -15,6 +15,9 @@ import SidebarItem from '@/components/SidebarItem.vue'
 import { useGeneSetStore } from '@/stores/geneSet'
 
 export default {
+  data: () => ({
+    testValue: 50,
+  }),
   components: {
     AButton: Button,
     SidebarItem,
@@ -30,7 +33,15 @@ export default {
     ...mapActions(useGeneSetStore, ['changeSorting']),
   },
   computed: {
-    ...mapWritableState(useGeneSetStore, ['linkage']),
+    ...mapWritableState(useGeneSetStore, [
+      'linkage',
+      'protein',
+      'order',
+      'orientation',
+      'size',
+      'jaccard',
+      'location',
+    ]),
   },
 }
 </script>
@@ -44,22 +55,22 @@ export default {
       class="view-options"
     >
       <AFormItem label="Proteins">
-        <ASlider id="protein" vmodel:value="ref(0)"> </ASlider>
-      </AFormItem>
-      <AFormItem label="Orientation">
-        <ASlider id="orient" vmodel:value="ref(0)"> </ASlider>
-      </AFormItem>
-      <AFormItem label="Size">
-        <ASlider id="size" vmodel:value="ref(0)"> </ASlider>
-      </AFormItem>
-      <AFormItem label="Position">
-        <ASlider id="position" vmodel:value="ref(0)"> </ASlider>
-      </AFormItem>
-      <AFormItem label="Jaccard Index">
-        <ASlider id="jaccard" vmodel:value="ref(0)"> </ASlider>
+        <ASlider id="protein" v-model:value="protein"> </ASlider>
       </AFormItem>
       <AFormItem label="Order">
-        <ASlider id="order" vmodel:value="ref(0)"> </ASlider>
+        <ASlider id="order" v-model:value="order"> </ASlider>
+      </AFormItem>
+      <AFormItem label="Orientation">
+        <ASlider id="orientation" v-model:value="orientation"> </ASlider>
+      </AFormItem>
+      <AFormItem label="Size">
+        <ASlider id="size" v-model:value="size"> </ASlider>
+      </AFormItem>
+      <AFormItem label="Location">
+        <ASlider id="location" v-model:value="location"> </ASlider>
+      </AFormItem>
+      <AFormItem label="Jaccard / CNV">
+        <ASlider id="jaccard" v-model:value="jaccard"> </ASlider>
       </AFormItem>
       <AFormItem label="Linkage">
         <ARadioGroup v-model:value="linkage">
