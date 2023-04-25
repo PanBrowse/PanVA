@@ -94,6 +94,10 @@ def get_clustering_order():
     # matrix_path = os.path.join(db_path, "geneSet", "protein_distance_matrix.npy")
     matrix_path_proteins = os.path.join(db_path, "geneSet", "protein_distance_matrix_cdf1_5.npy")
     matrix_path_order = os.path.join(db_path, "geneSet", "order_distance_matrix_cdf1_5.npy")
+    matrix_path_orientation = os.path.join(db_path, "geneSet", "orientation_distance_matrix_cdf1_5.npy")
+    matrix_path_size = os.path.join(db_path, "geneSet", "size_distance_matrix_cdf1_5.npy")
+    matrix_path_location = os.path.join(db_path, "geneSet", "location_distance_matrix_cdf1_5.npy")
+    matrix_path_jaccard = os.path.join(db_path, "geneSet", "jaccard_distance_matrix_cdf1_5.npy")
 
     # Load sequences data.
     sequences = pd.read_csv(sequences_path)
@@ -101,7 +105,12 @@ def get_clustering_order():
 
     # Load data matrix
     data_matrix_proteins = np.load(matrix_path_proteins)
-
+    data_matrix_order = np.load(matrix_path_order)
+    data_matrix_orientation = np.load(matrix_path_orientation)
+    data_matrix_size = np.load(matrix_path_size)
+    data_matrix_location = np.load(matrix_path_location)
+    data_matrix_jaccard = np.load(matrix_path_jaccard)
+    
     
     # Create linkage matrix
     linkage_matrix = create_linkage_matrix(data_matrix_proteins, "ward")
@@ -122,12 +131,19 @@ def get_clustering_order():
         print('locationScore', location_score)
         print('jaccardScore', jaccard_score)
 
-        m1 = np.matrix([[1, 2], [4, 3]])
-        m2 = np.matrix([[1, 2], [4, 3]])
-        m3 = np.matrix([[1, 2], [4, 3]])
-        print(np.sum([m1,m2, m3], axis=0))
+        matrix_proteins = protein_score * data_matrix_proteins
+        matrix_order = order_score * data_matrix_order
+        matrix_orientation = orientation_score * data_matrix_orientation
+        matrix_size = size_score * data_matrix_size
+        matrix_location = location_score * data_matrix_location
+        matrix_jaccard = jaccard_score * data_matrix_jaccard
+        
 
 
+        list_matrices = [matrix_proteins, matrix_order, matrix_orientation, matrix_size, matrix_location, matrix_jaccard]
+
+        matrix_combined = np.sum(list_matrices, axis=0)
+        
 
         method = request.json["method"]
         methods = ["average", "complete", "single", "ward"]
@@ -138,7 +154,7 @@ def get_clustering_order():
         print("method", methods[method])
 
         # Create linkage matrix
-        linkage_matrix = create_linkage_matrix(data_matrix_proteins,  linkage_method)
+        linkage_matrix = create_linkage_matrix(matrix_combined,  linkage_method)
 
     # Load linkage matrix
     sorting_dict = get_clustering_leaves(sequences, linkage_matrix, labels)
