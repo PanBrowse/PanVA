@@ -41,12 +41,12 @@ export const useGeneSetStore = defineStore('geneSet', {
     // Clustering
     linkage: 3,
     clusteringOrder: {},
-    protein: 100,
+    protein: 50,
     orientation: 0,
     size: 0,
     location: 0,
     jaccard: 0,
-    order: 100,
+    order: 50,
 
     //Context
     percentageGC: true,
@@ -129,7 +129,15 @@ export const useGeneSetStore = defineStore('geneSet', {
       }
 
       try {
-        this.clusteringOrder = await fetchClusteringOrder(this.linkage)
+        this.clusteringOrder = await fetchClusteringOrder(
+          this.linkage,
+          this.protein,
+          this.order,
+          this.orientation,
+          this.size,
+          this.location,
+          this.jaccard
+        )
       } catch (error) {
         global.setError({
           message: 'Could not load or parse clustering result.',
@@ -139,9 +147,6 @@ export const useGeneSetStore = defineStore('geneSet', {
       }
 
       this.isInitialized = true
-    },
-    async recalculate() {
-      this.clusteringOrder = await fetchClusteringOrder(this.linkage)
     },
     async changeSorting(sorting) {
       // Update the sorting
@@ -201,7 +206,15 @@ export const useGeneSetStore = defineStore('geneSet', {
       }
 
       if (sorting === 'protein') {
-        this.clusteringOrder = await fetchClusteringOrder(this.linkage)
+        this.clusteringOrder = await fetchClusteringOrder(
+          this.linkage,
+          this.protein,
+          this.order,
+          this.orientation,
+          this.size,
+          this.location,
+          this.jaccard
+        )
         // console.log('protein sorting', this.linkage, this.clusteringOrder)
         // console.log('sequenceLookup', seqLookup)
 

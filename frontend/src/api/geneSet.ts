@@ -151,7 +151,15 @@ export const fetchGroupInfo = async () => {
   )
 }
 
-export const fetchClusteringOrder = async (method) => {
+export const fetchClusteringOrder = async (
+  method,
+  proteinScore,
+  orderScore,
+  orientationScore,
+  sizeScore,
+  locationScore,
+  jaccardScore
+) => {
   const config = useConfigStore()
 
   const data = await d3.json(
@@ -163,7 +171,15 @@ export const fetchClusteringOrder = async (method) => {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ method }),
+      body: JSON.stringify({
+        method,
+        proteinScore,
+        orderScore,
+        orientationScore,
+        sizeScore,
+        locationScore,
+        jaccardScore,
+      }),
     }
   )
 

@@ -92,20 +92,43 @@ def get_clustering_order():
 
     sequences_path = os.path.join(db_path, "geneSet", "sequences.csv")
     # matrix_path = os.path.join(db_path, "geneSet", "protein_distance_matrix.npy")
-    matrix_path = os.path.join(db_path, "geneSet", "protein_distance_matrix_cdf1_5.npy")
+    matrix_path_proteins = os.path.join(db_path, "geneSet", "protein_distance_matrix_cdf1_5.npy")
+    matrix_path_order = os.path.join(db_path, "geneSet", "order_distance_matrix_cdf1_5.npy")
 
     # Load sequences data.
     sequences = pd.read_csv(sequences_path)
     labels = sequences["sequence_id"].to_list()
 
     # Load data matrix
-    data_matrix_proteins = np.load(matrix_path)
+    data_matrix_proteins = np.load(matrix_path_proteins)
 
     
     # Create linkage matrix
-    linkage_matrix = create_linkage_matrix(data_matrix_proteins, "average")
+    linkage_matrix = create_linkage_matrix(data_matrix_proteins, "ward")
     
     if request.method == "POST":
+
+        # get scores and multiply with matrices
+        protein_score = request.json["proteinScore"]/100
+        order_score = request.json["orderScore"]/100
+        orientation_score = request.json["orientationScore"]/100
+        size_score = request.json["sizeScore"]/100
+        location_score = request.json["locationScore"]/100
+        jaccard_score = request.json["jaccardScore"]/100
+        print('proteinScore', protein_score)
+        print('orderScore', order_score)
+        print('orientationScore', orientation_score)
+        print('sizeScore', size_score)
+        print('locationScore', location_score)
+        print('jaccardScore', jaccard_score)
+
+        m1 = np.matrix([[1, 2], [4, 3]])
+        m2 = np.matrix([[1, 2], [4, 3]])
+        m3 = np.matrix([[1, 2], [4, 3]])
+        print(np.sum([m1,m2, m3], axis=0))
+
+
+
         method = request.json["method"]
         methods = ["average", "complete", "single", "ward"]
         if method == None:
@@ -119,7 +142,6 @@ def get_clustering_order():
 
     # Load linkage matrix
     sorting_dict = get_clustering_leaves(sequences, linkage_matrix, labels)
-    print(sorting_dict)
 
 
     json_object = json.dumps(sorting_dict, indent = 4) 
