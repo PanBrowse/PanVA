@@ -67,3 +67,9 @@ export default {
   </Layout>
   <LoadingScreen v-else>Loading homologies, please wait...</LoadingScreen>
 </template>
+
+<style>
+.ant-layout-sider {
+  background: #fafafa !important;
+}
+</style>
