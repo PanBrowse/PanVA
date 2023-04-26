@@ -8,8 +8,9 @@
       //   svgHeight + cardHeaderHeight + padding.cardBody + margin.top
       // }px`,
       height: `${100}%`,
+      border: `1px solid ${selectedColor}`,
     }"
-    :bordered="false"
+    :bordered="true"
     size="small"
   >
     <template #extra
@@ -87,6 +88,7 @@ export default {
       'numberOfChromosomes',
       'homologyGroups',
       'overviewArrows',
+      'chrFocus',
     ]),
     containerWidth() {
       return Math.floor(this.svgWidth / this.numberOfChromosomes)
@@ -96,6 +98,11 @@ export default {
     },
     visHeight() {
       return this.svgHeight
+    },
+    selectedColor() {
+      return this.chrFocus == parseInt(this.name.substring(3))
+        ? '#91d5ff'
+        : '#FFF'
     },
     xScale() {
       return d3

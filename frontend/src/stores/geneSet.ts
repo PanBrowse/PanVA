@@ -27,7 +27,7 @@ export const useGeneSetStore = defineStore('geneSet', {
     groupInfo: [] as GroupInfo[],
     chromosomes: [] as Number,
     numberOfChromosomes: 0,
-    chrFocus: 1,
+    chrFocus: 5,
     chrFocusDensity: {},
     homologyFocus: 232273529, //set to CDF1
     homologyGroups: [],
