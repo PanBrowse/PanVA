@@ -33,7 +33,7 @@ export default {
     ACol: Col,
   },
   computed: {
-    ...mapState(useGeneSetStore, ['isInitialized', 'showTable']),
+    ...mapState(useGeneSetStore, ['isInitialized', 'showTable', 'showDetails']),
   },
 }
 </script>
@@ -48,7 +48,7 @@ export default {
       <Unphased />
     </template>
     <ChromosomeOverview />
-    <template v-if="showTable">
+    <template v-if="showTable && showDetails">
       <ARow type="flex" :gutter="8">
         <ACol :span="12">
           <ChromosomeDetails />
@@ -58,7 +58,10 @@ export default {
         </ACol>
       </ARow>
     </template>
-    <ChromosomeDetails v-else></ChromosomeDetails>
+    <GroupInfoTable v-if="showTable && showDetails == false"></GroupInfoTable>
+    <ChromosomeDetails
+      v-if="showTable == false && showDetails"
+    ></ChromosomeDetails>
 
     <!-- <Homologies /> -->
   </Layout>

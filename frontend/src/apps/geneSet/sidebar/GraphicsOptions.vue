@@ -19,6 +19,7 @@ export default {
       'colorGenomes',
       'overviewArrows',
       'showTable',
+      'showDetails',
     ]),
   },
 }
@@ -34,7 +35,10 @@ export default {
       <AFormItem label="Overview arrows">
         <ASwitch size="small" v-model:checked="overviewArrows"
       /></AFormItem>
-      <AFormItem label="Show Table">
+      <AFormItem label="Detail View">
+        <ASwitch size="small" v-model:checked="showDetails"
+      /></AFormItem>
+      <AFormItem label="Table">
         <ASwitch size="small" v-model:checked="showTable"
       /></AFormItem>
     </AForm>
