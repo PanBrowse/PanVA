@@ -17,31 +17,26 @@ export default {
       'percentageGC',
       'allSequences',
       'colorGenomes',
+      'overviewArrows',
+      'showTable',
     ]),
   },
 }
 </script>
 
 <template>
-  <SidebarItem title="Sequence Context">
+  <SidebarItem title="Graphics">
     <AForm
       layout="horizontal"
       :labelCol="{ span: 8 }"
       :wrapperCol="{ span: 16 }"
     >
-      <AFormItem label="All sequences">
-        <ASwitch size="small" v-model:checked="allSequences"
+      <AFormItem label="Overview arrows">
+        <ASwitch size="small" v-model:checked="overviewArrows"
       /></AFormItem>
-      <AFormItem label="Color genomes">
-        <ASwitch size="small" v-model:checked="colorGenomes"
+      <AFormItem label="Show Table">
+        <ASwitch size="small" v-model:checked="showTable"
       /></AFormItem>
-      <AFormItem label="Gene density"> <ASwitch size="small" /></AFormItem>
-      <AFormItem label="GC %">
-        <ASwitch size="small" v-model:checked="percentageGC" />
-      </AFormItem>
-      <AFormItem label="ACGT %">
-        <ASwitch size="small" />
-      </AFormItem>
     </AForm>
   </SidebarItem>
 </template>

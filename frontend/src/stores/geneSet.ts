@@ -53,6 +53,10 @@ export const useGeneSetStore = defineStore('geneSet', {
     allSequences: true,
     colorGenomes: false,
 
+    //Graphics
+    overviewArrows: false,
+    showTable: true,
+
     isInitialized: false,
   }),
   actions: {

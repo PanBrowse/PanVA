@@ -3,7 +3,7 @@
     id="content"
     style="
       width: 100%;
-      height: 50%;
+      height: 100%;
       display: flex;
       justify-content: space-between;
     "

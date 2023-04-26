@@ -87,12 +87,13 @@ export default {
       'colorGenomes',
       'homologyGroups',
       'upstreamHomologies',
+      'showTable',
     ]),
     cardName() {
       return this.name.split('_')[0]
     },
     containerWidth() {
-      return this.svgWidth
+      return this.showTable ? this.svgWidth / 2 : this.svgWidth
     },
     visWidth() {
       return this.containerWidth - 12 - 12 - 10 - 17.5
@@ -353,6 +354,7 @@ export default {
                   color = vis.colorScaleGenome(parseInt(d.genome_number))
                 } else {
                   color = '#f0f2f5'
+                  // color = '#fff'
                 }
                 return color
               })
@@ -376,6 +378,7 @@ export default {
                   color = vis.colorScaleGenome(parseInt(d.genome_number))
                 } else {
                   color = '#f0f2f5'
+                  // color = '#fff'
                 }
                 return color
               })

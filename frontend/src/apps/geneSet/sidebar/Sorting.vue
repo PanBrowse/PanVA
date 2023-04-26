@@ -47,7 +47,7 @@ export default {
 </script>
 
 <template>
-  <SidebarItem title="Clustering">
+  <SidebarItem title="Clustering Settings">
     <AForm
       layout="horizontal"
       :labelCol="{ span: 8 }"
