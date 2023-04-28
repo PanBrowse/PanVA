@@ -9,10 +9,12 @@ import { useGeneSetStore } from '@/stores/geneSet'
 import ContextOptions from './sidebar/ContextOptions.vue'
 import Filters from './sidebar/Filters.vue'
 import GraphicsOptions from './sidebar/GraphicsOptions.vue'
+import HomologyOverview from './sidebar/HomologyOverview.vue'
 import Sorting from './sidebar/Sorting.vue'
 import Unphased from './sidebar/Unphased.vue'
 import ChromosomeDetails from './visualizations/ChromosomeDetails.vue'
 import ChromosomeOverview from './visualizations/ChromosomeOverview.vue'
+import Density from './visualizations/Density.vue'
 import GroupInfoTable from './visualizations/GroupInfoTable.vue'
 // import Homologies from './visualizations/Homologies.vue'
 
@@ -31,6 +33,7 @@ export default {
     GroupInfoTable,
     ARow: Row,
     ACol: Col,
+    HomologyOverview,
   },
   computed: {
     ...mapState(useGeneSetStore, ['isInitialized', 'showTable', 'showDetails']),
@@ -41,6 +44,7 @@ export default {
 <template>
   <Layout v-if="isInitialized">
     <template #sidebar>
+      <HomologyOverview />
       <Filters />
       <Sorting />
       <GraphicsOptions />
