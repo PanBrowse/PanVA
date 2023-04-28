@@ -895,7 +895,7 @@ export default {
                 .attr(
                   'transform',
                   `translate(${this.margin.left * 3},${
-                    this.margin.top * 2 + vis.barHeight
+                    this.margin.top * 3 + vis.barHeight
                   })`
                 )
 
@@ -904,7 +904,6 @@ export default {
                   'cx',
                   (d) =>
                     this.xScale(d.x0) +
-                    1 +
                     (this.xScale(d.x1) - this.xScale(d.x0) - 1) / 2
                 )
                 .attr('cy', (d, i) => {
@@ -928,7 +927,6 @@ export default {
                   'cx',
                   (d) =>
                     this.xScale(d.x0) +
-                    1 +
                     (this.xScale(d.x1) - this.xScale(d.x0) - 1) / 2
                 )
                 .attr('cy', (d, i) => {
@@ -958,20 +956,26 @@ export default {
                 .attr(
                   'transform',
                   `translate(${this.margin.left * 3},${
-                    this.margin.top * 2 + this.barHeight
+                    this.margin.top * 3 + this.barHeight
                   })`
                 )
                 .attr('class', 'density-value-focus')
+                .attr('text-anchor', 'middle')
                 .attr('dominant-baseline', 'hanging')
-                .attr('x', (d) => this.xScale(d.x0) + 1)
-                .attr('dx', (d) =>
-                  Object.keys(d).filter(
-                    (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
-                  ).length < 10
-                    ? +1
-                    : -3
+                .attr(
+                  'x',
+                  (d) =>
+                    this.xScale(d.x0) +
+                    (this.xScale(d.x1) - this.xScale(d.x0) - 1) / 2
                 )
-                .attr('dy', -3)
+                // .attr('dx', (d) =>
+                //   Object.keys(d).filter(
+                //     (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
+                //   ).length < 10
+                //     ? +1
+                //     : -3
+                // )
+                .attr('dy', -4)
                 .attr('y', (d, i) => {
                   console.log(
                     d.sequence_id,
@@ -1000,14 +1004,20 @@ export default {
               update
                 .transition()
                 .duration(this.transitionTime)
-                .attr('x', (d) => this.xScale(d.x0) + 1)
-                .attr('dx', (d) =>
-                  Object.keys(d).filter(
-                    (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
-                  ).length < 10
-                    ? +3
-                    : -1
+                .attr(
+                  'x',
+                  (d) =>
+                    this.xScale(d.x0) +
+                    (this.xScale(d.x1) - this.xScale(d.x0) - 1) / 2
                 )
+                // .attr('dx', (d) =>
+                //   Object.keys(d).filter(
+                //     (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
+                //   ).length < 10
+                //     ? +4
+                //     : 0
+                // )
+                .attr('dy', -4)
                 .attr('y', (d, i) => {
                   return (
                     (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
