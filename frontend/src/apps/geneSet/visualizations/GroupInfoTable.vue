@@ -22,15 +22,19 @@ export default {
     ACol: Col,
   },
   computed: {
-    ...mapState(useGeneSetStore, ['homologies', 'groupInfo']),
+    ...mapState(useGeneSetStore, ['homologies', 'groupInfo', 'homologyGroups']),
     tableColumns(): TableColumnsType {
       const columns: TableColumnsType = [
         {
           title: 'homology id',
           dataIndex: 'homology_id',
-          key: 'homology_id',
+          // key: 'homology_id',
           fixed: true,
-          sorter: (a, b) => naturalCompare(a.homology_id, b.homology_id),
+          filters: this.homologyGroups
+            .map((hg) => ({ text: hg, value: hg }))
+            .sort((a, b) => a.value - b.value),
+          sorter: (a, b) => numberCompare(a.homology_id, b.homology_id),
+          onFilter: (value, record) => record.homology_id === value,
           customRender: ({ record, text }) =>
             h(
               TypographyLink,

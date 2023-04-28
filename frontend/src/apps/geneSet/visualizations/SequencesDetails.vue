@@ -151,8 +151,8 @@ export default {
         d3.symbolWye,
         d3.symbolTriangle,
         d3.symbolSquare,
-        d3.symbolDiamond,
         d3.symbolStar,
+        d3.symbolDiamond,
         d3.symbolsStroke[0],
         d3.symbolsStroke[1],
         d3.symbolsStroke[2],
@@ -238,6 +238,9 @@ export default {
           .call((g) => g.select('.domain').remove())
           .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
           .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+
+        this.svg().selectAll('circle.density').remove()
+        this.svg().selectAll('text.density-value-focus').remove()
         this.draw()
       }
     },
@@ -255,6 +258,9 @@ export default {
           .call((g) => g.select('.domain').remove())
           .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
           .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+
+        vis.svg().selectAll('circle.density').remove()
+        vis.svg().selectAll('text.density-value-focus').remove()
         vis.draw()
       })
     },
@@ -287,6 +293,9 @@ export default {
             .call((g) => g.select('.domain').remove())
             .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
             .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+
+          vis.svg().selectAll('circle.density').remove()
+          vis.svg().selectAll('text.density-value-focus').remove()
           vis.draw()
         }
         if (event.key === 'ArrowRight') {
@@ -312,6 +321,9 @@ export default {
             .call((g) => g.select('.domain').remove())
             .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
             .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+
+          vis.svg().selectAll('circle.density').remove()
+          vis.svg().selectAll('text.density-value-focus').remove()
           vis.draw()
         }
       })
@@ -489,6 +501,7 @@ export default {
         this.drawContextBars()
         this.addLabels()
         this.drawGenes()
+        // this.drawNotifications()
       }
     },
     addLabels() {
@@ -734,6 +747,7 @@ export default {
                   return rotation
                 })
                 .attr('class', 'gene')
+                .attr('hg', (d) => d.homology_id)
                 .attr('z-index', 100)
                 .attr('stroke', (d) =>
                   vis.upstreamHomologies.includes(d.homology_id)
@@ -791,6 +805,218 @@ export default {
           )
       }
     },
+    drawNotifications() {
+      let vis = this
+
+      if (this.dataGenes !== undefined) {
+        const densityObjects = groupInfoDensity(this.dataGenes)
+
+        const dataDensity = {}
+        Object.keys(densityObjects).forEach((key) => {
+          dataDensity[key] = densityObjects[key].map(
+            (item) => item.gene_start_position
+          )
+        })
+        console.log('densityData', dataDensity)
+
+        const thresholds = this.xScale.ticks(100)
+        console.log('thresholds', thresholds)
+
+        const bins = d3
+          .bin()
+          .domain(vis.xScale.domain())
+          .thresholds(thresholds)(dataDensity['1_5'])
+        console.log('bins', bins)
+
+        // function kde(kernel, thresholds, data) {
+        //   return thresholds.map((t) => [t, d3.mean(data, (d) => kernel(t - d))])
+        // }
+
+        // function epanechnikov(bandwidth) {
+        //   return (x) =>
+        //     Math.abs((x /= bandwidth)) <= 1 ? (0.75 * (1 - x * x)) / bandwidth : 0
+        // }
+
+        // const density = kde(epanechnikov(1), thresholds, dataDensity['1_5'])
+        // console.log('density', density)
+
+        // const y = d3
+        //   .scaleLinear()
+        //   .domain([0, d3.max(bins, (d) => d.length) / dataDensity['5_31'].length])
+        //   .range([10, 0])
+
+        //first filter bins
+        const binsFiltered = bins.filter((bin) => bin.length > 0)
+        console.log('binsFiltered', binsFiltered)
+        // binsFiltered['sequence_id'] = '1_5'
+        const binsFilteredwithSeq = binsFiltered.map((bin) => ({
+          ...bin,
+          sequence_id: '1_5',
+        }))
+
+        console.log('binsFilteredwithSeq', binsFilteredwithSeq)
+        console.log('Object.keys(dataDensity)', Object.keys(dataDensity))
+        // make new array with sequence keys
+
+        let allBins = []
+        Object.keys(dataDensity).forEach((key) => {
+          const bins = d3
+            .bin()
+            .domain(vis.xScale.domain())
+            .thresholds(thresholds)(dataDensity[key])
+
+          //first filter bins
+          const binsFiltered = bins.filter((bin) => bin.length > 1)
+          const binsFilteredwithSeq = binsFiltered.map((bin) => ({
+            ...bin,
+            sequence_id: key,
+          }))
+
+          // allBins.push(binsFilteredwithSeq)
+          allBins = allBins.concat(binsFilteredwithSeq)
+        })
+        console.log('allBins', allBins)
+
+        this.svg()
+          .selectAll('circle.density')
+          .data(allBins, (d) => d.sequence_id)
+          .join(
+            (enter) =>
+              enter
+                .append('circle')
+                .attr(
+                  'transform',
+                  `translate(${this.margin.left * 3},${
+                    this.margin.top * 2 + vis.barHeight
+                  })`
+                )
+
+                .attr('class', 'density')
+                .attr(
+                  'cx',
+                  (d) =>
+                    this.xScale(d.x0) +
+                    1 +
+                    (this.xScale(d.x1) - this.xScale(d.x0) - 1) / 2
+                )
+                .attr('cy', (d, i) => {
+                  return (
+                    (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
+                      1) *
+                    (this.barHeight + 10)
+
+                    // return (
+                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
+                    //     1) *
+                    //   (this.barHeight + 10)
+                  )
+                })
+                .attr('r', 7),
+            (update) =>
+              update
+                .transition()
+                .duration(this.transitionTime)
+                .attr(
+                  'cx',
+                  (d) =>
+                    this.xScale(d.x0) +
+                    1 +
+                    (this.xScale(d.x1) - this.xScale(d.x0) - 1) / 2
+                )
+                .attr('cy', (d, i) => {
+                  return (
+                    (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
+                      1) *
+                    (this.barHeight + 10)
+
+                    // return (
+                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
+                    //     1) *
+                    //   (this.barHeight + 10)
+                  )
+                }),
+
+            (exit) => exit.remove()
+          )
+
+        this.svg()
+          .selectAll('text.density-value-focus')
+          .data(allBins, (d) => d.sequence_id)
+          .join(
+            (enter) =>
+              enter
+                .append('text')
+
+                .attr(
+                  'transform',
+                  `translate(${this.margin.left * 3},${
+                    this.margin.top * 2 + this.barHeight
+                  })`
+                )
+                .attr('class', 'density-value-focus')
+                .attr('dominant-baseline', 'hanging')
+                .attr('x', (d) => this.xScale(d.x0) + 1)
+                .attr('dx', (d) =>
+                  Object.keys(d).filter(
+                    (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
+                  ).length < 10
+                    ? +1
+                    : -3
+                )
+                .attr('dy', -3)
+                .attr('y', (d, i) => {
+                  console.log(
+                    d.sequence_id,
+                    i,
+                    this.sequenceIdLookup[5][d.sequence_id]
+                  )
+                  return (
+                    (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
+                      1) *
+                    (this.barHeight + 10)
+
+                    // return (
+                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
+                    //     1) *
+                    //   (this.barHeight + 10)
+                  )
+                })
+                // .attr('dy', this.barHeight / 4)
+                .text(
+                  (d) =>
+                    Object.keys(d).filter(
+                      (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
+                    ).length
+                ),
+            (update) =>
+              update
+                .transition()
+                .duration(this.transitionTime)
+                .attr('x', (d) => this.xScale(d.x0) + 1)
+                .attr('dx', (d) =>
+                  Object.keys(d).filter(
+                    (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
+                  ).length < 10
+                    ? +3
+                    : -1
+                )
+                .attr('y', (d, i) => {
+                  return (
+                    (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
+                      1) *
+                    (this.barHeight + 10)
+
+                    // return (
+                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
+                    //     1) *
+                    //   (this.barHeight + 10)
+                  )
+                }),
+
+            (exit) => exit.remove()
+          )
+      }
+    },
   },
   mounted() {
     this.svgWidth =
@@ -822,119 +1048,7 @@ export default {
     //   this.shapeGenerator[232273529]
     // )
 
-    const densityObjects = groupInfoDensity(this.dataGenes)
-
-    const dataDensity = {}
-    Object.keys(densityObjects).forEach((key) => {
-      dataDensity[key] = densityObjects[key].map(
-        (item) => item.gene_start_position
-      )
-    })
-    console.log('densityData', dataDensity)
-
-    const thresholds = this.xScale.ticks(100)
-    console.log('thresholds', thresholds)
-
-    const bins = d3.bin().domain(this.xScale.domain()).thresholds(thresholds)(
-      dataDensity['5_31']
-    )
-    console.log('bins', bins)
-
-    function kde(kernel, thresholds, data) {
-      return thresholds.map((t) => [t, d3.mean(data, (d) => kernel(t - d))])
-    }
-
-    function epanechnikov(bandwidth) {
-      return (x) =>
-        Math.abs((x /= bandwidth)) <= 1 ? (0.75 * (1 - x * x)) / bandwidth : 0
-    }
-
-    // const density = kde(epanechnikov(1), thresholds, dataDensity['1_5'])
-    // console.log('density', density)
-
-    // const y = d3
-    //   .scaleLinear()
-    //   .domain([0, d3.max(bins, (d) => d.length) / dataDensity['5_31'].length])
-    //   .range([10, 0])
-
-    //first filter bins
-    const binsFiltered = bins.filter((bin) => bin.length > 0)
-    console.log('binsFiltered', binsFiltered)
-    // binsFiltered['sequence_id'] = '1_5'
-    const binsFilteredwithSeq = binsFiltered.map((bin) => ({
-      ...bin,
-      sequence_id: '1_5',
-    }))
-
-    console.log('binsFilteredwithSeq', binsFilteredwithSeq)
-    console.log('Object.keys(dataDensity)', Object.keys(dataDensity))
-    // make new array with sequence keys
-
-    const allBins = []
-    Object.keys(dataDensity).forEach((key) => {
-      const bins = d3.bin().domain(this.xScale.domain()).thresholds(thresholds)(
-        dataDensity[key]
-      )
-
-      //first filter bins
-      const binsFiltered = bins.filter((bin) => bin.length > 1)
-      const binsFilteredwithSeq = binsFiltered.map((bin) => ({
-        ...bin,
-        sequence_id: key,
-      }))
-
-      allBins.push(binsFilteredwithSeq)
-    })
-    console.log('allBins', allBins)
-
-    this.svg()
-      .append('g')
-      .attr(
-        'transform',
-        `translate(${this.margin.left * 3},${10 + barHeightScaled})`
-      )
-
-      .selectAll('circle.density')
-      .data(binsFiltered)
-      .enter()
-      .append('circle')
-      .attr('class', 'density')
-      .attr(
-        'cx',
-        (d) =>
-          this.xScale(d.x0) +
-          1 +
-          (this.xScale(d.x1) - this.xScale(d.x0) - 1) / 2
-      )
-      .attr(
-        'cy',
-        (d, i) =>
-          (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] - 1) *
-            (this.barHeight + 10) +
-          5
-      )
-      .attr('r', 7)
-
-    this.svg()
-      .append('text')
-      .data(binsFiltered)
-      .attr(
-        'transform',
-        `translate(${this.margin.left * 3},${10 + barHeightScaled})`
-      )
-      .attr('class', 'density-value')
-      .attr('dominant-baseline', 'hanging')
-      .attr('x', (d) => this.xScale(d.x0) + 1)
-      .attr('dx', -3)
-      .attr(
-        'y',
-        (d, i) =>
-          (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] - 1) *
-          (this.barHeight + 10)
-      )
-      // .attr('dy', this.barHeight / 4)
-      .text((d) => d.length),
-      this.drawXAxis() // draw axis once
+    this.drawXAxis() // draw axis once
 
     this.draw()
 
@@ -1014,9 +1128,16 @@ export default {
   z-index: 200 !important;
 }
 
+.density-value-focus {
+  fill: white;
+  font-weight: 500;
+  font-size: 11px;
+  font-family: sans-serif;
+}
+
 .density-value {
   fill: white;
-  font-weight: 300;
+  font-weight: 500;
   font-size: 11px;
   font-family: sans-serif;
 }

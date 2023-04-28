@@ -38,7 +38,12 @@ export default {
     const homologyOccSorted = [...homologyOcc].sort((a, b) => b.count - a.count)
 
     console.log(homologyOccSorted)
-    console.log('colorScale', this.colorScale.domain(), this.colorScale.range())
+    console.log(
+      'colorScale',
+      this.colorScale.domain(),
+      this.colorScale.range(),
+      d3.schemeCategory10
+    )
 
     this.svgWidth = 330
     this.svgHeight = 120

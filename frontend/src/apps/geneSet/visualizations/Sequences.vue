@@ -32,6 +32,7 @@ import * as d3 from 'd3'
 import { range } from 'lodash'
 import { mapActions, mapState } from 'pinia'
 
+import { groupInfoDensity } from '@/helpers/chromosome'
 import { useGeneSetStore } from '@/stores/geneSet'
 import { useGlobalStore } from '@/stores/global'
 import type { SequenceMetrics } from '@/types'
@@ -425,6 +426,7 @@ export default {
         //   this.addValues()
         this.addLabels()
         this.drawGenes()
+        this.drawNotifications()
       }
     },
     addLabels() {
@@ -727,6 +729,191 @@ export default {
         }
       }
     },
+    drawNotifications() {
+      let vis = this
+
+      if (this.dataGenes !== undefined) {
+        const densityObjects = groupInfoDensity(this.dataGenes)
+
+        const dataDensity = {}
+        Object.keys(densityObjects).forEach((key) => {
+          dataDensity[key] = densityObjects[key].map(
+            (item) => item.gene_start_position
+          )
+        })
+        console.log('densityData', dataDensity)
+
+        const thresholds = this.xScale.ticks(20)
+        console.log('thresholds', thresholds)
+
+        let allBins = []
+        Object.keys(dataDensity).forEach((key) => {
+          const bins = d3
+            .bin()
+            .domain(vis.xScale.domain())
+            .thresholds(thresholds)(dataDensity[key])
+
+          //first filter bins
+          const binsFiltered = bins.filter((bin) => bin.length > 1)
+          const binsFilteredwithSeq = binsFiltered.map((bin) => ({
+            ...bin,
+            sequence_id: key,
+          }))
+
+          // allBins.push(binsFilteredwithSeq)
+          allBins = allBins.concat(binsFilteredwithSeq)
+        })
+        console.log('allBins', allBins)
+
+        this.svg()
+          .selectAll('circle.density')
+          .data(allBins, (d) => d.sequence_id)
+          .join(
+            (enter) =>
+              enter
+                .append('circle')
+                .attr(
+                  'transform',
+                  `translate(${this.margin.left * 3},${
+                    this.margin.top * 2 + vis.barHeight
+                  })`
+                )
+
+                .attr('class', 'density')
+                .attr(
+                  'cx',
+                  (d) =>
+                    this.xScale(d.x0) +
+                    1 +
+                    (this.xScale(d.x1) - this.xScale(d.x0) - 1)
+                )
+                .attr('cy', (d, i) => {
+                  return (
+                    (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
+                      1) *
+                      (this.barHeight + 10) +
+                    10
+
+                    // return (
+                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
+                    //     1) *
+                    //   (this.barHeight + 10)
+                  )
+                })
+                .attr('r', 7),
+            (update) =>
+              update
+                .transition()
+                .duration(this.transitionTime)
+                .attr(
+                  'cx',
+                  (d) =>
+                    this.xScale(d.x0) +
+                    1 +
+                    (this.xScale(d.x1) - this.xScale(d.x0) - 1)
+                )
+                .attr('cy', (d, i) => {
+                  return (
+                    (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
+                      1) *
+                      (this.barHeight + 10) +
+                    10
+
+                    // return (
+                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
+                    //     1) *
+                    //   (this.barHeight + 10)
+                  )
+                }),
+
+            (exit) => exit.remove()
+          )
+
+        this.svg()
+          .selectAll('text.density-value')
+          .data(allBins, (d) => d.sequence_id)
+          .join(
+            (enter) =>
+              enter
+                .append('text')
+                .attr(
+                  'transform',
+                  `translate(${this.margin.left * 3},${
+                    this.margin.top * 2 + this.barHeight
+                  })`
+                )
+                .attr('class', 'density-value')
+                .attr('dominant-baseline', 'hanging')
+                .attr('x', (d) => this.xScale(d.x0) + 1)
+                .attr('dx', (d) =>
+                  Object.keys(d).filter(
+                    (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
+                  ).length < 10
+                    ? -2
+                    : -5
+                )
+                .attr('dy', -4)
+                .attr('y', (d, i) => {
+                  console.log(
+                    d.sequence_id,
+                    i,
+                    this.sequenceIdLookup[5][d.sequence_id]
+                  )
+                  return (
+                    (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
+                      1) *
+                      (this.barHeight + 10) +
+                    10
+
+                    // return (
+                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
+                    //     1) *
+                    //   (this.barHeight + 10)
+                  )
+                })
+                // .attr('dy', this.barHeight / 4)
+                .text(
+                  (d) =>
+                    Object.keys(d).filter(
+                      (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
+                    ).length
+                ),
+            (update) =>
+              update
+                .transition()
+                .duration(this.transitionTime)
+                .attr(
+                  'x',
+                  (d) =>
+                    this.xScale(d.x0) +
+                    1 +
+                    (this.xScale(d.x1) - this.xScale(d.x0) - 1)
+                )
+                .attr('dx', (d) =>
+                  Object.keys(d).filter(
+                    (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
+                  ).length < 10
+                    ? -2
+                    : -5
+                )
+                .attr('y', (d, i) => {
+                  return (
+                    (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
+                      1) *
+                      (this.barHeight + 10) +
+                    10
+
+                    // return (
+                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
+                    //     1) *
+                    //   (this.barHeight + 10)
+                  )
+                }),
+
+            (exit) => exit.remove()
+          )
+      }
+    },
   },
   mounted() {
     this.svgWidth =
@@ -741,7 +928,7 @@ export default {
           (this.barHeight + 10) +
         this.margin.top * 2
       const barHeightScaled =
-        (this.svgHeight - 13 * this.margin.top) /
+        (this.svgHeight - 2 * this.margin.top) /
         this.sortedChromosomeSequenceIndices[this.chromosomeNr].length
       console.log('barHeightScaled', barHeightScaled)
 

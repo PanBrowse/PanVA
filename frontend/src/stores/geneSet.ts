@@ -68,19 +68,19 @@ export const useGeneSetStore = defineStore('geneSet', {
       this.numberOfChromosomes = this.chromosomes.length
 
       //// GENE NEIGHBORS
-      // this.homologyGroups = [
-      //   232273967, 232290249, 232273731, 232273868, 232273685, 232273529,
-      //   232274335, 232292464, 232273544, 232290464,
-      // ]
+      this.homologyGroups = [
+        232273967, 232290249, 232273731, 232273868, 232273529, 232273685,
+        232274335, 232292464, 232273544, 232290464,
+      ]
       this.upstreamHomologies = [
         // 232273967, 232290249, 232273731, 232273868, 232273685, 232273529,
         232274335, 232292464, 232273544, 232290464,
       ]
 
-      //// GENE FAMILY
-      this.homologyGroups = [
-        232263008, 232263009, 232269781, 232269782, 232273529,
-      ]
+      // //// GENE FAMILY
+      // this.homologyGroups = [
+      //   232263008, 232263009, 232269781, 232269782, 232273529,
+      // ]
 
       try {
         this.homologies = sortBy(await fetchHomologies(), 'id')
