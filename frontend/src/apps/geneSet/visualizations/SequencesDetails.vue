@@ -89,6 +89,8 @@ export default {
       'upstreamHomologies',
       'showTable',
       'showNotificationsDetail',
+      'homologyFocus',
+      'anchor',
     ]),
     cardName() {
       return this.name.split('_')[0]
@@ -102,32 +104,57 @@ export default {
     visHeight() {
       return this.svgHeight
     },
+    // xScale() {
+    //   return (
+    //     d3
+    //       .scaleLinear()
+    //       // .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+    //       .domain([-this.anchorMax, this.anchorMax])
+    //       .nice()
+    //       .rangeRound([
+    //         0,
+    //         this.visWidth - this.margin.yAxis + this.margin.left * 4,
+    //       ])
+    //   )
+    // },
     xScale() {
-      return d3
-        .scaleLinear()
-        .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
-        .rangeRound([
-          0,
-          this.visWidth - this.margin.yAxis + this.margin.left * 4,
-        ])
+      return this.anchor
+        ? d3
+            .scaleLinear()
+            // .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+            .domain([-this.anchorMax, this.anchorMax])
+            .nice()
+            .rangeRound([
+              0,
+              this.visWidth - this.margin.yAxis + this.margin.left * 4,
+            ])
+        : d3
+            .scaleLinear()
+            .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+            // .domain([-this.anchorMax, this.anchorMax])
+            .nice()
+            .rangeRound([
+              0,
+              this.visWidth - this.margin.yAxis + this.margin.left * 4,
+            ])
     },
-    ticksXdomain() {
-      const stepFactor = this.dataMax / 1000000
-      const stepSize = Math.ceil(stepFactor) * this.numberOfChromosomes * 100000
-      const ticks = range(stepSize, this.dataMax, stepSize).concat([
-        this.dataMax,
-      ])
-      ticks.unshift(0)
+    // ticksXdomain() {
+    //   const stepFactor = this.dataMax / 1000000
+    //   const stepSize = Math.ceil(stepFactor) * this.numberOfChromosomes * 100000
+    //   const ticks = range(stepSize, this.dataMax, stepSize).concat([
+    //     this.dataMax,
+    //   ])
+    //   ticks.unshift(0)
 
-      // If the last "rounded" tick and the "geneLength" tick are too close together.
-      const [beforeLast, last] = ticks.slice(-2)
-      if (last - beforeLast < stepSize * 0.5) {
-        // Remove the last "rounded" tick and keep the "geneLength" tick.
-        ticks.splice(-2, 1)
-      }
+    //   // If the last "rounded" tick and the "geneLength" tick are too close together.
+    //   const [beforeLast, last] = ticks.slice(-2)
+    //   if (last - beforeLast < stepSize * 0.5) {
+    //     // Remove the last "rounded" tick and keep the "geneLength" tick.
+    //     ticks.splice(-2, 1)
+    //   }
 
-      return ticks
-    },
+    //   return ticks
+    // },
     colorScale() {
       return d3
         .scaleOrdinal()
@@ -730,30 +757,89 @@ export default {
                   const key = `${d.genome_number}_${d.sequence_number}`
                   let rotation
 
-                  if (d.strand === '+') {
-                    rotation = `translate(${
-                      vis.margin.left * 3 + vis.xScale(d.gene_start_position)
-                    },${
-                      vis.margin.top * 2 +
-                      vis.barHeight / 2 +
-                      vis.sortedMrnaIndices[vis.chromosomeNr][i] *
-                        (vis.barHeight + 10)
-                    }
-                    )`
-                  } else {
-                    return `translate(${
-                      vis.margin.left * 3 + vis.xScale(d.gene_start_position)
-                    },${
-                      vis.margin.top * 2 +
-                      vis.barHeight / 2 +
-                      vis.sortedMrnaIndices[vis.chromosomeNr][i] *
-                        (vis.barHeight + 10)
-                    }
-                    )`
-                  }
+                  if (vis.anchor) {
+                    let anchorStart = vis.anchorLookup[key]
+                    console.log('anchorStart', anchorStart)
 
-                  return rotation
+                    if (d.strand === '+') {
+                      rotation = `translate(${
+                        vis.margin.left * 3 +
+                        vis.xScale(d.mRNA_start_position - anchorStart)
+                      },${
+                        vis.margin.top * 2 +
+                        vis.barHeight / 2 +
+                        vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                          (vis.barHeight + 10)
+                      }
+                    )`
+                    } else {
+                      return `translate(${
+                        vis.margin.left * 3 +
+                        vis.xScale(d.mRNA_start_position - anchorStart)
+                      },${
+                        vis.margin.top * 2 +
+                        vis.barHeight / 2 +
+                        vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                          (vis.barHeight + 10)
+                      }
+                    )`
+                    }
+
+                    return rotation
+                  } else {
+                    if (d.strand === '+') {
+                      rotation = `translate(${
+                        vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                      },${
+                        vis.margin.top * 2 +
+                        vis.barHeight / 2 +
+                        vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                          (vis.barHeight + 10)
+                      }
+                    )`
+                    } else {
+                      return `translate(${
+                        vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                      },${
+                        vis.margin.top * 2 +
+                        vis.barHeight / 2 +
+                        vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                          (vis.barHeight + 10)
+                      }
+                    )`
+                    }
+
+                    return rotation
+                  }
                 })
+                // .attr('transform', function (d, i) {
+                //   const key = `${d.genome_number}_${d.sequence_number}`
+                //   let rotation
+
+                //   if (d.strand === '+') {
+                //     rotation = `translate(${
+                //       vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                //     },${
+                //       vis.margin.top * 2 +
+                //       vis.barHeight / 2 +
+                //       vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                //         (vis.barHeight + 10)
+                //     }
+                //     )`
+                //   } else {
+                //     return `translate(${
+                //       vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                //     },${
+                //       vis.margin.top * 2 +
+                //       vis.barHeight / 2 +
+                //       vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                //         (vis.barHeight + 10)
+                //     }
+                //     )`
+                //   }
+
+                //   return rotation
+                // })
                 .attr('class', 'gene')
                 .attr('hg', (d) => d.homology_id)
                 .attr('z-index', 100)
@@ -782,33 +868,92 @@ export default {
                 // }),
                 .attr('transform', function (d, i) {
                   const key = `${d.genome_number}_${d.sequence_number}`
-
                   let rotation
 
-                  if (d.strand === '+') {
-                    rotation = `translate(${
-                      vis.margin.left * 3 + vis.xScale(d.gene_start_position)
-                    },${
-                      vis.margin.top * 2 +
-                      vis.barHeight / 2 +
-                      vis.sortedMrnaIndices[vis.chromosomeNr][i] *
-                        (vis.barHeight + 10)
-                    }
-                    )`
-                  } else {
-                    return `translate(${
-                      vis.margin.left * 3 + vis.xScale(d.gene_start_position)
-                    },${
-                      vis.margin.top * 2 +
-                      vis.barHeight / 2 +
-                      vis.sortedMrnaIndices[vis.chromosomeNr][i] *
-                        (vis.barHeight + 10)
-                    }
-                    )`
-                  }
+                  if (vis.anchor) {
+                    let anchorStart = vis.anchorLookup[key]
+                    console.log('anchorStart', anchorStart)
 
-                  return rotation
+                    if (d.strand === '+') {
+                      rotation = `translate(${
+                        vis.margin.left * 3 +
+                        vis.xScale(d.mRNA_start_position - anchorStart)
+                      },${
+                        vis.margin.top * 2 +
+                        vis.barHeight / 2 +
+                        vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                          (vis.barHeight + 10)
+                      }
+                    )`
+                    } else {
+                      return `translate(${
+                        vis.margin.left * 3 +
+                        vis.xScale(d.mRNA_start_position - anchorStart)
+                      },${
+                        vis.margin.top * 2 +
+                        vis.barHeight / 2 +
+                        vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                          (vis.barHeight + 10)
+                      }
+                    )`
+                    }
+
+                    return rotation
+                  } else {
+                    if (d.strand === '+') {
+                      rotation = `translate(${
+                        vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                      },${
+                        vis.margin.top * 2 +
+                        vis.barHeight / 2 +
+                        vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                          (vis.barHeight + 10)
+                      }
+                    )`
+                    } else {
+                      return `translate(${
+                        vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+                      },${
+                        vis.margin.top * 2 +
+                        vis.barHeight / 2 +
+                        vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                          (vis.barHeight + 10)
+                      }
+                    )`
+                    }
+
+                    return rotation
+                  }
                 }),
+            // .attr('transform', function (d, i) {
+            //   const key = `${d.genome_number}_${d.sequence_number}`
+
+            //   let rotation
+
+            //   if (d.strand === '+') {
+            //     rotation = `translate(${
+            //       vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+            //     },${
+            //       vis.margin.top * 2 +
+            //       vis.barHeight / 2 +
+            //       vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+            //         (vis.barHeight + 10)
+            //     }
+            //     )`
+            //   } else {
+            //     return `translate(${
+            //       vis.margin.left * 3 + vis.xScale(d.gene_start_position)
+            //     },${
+            //       vis.margin.top * 2 +
+            //       vis.barHeight / 2 +
+            //       vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+            //         (vis.barHeight + 10)
+            //     }
+            //     )`
+            //   }
+
+            //   return rotation
+            // }),
             (exit) => exit.remove()
           )
       }
@@ -822,49 +967,13 @@ export default {
         const dataDensity = {}
         Object.keys(densityObjects).forEach((key) => {
           dataDensity[key] = densityObjects[key].map(
-            (item) => item.gene_start_position
+            (item) => item.mRNA_start_position
           )
         })
         console.log('densityData', dataDensity)
 
-        const thresholds = this.xScale.ticks(100)
+        const thresholds = this.xScale.ticks(100) //to-do: make configurable?
         console.log('thresholds', thresholds)
-
-        // const bins = d3
-        //   .bin()
-        //   .domain(vis.xScale.domain())
-        //   .thresholds(thresholds)(dataDensity['1_5'])
-        // console.log('bins', bins)
-
-        // function kde(kernel, thresholds, data) {
-        //   return thresholds.map((t) => [t, d3.mean(data, (d) => kernel(t - d))])
-        // }
-
-        // function epanechnikov(bandwidth) {
-        //   return (x) =>
-        //     Math.abs((x /= bandwidth)) <= 1 ? (0.75 * (1 - x * x)) / bandwidth : 0
-        // }
-
-        // const density = kde(epanechnikov(1), thresholds, dataDensity['1_5'])
-        // console.log('density', density)
-
-        // const y = d3
-        //   .scaleLinear()
-        //   .domain([0, d3.max(bins, (d) => d.length) / dataDensity['5_31'].length])
-        //   .range([10, 0])
-
-        // //first filter bins
-        // const binsFiltered = bins.filter((bin) => bin.length > 0)
-        // console.log('binsFiltered', binsFiltered)
-        // // binsFiltered['sequence_id'] = '1_5'
-        // const binsFilteredwithSeq = binsFiltered.map((bin) => ({
-        //   ...bin,
-        //   sequence_id: '1_5',
-        // }))
-
-        // console.log('binsFilteredwithSeq', binsFilteredwithSeq)
-        // console.log('Object.keys(dataDensity)', Object.keys(dataDensity))
-        // // make new array with sequence keys
 
         let allBins = []
         Object.keys(dataDensity).forEach((key) => {
@@ -880,7 +989,6 @@ export default {
             sequence_id: key,
           }))
 
-          // allBins.push(binsFilteredwithSeq)
           allBins = allBins.concat(binsFilteredwithSeq)
         })
         console.log('allBins', allBins)
@@ -911,11 +1019,6 @@ export default {
                     (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
                       1) *
                     (this.barHeight + 10)
-
-                    // return (
-                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
-                    //     1) *
-                    //   (this.barHeight + 10)
                   )
                 })
                 .attr('r', 7),
@@ -934,11 +1037,6 @@ export default {
                     (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
                       1) *
                     (this.barHeight + 10)
-
-                    // return (
-                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
-                    //     1) *
-                    //   (this.barHeight + 10)
                   )
                 }),
 
@@ -968,13 +1066,6 @@ export default {
                     this.xScale(d.x0) +
                     (this.xScale(d.x1) - this.xScale(d.x0) - 1) / 2
                 )
-                // .attr('dx', (d) =>
-                //   Object.keys(d).filter(
-                //     (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
-                //   ).length < 10
-                //     ? +1
-                //     : -3
-                // )
                 .attr('dy', -4)
                 .attr('y', (d, i) => {
                   console.log(
@@ -986,14 +1077,8 @@ export default {
                     (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
                       1) *
                     (this.barHeight + 10)
-
-                    // return (
-                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
-                    //     1) *
-                    //   (this.barHeight + 10)
                   )
                 })
-                // .attr('dy', this.barHeight / 4)
                 .text(
                   (d) =>
                     Object.keys(d).filter(
@@ -1010,24 +1095,12 @@ export default {
                     this.xScale(d.x0) +
                     (this.xScale(d.x1) - this.xScale(d.x0) - 1) / 2
                 )
-                // .attr('dx', (d) =>
-                //   Object.keys(d).filter(
-                //     (i) => i !== 'x0' && i !== 'x1' && i !== 'sequence_id'
-                //   ).length < 10
-                //     ? +4
-                //     : 0
-                // )
                 .attr('dy', -4)
                 .attr('y', (d, i) => {
                   return (
                     (this.sequenceIdLookup[this.chromosomeNr][d.sequence_id] -
                       1) *
                     (this.barHeight + 10)
-
-                    // return (
-                    //   (this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] -
-                    //     1) *
-                    //   (this.barHeight + 10)
                   )
                 }),
 
@@ -1060,11 +1133,33 @@ export default {
 
     this.barHeight = barHeightScaled - 10
 
-    // console.log(
-    //   'shapeGenerator',
-    //   this.shapeGenerator,
-    //   this.shapeGenerator[232273529]
-    // )
+    // Anchor
+    ////
+    //1.find all cdf 1
+    const homologyAnchor = this.dataGenes.filter(
+      (gene) => gene.homology_id === this.homologyFocus
+    )
+    console.log('geneSet', this.dataGenes, homologyAnchor)
+
+    let anchorLookup = {}
+    homologyAnchor.forEach((item) => {
+      const key = `${item.genome_number}_${item.sequence_number}`
+      anchorLookup[key] = item.mRNA_start_position
+    })
+    console.log('anchorLookup', anchorLookup)
+    this.anchorLookup = anchorLookup
+
+    const divergentScale = this.dataGenes.map((item) => {
+      const key = `${item.genome_number}_${item.sequence_number}`
+      const anchorValue = anchorLookup[key]
+      return item.mRNA_start_position - anchorValue
+    })
+
+    let anchorMin = d3.min(divergentScale)
+    this.anchorMin = anchorMin
+
+    let anchorMax = d3.max(divergentScale)
+    this.anchorMax = anchorMax
 
     this.drawXAxis() // draw axis once
 
@@ -1094,6 +1189,11 @@ export default {
   //   this.resizeObserver?.disconnect()
   // },
   watch: {
+    anchor() {
+      this.svg().select('g.x-axis').remove()
+      this.drawXAxis() // redraw
+      this.drawGenes()
+    },
     showNotificationsDetail() {
       this.draw()
     },
