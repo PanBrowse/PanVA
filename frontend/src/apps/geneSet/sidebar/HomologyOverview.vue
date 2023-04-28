@@ -47,22 +47,19 @@ export default {
       .append('g')
       .attr('transform', 'translate(' + 0 + ',' + 0 + ')')
 
-    // Add X axis
-    var x = d3
-      .scaleLinear()
-      .domain([0, 40])
-      .range([0, this.svgWidth - 20])
+    // Add Y axis
+    var y = d3.scaleLinear().domain([0, 40]).range([this.svgHeight, 0])
 
-    d3.select('#homology-count')
-      .append('g')
-      .attr('transform', 'translate(10,' + this.svgHeight + ')')
-      .call(d3.axisBottom(x))
-      .call((g) => g.select('.domain').remove())
-      .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
-      .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
-      .selectAll('text')
-      .attr('transform', 'translate(0,0)')
-      .style('text-anchor', 'middle')
+    // d3.select('#homology-count')
+    //   .append('g')
+    //   .attr('transform', 'translate(20,' + 30 + ')')
+    //   .call(d3.axisLeft(y))
+    //   .call((g) => g.select('.domain').remove())
+    //   .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
+    //   .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+    //   .selectAll('text')
+    //   .attr('transform', 'translate(0,0)')
+    //   .style('text-anchor', 'middle')
 
     d3.select('#homology-count')
       .append('text')
@@ -74,10 +71,10 @@ export default {
       .attr('font-size', '14px')
       .text('# mRNA per homology group')
 
-    // Y axis
-    var y = d3
+    // X axis
+    var x = d3
       .scaleBand()
-      .range([0, this.svgHeight - 20])
+      .range([0, this.svgWidth - 20])
       .domain(
         homologyOccSorted.map(function (d) {
           return d.homology_id
@@ -94,19 +91,15 @@ export default {
     //Bars
     d3.select('#homology-count')
       .append('g')
-      .attr('transform', 'translate(10,' + 20 + ')')
+      .attr('transform', 'translate(10,' + 30 + ')')
       .selectAll('myRect')
       .data(homologyOcc)
       .enter()
       .append('rect')
-      .attr('x', x(0))
-      .attr('y', function (d) {
-        return y(d.homology_id)
-      })
-      .attr('width', function (d) {
-        return x(d.count)
-      })
-      .attr('height', y.bandwidth())
+      .attr('x', (d) => x(d.homology_id))
+      .attr('y', (d) => y(d.count))
+      .attr('width', x.bandwidth())
+      .attr('height', (d) => this.svgHeight - y(d.count))
       .attr('fill', (d) => this.colorScale(d.homology_id))
       .attr('opacity', 0.8)
 
@@ -118,15 +111,15 @@ export default {
         (enter) =>
           enter
             .append('text')
-            .attr('transform', `translate(10,${20})`)
+            .attr('transform', `translate(${x.bandwidth() / 2},${15})`)
             .attr('class', 'hg-count')
             .attr('dominant-baseline', 'hanging')
             .attr('text-anchor', 'start')
-            .attr('x', (d) => x(d.count))
-            .attr('font-size', 10)
-            .attr('fill', 'rgba(0, 0, 0, 0.85)')
-            .attr('y', function (d) {
-              return y(d.homology_id)
+            .attr('y', (d) => y(d.count))
+            .attr('font-size', '12px')
+            .attr('fill', '#c0c0c0')
+            .attr('x', function (d) {
+              return x(d.homology_id)
             })
             .attr('dy', 1)
             .attr('dx', 2)
