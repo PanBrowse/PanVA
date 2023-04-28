@@ -54,34 +54,130 @@ export default {
         {
           title: 'genome',
           dataIndex: 'genome_number',
-          key: 'mRNA_id',
+          filters: [
+            {
+              text: '1',
+              value: 1,
+            },
+            {
+              text: '2',
+              value: 2,
+            },
+            {
+              text: '3',
+              value: 3,
+            },
+            {
+              text: '4',
+              value: 4,
+            },
+            {
+              text: '5',
+              value: 5,
+            },
+            {
+              text: 'unphased',
+              value: 'unphased',
+            },
+          ],
+          //   key: 'mRNA_id',
           sorter: (a, b) => numberCompare(a.genome_number, b.genome_number),
+          onFilter: (value, record) => record.genome_number === value,
         },
         {
           title: 'sequence',
           dataIndex: 'sequence_number',
           key: 'mRNA_id',
-          sorter: (a, b) => numberCompare(a.sequence_number, b.sequence_number),
+          sorter: (a, b) => naturalCompare(a.chromosome, b.chromosome),
         },
         {
           title: 'chromosome',
+          dataIndex: 'phasing_chromosome',
+          filters: [
+            {
+              text: '1',
+              value: '1',
+            },
+            {
+              text: '2',
+              value: '2',
+            },
+            {
+              text: '3',
+              value: '3',
+            },
+            {
+              text: '4',
+              value: '4',
+            },
+            {
+              text: '5',
+              value: '5',
+            },
+            {
+              text: '6',
+              value: '6',
+            },
+            {
+              text: '7',
+              value: '7',
+            },
+            {
+              text: '8',
+              value: '8',
+            },
+            {
+              text: '9',
+              value: '9',
+            },
+            {
+              text: '10',
+              value: '10',
+            },
+            {
+              text: '11',
+              value: '11',
+            },
+            {
+              text: '12',
+              value: '12',
+            },
+
+            {
+              text: 'unphased',
+              value: 'unphased',
+            },
+          ],
+          //   key: 'mRNA_id',
+          sorter: (a, b) =>
+            naturalCompare(a.phasing_chromosome, b.phasing_chromosome),
+          onFilter: (value, record) =>
+            // console.log(value, record, record.phasing_chromosome)
+            record.phasing_chromosome === value,
+        },
+        {
+          title: 'phased chromosome',
           dataIndex: 'chromosome',
-          key: 'mRNA_id',
           sorter: (a, b) => naturalCompare(a.chromosome, b.chromosome),
         },
         {
           title: 'strand',
           dataIndex: 'strand',
-          key: 'mRNA_id',
+          filters: [
+            {
+              text: '+',
+              value: '+',
+            },
+            {
+              text: '-',
+              value: '-',
+            },
+          ],
+          //   key: 'mRNA_id',
           sorter: (a, b) => naturalCompare(a.strand, b.strand),
+          onFilter: (value, record) => record.strand === value,
         },
-        // {
-        //   title: 'phasing chr',
-        //   dataIndex: 'phasing_chromosome',
-        //   key: 'phasing_chromosome',
-        //   sorter: (a, b) =>
-        //     naturalCompare(a.phasing_chromosome, b.phasing_chromosome),
-        // },
+
         {
           title: 'mRNA start',
           dataIndex: 'mRNA_start_position',
