@@ -43,10 +43,10 @@ export default {
       <AFormItem label="Table">
         <ASwitch size="small" v-model:checked="showTable"
       /></AFormItem>
-      <AFormItem label="Overview Notifications">
+      <AFormItem label="Overview badge">
         <ASwitch size="small" v-model:checked="showNotificationsOverview"
       /></AFormItem>
-      <AFormItem label="Detail Notifications">
+      <AFormItem label="Detail badge">
         <ASwitch size="small" v-model:checked="showNotificationsDetail"
       /></AFormItem>
     </AForm>
