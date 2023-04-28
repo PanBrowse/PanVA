@@ -275,21 +275,41 @@ export default {
     resetZoom() {
       let vis = this
       this.svg().on('dblclick', function () {
-        vis.xScale.domain([vis.dataMin > 0 ? 0 : vis.dataMin, vis.dataMax])
+        if (!vis.anchor) {
+          vis.xScale
+            .domain([vis.dataMin > 0 ? 0 : vis.dataMin, vis.dataMax])
+            .nice()
 
-        vis
-          .svg()
-          .select('.x-axis')
-          .transition()
-          .duration(1000)
-          .call(d3.axisTop(vis.xScale).tickValues(vis.ticksXdomain))
-          .call((g) => g.select('.domain').remove())
-          .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
-          .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+          vis
+            .svg()
+            .select('.x-axis')
+            .transition()
+            .duration(1000)
+            .call(d3.axisTop(vis.xScale).tickValues(vis.ticksXdomain))
+            .call((g) => g.select('.domain').remove())
+            .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
+            .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
 
-        vis.svg().selectAll('circle.density').remove()
-        vis.svg().selectAll('text.density-value-focus').remove()
-        vis.draw()
+          vis.svg().selectAll('circle.density').remove()
+          vis.svg().selectAll('text.density-value-focus').remove()
+          vis.draw()
+        } else {
+          vis.xScale.domain([-vis.anchorMax, vis.anchorMax]).nice()
+
+          vis
+            .svg()
+            .select('.x-axis')
+            .transition()
+            .duration(1000)
+            .call(d3.axisTop(vis.xScale).tickValues(vis.ticksXdomain))
+            .call((g) => g.select('.domain').remove())
+            .call((g) => g.selectAll('line').attr('stroke', '#c0c0c0'))
+            .call((g) => g.selectAll('text').attr('fill', '#c0c0c0'))
+
+          vis.svg().selectAll('circle.density').remove()
+          vis.svg().selectAll('text.density-value-focus').remove()
+          vis.draw()
+        }
       })
     },
     pan() {
@@ -306,13 +326,27 @@ export default {
           const rangeDomain = 100000
           console.log('range domain', rangeDomain)
 
-          const newDomain = [
-            prevDomain[0] - rangeDomain < 0 ? 0 : prevDomain[0] - rangeDomain,
-            prevDomain[1] - rangeDomain,
-          ]
+          // console.log('anchor?', vis.anchor)
+
+          var newDomain
+
+          if (vis.anchor) {
+            newDomain = [
+              prevDomain[0] - rangeDomain,
+              prevDomain[1] - rangeDomain,
+            ]
+          } else {
+            newDomain = [
+              prevDomain[0] - rangeDomain < 0 ? 0 : prevDomain[0] - rangeDomain,
+              prevDomain[1] - rangeDomain,
+            ]
+          }
+
           console.log('new domain', newDomain, vis.xScale.domain())
 
-          vis.xScale.domain([vis.dataMin < 0 ? 0 : newDomain[0], newDomain[1]])
+          vis.xScale
+            .domain([vis.dataMin < 0 ? 0 : newDomain[0], newDomain[1]])
+            .nice()
 
           vis
             .svg()
@@ -340,7 +374,9 @@ export default {
           ]
           console.log('new domain', newDomain, vis.xScale.domain())
 
-          vis.xScale.domain([vis.dataMin < 0 ? 0 : newDomain[0], newDomain[1]])
+          vis.xScale
+            .domain([vis.dataMin < 0 ? 0 : newDomain[0], newDomain[1]])
+            .nice()
 
           vis
             .svg()
@@ -376,16 +412,22 @@ export default {
                 `translate(${this.margin.left * 3},${this.margin.top * 2})`
               )
               .attr('class', 'bar-chr')
-              .attr('x', this.xScale(0))
+              // .attr('x', this.xScale(0))
+              .attr('x', this.anchor ? this.xScale(-35000000) : this.xScale(0))
               .attr(
                 'y',
                 (d, i) =>
                   this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
                   (this.barHeight + 10)
               )
-              .attr('width', function (d) {
-                return vis.xScale(d.sequence_length)
-              })
+              // .attr('width', function (d) {
+              //   return vis.xScale(d.sequence_length)
+              // })
+              .attr('width', (d) =>
+                this.anchor
+                  ? this.xScale(70000000)
+                  : vis.xScale(d.sequence_length)
+              )
               .attr('height', this.barHeight)
 
               .attr('fill', function (d) {
@@ -412,6 +454,7 @@ export default {
             update
               .transition()
               .duration(this.transitionTime)
+              .attr('x', this.anchor ? this.xScale(-35000000) : this.xScale(0))
               .attr('fill', function (d) {
                 let color
                 if (vis.colorGenomes == true) {
@@ -437,9 +480,14 @@ export default {
                   this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
                   (this.barHeight + 10)
               )
-              .attr('width', function (d) {
-                return vis.xScale(d.sequence_length)
-              }),
+              // .attr('width', function (d) {
+              //   return vis.xScale(d.sequence_length)
+              // }),
+              .attr('width', (d) =>
+                this.anchor
+                  ? this.xScale(70000000)
+                  : vis.xScale(d.sequence_length)
+              ),
 
           (exit) => exit.remove()
         )
@@ -459,16 +507,21 @@ export default {
                 `translate(${this.margin.left * 3},${this.margin.top * 2})`
               )
               .attr('class', 'bar-chr-context')
-              .attr('x', this.xScale(0))
+              .attr('x', this.anchor ? this.xScale(-35000000) : this.xScale(0))
               .attr(
                 'y',
                 (d, i) =>
                   this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
                   (this.barHeight + 10)
               )
-              .attr('width', function (d) {
-                return vis.xScale(d.sequence_length)
-              })
+              // .attr('width', function (d) {
+              //   return vis.xScale(d.sequence_length)
+              // })
+              .attr('width', (d) =>
+                this.anchor
+                  ? this.xScale(70000000)
+                  : vis.xScale(d.sequence_length)
+              )
               .attr('height', this.barHeight / 4)
               .attr('fill', function (d) {
                 let color
@@ -493,6 +546,7 @@ export default {
             update
               .transition()
               .duration(this.transitionTime)
+              .attr('x', this.anchor ? this.xScale(-35000000) : this.xScale(0))
               .attr('fill', function (d) {
                 let color
                 if (vis.percentageGC == true) {
@@ -517,9 +571,11 @@ export default {
                   this.sortedChromosomeSequenceIndices[this.chromosomeNr][i] *
                   (this.barHeight + 10)
               )
-              .attr('width', function (d) {
-                return vis.xScale(d.sequence_length)
-              }),
+              .attr('width', (d) =>
+                this.anchor
+                  ? this.xScale(70000000)
+                  : vis.xScale(d.sequence_length)
+              ),
           (exit) => exit.remove()
         )
     },
@@ -759,7 +815,7 @@ export default {
 
                   if (vis.anchor) {
                     let anchorStart = vis.anchorLookup[key]
-                    console.log('anchorStart', anchorStart)
+                    // console.log('anchorStart', anchorStart)
 
                     if (d.strand === '+') {
                       rotation = `translate(${
@@ -872,7 +928,7 @@ export default {
 
                   if (vis.anchor) {
                     let anchorStart = vis.anchorLookup[key]
-                    console.log('anchorStart', anchorStart)
+                    // console.log('anchorStart', anchorStart)
 
                     if (d.strand === '+') {
                       rotation = `translate(${
