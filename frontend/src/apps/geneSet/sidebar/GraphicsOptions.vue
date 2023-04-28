@@ -20,6 +20,8 @@ export default {
       'overviewArrows',
       'showTable',
       'showDetails',
+      'showNotificationsDetail',
+      'showNotificationsOverview',
     ]),
   },
 }
@@ -40,6 +42,12 @@ export default {
       /></AFormItem>
       <AFormItem label="Table">
         <ASwitch size="small" v-model:checked="showTable"
+      /></AFormItem>
+      <AFormItem label="Overview Notifications">
+        <ASwitch size="small" v-model:checked="showNotificationsOverview"
+      /></AFormItem>
+      <AFormItem label="Detail Notifications">
+        <ASwitch size="small" v-model:checked="showNotificationsDetail"
       /></AFormItem>
     </AForm>
   </SidebarItem>

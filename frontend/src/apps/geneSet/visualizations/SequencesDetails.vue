@@ -88,6 +88,7 @@ export default {
       'homologyGroups',
       'upstreamHomologies',
       'showTable',
+      'showNotificationsDetail',
     ]),
     cardName() {
       return this.name.split('_')[0]
@@ -501,8 +502,15 @@ export default {
         this.drawContextBars()
         this.addLabels()
         this.drawGenes()
-        // this.drawNotifications()
+
+        this.showNotificationsDetail
+          ? this.drawNotifications()
+          : this.hideNotifications()
       }
+    },
+    hideNotifications() {
+      this.svg().selectAll('circle.density').remove()
+      this.svg().selectAll('text.density-value-focus').remove()
     },
     addLabels() {
       let vis = this
@@ -822,11 +830,11 @@ export default {
         const thresholds = this.xScale.ticks(100)
         console.log('thresholds', thresholds)
 
-        const bins = d3
-          .bin()
-          .domain(vis.xScale.domain())
-          .thresholds(thresholds)(dataDensity['1_5'])
-        console.log('bins', bins)
+        // const bins = d3
+        //   .bin()
+        //   .domain(vis.xScale.domain())
+        //   .thresholds(thresholds)(dataDensity['1_5'])
+        // console.log('bins', bins)
 
         // function kde(kernel, thresholds, data) {
         //   return thresholds.map((t) => [t, d3.mean(data, (d) => kernel(t - d))])
@@ -845,18 +853,18 @@ export default {
         //   .domain([0, d3.max(bins, (d) => d.length) / dataDensity['5_31'].length])
         //   .range([10, 0])
 
-        //first filter bins
-        const binsFiltered = bins.filter((bin) => bin.length > 0)
-        console.log('binsFiltered', binsFiltered)
-        // binsFiltered['sequence_id'] = '1_5'
-        const binsFilteredwithSeq = binsFiltered.map((bin) => ({
-          ...bin,
-          sequence_id: '1_5',
-        }))
+        // //first filter bins
+        // const binsFiltered = bins.filter((bin) => bin.length > 0)
+        // console.log('binsFiltered', binsFiltered)
+        // // binsFiltered['sequence_id'] = '1_5'
+        // const binsFilteredwithSeq = binsFiltered.map((bin) => ({
+        //   ...bin,
+        //   sequence_id: '1_5',
+        // }))
 
-        console.log('binsFilteredwithSeq', binsFilteredwithSeq)
-        console.log('Object.keys(dataDensity)', Object.keys(dataDensity))
-        // make new array with sequence keys
+        // console.log('binsFilteredwithSeq', binsFilteredwithSeq)
+        // console.log('Object.keys(dataDensity)', Object.keys(dataDensity))
+        // // make new array with sequence keys
 
         let allBins = []
         Object.keys(dataDensity).forEach((key) => {
@@ -1076,6 +1084,9 @@ export default {
   //   this.resizeObserver?.disconnect()
   // },
   watch: {
+    showNotificationsDetail() {
+      this.draw()
+    },
     colorGenomes() {
       console.log('color genomes')
       this.drawBars()

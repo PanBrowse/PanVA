@@ -90,6 +90,7 @@ export default {
       'homologyGroups',
       'overviewArrows',
       'chrFocus',
+      'showNotificationsOverview',
     ]),
     containerWidth() {
       return Math.floor(this.svgWidth / this.numberOfChromosomes)
@@ -426,8 +427,15 @@ export default {
         //   this.addValues()
         this.addLabels()
         this.drawGenes()
-        this.drawNotifications()
+
+        this.showNotificationsOverview
+          ? this.drawNotifications()
+          : this.hideNotifications()
       }
+    },
+    hideNotifications() {
+      this.svg().selectAll('circle.density').remove()
+      this.svg().selectAll('text.density-value').remove()
     },
     addLabels() {
       let vis = this
@@ -966,6 +974,9 @@ export default {
   //   this.resizeObserver?.disconnect()
   // },
   watch: {
+    showNotificationsOverview() {
+      this.draw()
+    },
     sortedChromosomeSequenceIndices() {
       this.draw()
     },
