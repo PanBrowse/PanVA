@@ -106,7 +106,7 @@ export default {
         <ARow type="flex">
           <ACol :span="8"> </ACol>
           <ACol :span="16">
-            <ARow type="flex" gutter="16">
+            <ARow type="flex" :gutter="40">
               <ACol :span="8">
                 <AButton type="primary" ghost @click="changeSorting('protein')">
                   Cluster

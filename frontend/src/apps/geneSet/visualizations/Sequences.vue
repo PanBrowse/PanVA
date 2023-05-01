@@ -996,7 +996,7 @@ export default {
         this.sortedChromosomeSequenceIndices[this.chromosomeNr].length
       console.log('barHeightScaled', barHeightScaled)
 
-      this.barHeight = barHeightScaled - 20
+      this.barHeight = barHeightScaled - 16
     }
 
     this.drawXAxis() // draw axis once

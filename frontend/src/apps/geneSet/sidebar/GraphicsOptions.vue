@@ -26,6 +26,7 @@ export default {
       'showNotificationsOverview',
       'anchor',
       'colorGenes',
+      'showLinks',
     ]),
   },
 }
@@ -85,6 +86,9 @@ export default {
         <ACol :span="12">
           <AFormItem label="Badge">
             <ASwitch size="small" v-model:checked="showNotificationsDetail"
+          /></AFormItem>
+          <AFormItem label="Link">
+            <ASwitch size="small" v-model:checked="showLinks"
           /></AFormItem>
         </ACol>
       </ARow>
