@@ -19,11 +19,21 @@ export default {
       'chromosomes',
       'numberOfChromosomes',
       'chrFocus',
+      'homologies',
+      'homologyFocus',
     ]),
     chrOptions() {
       let arrayChromosomes = [...Array(12)].map((_, i) => ({
         //to-do: change array to data import!
         value: i + 1,
+      }))
+      // arrayChromosomes.push('unphased')
+      return arrayChromosomes
+    },
+    homologyOptions() {
+      let arrayChromosomes = [this.homologies].map((_, i) => ({
+        //to-do: change array to data import!
+        value: i,
       }))
       // arrayChromosomes.push('unphased')
       return arrayChromosomes
@@ -57,11 +67,18 @@ export default {
           showArrow
         />
       </AFormItem>
-      <AFormItem label="Selected chromosome">
+      <AFormItem label="Selected chr">
         <ASelect
           placeholder="None"
           v-model:value="chrFocus"
           :options="chrOptions"
+        />
+      </AFormItem>
+      <AFormItem label="Selected homolog">
+        <ASelect
+          placeholder="None"
+          v-model:value="homologyFocus"
+          :options="homologyOptions"
         />
       </AFormItem>
     </AForm>

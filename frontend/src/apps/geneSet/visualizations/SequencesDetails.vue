@@ -94,6 +94,7 @@ export default {
       'homologyFocus',
       'anchor',
       'colorGenes',
+      'showLinks',
     ]),
     cardName() {
       return this.name.split('_')[0]
@@ -822,69 +823,75 @@ export default {
       if (this.dataGenes !== undefined) {
         /// connection lines
 
-        this.svg().selectAll('path.connection').remove()
-        // this.homologyGroups.forEach((homology) => {
-        //   const path_focus = this.dataGenes.filter(
-        //     (d) => d.homology_id == homology //this.homologyFocus
-        //   )
+        if (this.showLinks) {
+          this.svg().selectAll('path.connection').remove()
+          this.homologyGroups.forEach((homology) => {
+            const path_focus = this.dataGenes.filter(
+              (d) => d.homology_id == homology //this.homologyFocus
+            )
 
-        //   // console.log('path focus', path_focus)
-        //   const newPathFocus = path_focus.map((v) => ({
-        //     ...v,
-        //     sequence_id: `${v.genome_number}_${v.sequence_number}`,
-        //   }))
+            // console.log('path focus', path_focus)
+            const newPathFocus = path_focus.map((v) => ({
+              ...v,
+              sequence_id: `${v.genome_number}_${v.sequence_number}`,
+            }))
 
-        //   // path_focus.forEach((d) => {
-        //   //   const key = `${d.genome_number}_${d.sequence_number}`
-        //   //   path_focus['sequence_id'] = key
-        //   // })
-        //   console.log('newPathFocus', newPathFocus)
-        //   console.log(Object.keys(this.sequenceIdLookup[this.chromosomeNr]))
+            // path_focus.forEach((d) => {
+            //   const key = `${d.genome_number}_${d.sequence_number}`
+            //   path_focus['sequence_id'] = key
+            // })
+            console.log('newPathFocus', newPathFocus)
+            console.log(Object.keys(this.sequenceIdLookup[this.chromosomeNr]))
 
-        //   let sortOrder = Object.keys(this.sequenceIdLookup[this.chromosomeNr])
+            let sortOrder = Object.keys(
+              this.sequenceIdLookup[this.chromosomeNr]
+            )
 
-        //   let sortedPath = [...newPathFocus].sort(function (a, b) {
-        //     return (
-        //       sortOrder.indexOf(a.sequence_id) -
-        //       sortOrder.indexOf(b.sequence_id)
-        //     )
-        //   })
+            let sortedPath = [...newPathFocus].sort(function (a, b) {
+              return (
+                sortOrder.indexOf(a.sequence_id) -
+                sortOrder.indexOf(b.sequence_id)
+              )
+            })
 
-        //   // console.log('sortedPath', sortedPath)
+            // console.log('sortedPath', sortedPath)
 
-        //   // Add the line
+            // Add the line
 
-        //   this.svg()
-        //     .append('path')
-        //     .datum(sortedPath)
-        //     .attr('class', 'connection')
-        //     .attr('fill', 'none')
-        //     .attr('stroke', vis.colorScale(homology))
-        //     .attr('stroke-width', 1.5)
-        //     .attr(
-        //       'd',
-        //       d3
-        //         .line()
-        //         .x(function (d) {
-        //           const key = `${d.genome_number}_${d.sequence_number}`
-        //           let anchorStart = vis.anchorLookup[key]
-        //           return (
-        //             vis.margin.left * 3 +
-        //             vis.xScale(d.mRNA_start_position - anchorStart)
-        //           )
-        //         })
-        //         .y(function (d, i) {
-        //           return (
-        //             vis.margin.top * 2 +
-        //             vis.barHeight / 2 +
-        //             // vis.sortedMrnaIndices[vis.chromosomeNr][i] *
-        //             vis.sequenceIdLookup[vis.chromosomeNr][d.sequence_id] *
-        //               (vis.barHeight + 10)
-        //             // i * (vis.barHeight + 10)
-        //           )
-        //         })
-        //     )
-        // })
+            this.svg()
+              .append('path')
+              .datum(sortedPath)
+              .attr('class', 'connection')
+              .attr('fill', 'none')
+              .attr('stroke', vis.colorScale(homology))
+              .attr('stroke-width', 1.5)
+              .attr(
+                'd',
+                d3
+                  .line()
+                  .x(function (d) {
+                    const key = `${d.genome_number}_${d.sequence_number}`
+                    let anchorStart = vis.anchorLookup[key]
+                    return (
+                      vis.margin.left * 3 +
+                      vis.xScale(d.mRNA_start_position - anchorStart)
+                    )
+                  })
+                  .y(function (d, i) {
+                    return (
+                      vis.margin.top * 2 +
+                      vis.barHeight / 2 +
+                      // vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+                      vis.sequenceIdLookup[vis.chromosomeNr][d.sequence_id] *
+                        (vis.barHeight + 10)
+                      // i * (vis.barHeight + 10)
+                    )
+                  })
+              )
+          })
+        } else {
+          this.svg().selectAll('path.connection').remove()
+        }
 
         // const path_focus = this.dataGenes.filter(
         //   (d) => d.homology_id == 232274335 //this.homologyFocus
@@ -1472,6 +1479,9 @@ export default {
   // },
   watch: {
     colorGenes() {
+      this.drawGenes()
+    },
+    showLinks() {
       this.drawGenes()
     },
     anchor() {
