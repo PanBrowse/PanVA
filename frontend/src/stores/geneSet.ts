@@ -57,9 +57,10 @@ export const useGeneSetStore = defineStore('geneSet', {
     overviewArrows: false,
     showTable: true,
     showDetails: true,
-    showNotificationsDetail: true,
+    showNotificationsDetail: false,
     showNotificationsOverview: true,
     anchor: true,
+    colorGenes: true,
 
     isInitialized: false,
   }),

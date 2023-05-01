@@ -106,13 +106,22 @@ export default {
         <ARow type="flex">
           <ACol :span="8"> </ACol>
           <ACol :span="16">
-            <AButton type="primary" ghost @click="changeSorting('protein')">
-              Generate clustering
-            </AButton>
-
-            <AButton @click="changeSorting('genome_number_asc')">
-              ascending genomeNr
-            </AButton>
+            <ARow type="flex" gutter="16">
+              <ACol :span="8">
+                <AButton type="primary" ghost @click="changeSorting('protein')">
+                  Cluster
+                </AButton>
+              </ACol>
+              <ACol :span="8">
+                <AButton
+                  danger
+                  ghost
+                  @click="changeSorting('genome_number_asc')"
+                >
+                  Reset
+                </AButton></ACol
+              >
+            </ARow>
           </ACol>
         </ARow>
       </AFormItem>

@@ -91,6 +91,7 @@ export default {
       'overviewArrows',
       'chrFocus',
       'showNotificationsOverview',
+      // 'percentageGC',
     ]),
     containerWidth() {
       return Math.floor(this.svgWidth / this.numberOfChromosomes)
@@ -400,14 +401,50 @@ export default {
                 return vis.xScale(d.sequence_length)
               })
               .attr('height', this.barHeight / 4)
-              // .attr('fill', '#f0f2f5'),
               .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent))
+              // .attr('fill', function (d) {
+              //   let color
+              //   if (vis.percentageGC == true) {
+              //     color = vis.colorScaleGC(d.GC_content_percent)
+              //   } else {
+              //     color = 'transparent'
+              //   }
+              //   return color
+              // })
+              // .attr('opacity', function (d) {
+              //   let color
+              //   if (vis.percentageGC == true) {
+              //     color = 1
+              //   } else {
+              //     color = 0
+              //   }
+              //   return color
+              // })
               .attr('clip-path', 'url(#clipOverview)'),
           (update) =>
             update
               .attr('clip-path', 'url(#clipOverview)')
               .transition()
               .duration(this.transitionTime)
+              .attr('fill', (d) => vis.colorScaleGC(d.GC_content_percent))
+              // .attr('fill', function (d) {
+              //   let color
+              //   if (vis.percentageGC == true) {
+              //     color = vis.colorScaleGC(d.GC_content_percent)
+              //   } else {
+              //     color = 'transparent'
+              //   }
+              //   return color
+              // })
+              // .attr('opacity', function (d) {
+              //   let color
+              //   if (vis.percentageGC == true) {
+              //     color = 1
+              //   } else {
+              //     color = 0
+              //   }
+              //   return color
+              // })
               .attr(
                 'y',
                 (d, i) =>
@@ -423,7 +460,7 @@ export default {
     draw() {
       if (this.chromosomeNr !== 'unphased') {
         this.drawBars()
-        this.drawContextBars()
+        // this.drawContextBars()
         //   this.addValues()
         this.addLabels()
         this.drawGenes()
@@ -461,7 +498,12 @@ export default {
 
               .attr('dy', this.barHeight / 3)
               // .text((d) => d.sequence_id.split('_')[0]),
-              .text((d) => d.sequence_id),
+              // .text((d) => d.sequence_id),
+              .text((d) =>
+                d.phasing_id.includes('unphased')
+                  ? d.genome_number + '_' + 'U'
+                  : d.genome_number + '_' + d.phasing_id.split('_')[1]
+              ),
 
           (update) =>
             update
@@ -954,7 +996,7 @@ export default {
         this.sortedChromosomeSequenceIndices[this.chromosomeNr].length
       console.log('barHeightScaled', barHeightScaled)
 
-      this.barHeight = barHeightScaled - 10
+      this.barHeight = barHeightScaled - 20
     }
 
     this.drawXAxis() // draw axis once
@@ -988,6 +1030,10 @@ export default {
   //   this.resizeObserver?.disconnect()
   // },
   watch: {
+    // percentageGC() {
+    //   console.log('show GC')
+    //   this.drawContextBars()
+    // },
     showNotificationsOverview() {
       this.draw()
     },

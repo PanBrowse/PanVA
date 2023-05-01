@@ -25,6 +25,7 @@ export default {
       'showNotificationsDetail',
       'showNotificationsOverview',
       'anchor',
+      'colorGenes',
     ]),
   },
 }
@@ -76,6 +77,9 @@ export default {
         <ACol :span="12">
           <AFormItem label="Anchor gene">
             <ASwitch size="small" v-model:checked="anchor"
+          /></AFormItem>
+          <AFormItem label="Color genes">
+            <ASwitch size="small" v-model:checked="colorGenes"
           /></AFormItem>
         </ACol>
         <ACol :span="12">

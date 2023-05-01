@@ -21,14 +21,16 @@
 </template>
 
 <script lang="ts">
-import { CloseCircleOutlined } from '@ant-design/icons-vue'
+import { CloseCircleOutlined, ConsoleSqlOutlined } from '@ant-design/icons-vue'
 import { Button, Card } from 'ant-design-vue'
 import * as d3 from 'd3'
+// import * as d3Fisheye from 'd3-fisheye'
 import { range } from 'lodash'
 import { mapActions, mapState } from 'pinia'
 
 import { groupInfoDensity } from '@/helpers/chromosome'
 import { asterisk, cross, plus } from '@/helpers/customSymbols'
+// import * as fisheye from '@/helpers/fisheye'
 import { useGeneSetStore } from '@/stores/geneSet'
 import { useGlobalStore } from '@/stores/global'
 import type { SequenceMetrics } from '@/types'
@@ -91,6 +93,7 @@ export default {
       'showNotificationsDetail',
       'homologyFocus',
       'anchor',
+      'colorGenes',
     ]),
     cardName() {
       return this.name.split('_')[0]
@@ -138,6 +141,27 @@ export default {
               this.visWidth - this.margin.yAxis + this.margin.left * 4,
             ])
     },
+    // xScale() {
+    //   return this.anchor
+    //     ? d3
+    //         .scaleLinear()
+    //         // .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+    //         .domain([-this.anchorMax, this.anchorMax])
+    //         .nice()
+    //         .rangeRound([
+    //           0,
+    //           this.visWidth - this.margin.yAxis + this.margin.left * 4,
+    //         ])
+    //     : d3
+    //         .scaleLinear()
+    //         .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax])
+    //         // .domain([-this.anchorMax, this.anchorMax])
+    //         .nice()
+    //         .rangeRound([
+    //           0,
+    //           this.visWidth - this.margin.yAxis + this.margin.left * 4,
+    //         ])
+    // },
     // ticksXdomain() {
     //   const stepFactor = this.dataMax / 1000000
     //   const stepSize = Math.ceil(stepFactor) * this.numberOfChromosomes * 100000
@@ -168,10 +192,8 @@ export default {
         .interpolator(d3.interpolateGreys)
     },
     colorScaleGenome() {
-      return d3
-        .scaleSequential()
-        .domain([1, 5])
-        .interpolator(d3.interpolateViridis)
+      return d3.scaleOrdinal().domain([1, 5]).range(d3.schemeCategory10)
+      // .interpolator(d3.interpolateViridis)
     },
     shapeGenerator() {
       const shapes = [
@@ -443,7 +465,7 @@ export default {
               .attr('opacity', function (d) {
                 let color
                 if (vis.colorGenomes == true) {
-                  color = 0.4
+                  color = 0.5
                 } else {
                   color = 1
                 }
@@ -468,7 +490,7 @@ export default {
               .attr('opacity', function (d) {
                 let color
                 if (vis.colorGenomes == true) {
-                  color = 0.4
+                  color = 0.5
                 } else {
                   color = 1
                 }
@@ -618,8 +640,12 @@ export default {
               )
 
               .attr('dy', this.barHeight / 3)
-              // .text((d) => d.sequence_id.split('_')[0]),
-              .text((d) => d.sequence_id),
+              // .text((d) => d.sequence_id.split('_')),
+              .text((d) =>
+                d.phasing_id.includes('unphased')
+                  ? d.genome_number + '_' + 'U'
+                  : d.genome_number + '_' + d.phasing_id.split('_')[1]
+              ),
 
           (update) =>
             update
@@ -794,6 +820,132 @@ export default {
       console.log('this.dataGenes', this.dataGenes)
 
       if (this.dataGenes !== undefined) {
+        /// connection lines
+
+        this.svg().selectAll('path.connection').remove()
+        // this.homologyGroups.forEach((homology) => {
+        //   const path_focus = this.dataGenes.filter(
+        //     (d) => d.homology_id == homology //this.homologyFocus
+        //   )
+
+        //   // console.log('path focus', path_focus)
+        //   const newPathFocus = path_focus.map((v) => ({
+        //     ...v,
+        //     sequence_id: `${v.genome_number}_${v.sequence_number}`,
+        //   }))
+
+        //   // path_focus.forEach((d) => {
+        //   //   const key = `${d.genome_number}_${d.sequence_number}`
+        //   //   path_focus['sequence_id'] = key
+        //   // })
+        //   console.log('newPathFocus', newPathFocus)
+        //   console.log(Object.keys(this.sequenceIdLookup[this.chromosomeNr]))
+
+        //   let sortOrder = Object.keys(this.sequenceIdLookup[this.chromosomeNr])
+
+        //   let sortedPath = [...newPathFocus].sort(function (a, b) {
+        //     return (
+        //       sortOrder.indexOf(a.sequence_id) -
+        //       sortOrder.indexOf(b.sequence_id)
+        //     )
+        //   })
+
+        //   // console.log('sortedPath', sortedPath)
+
+        //   // Add the line
+
+        //   this.svg()
+        //     .append('path')
+        //     .datum(sortedPath)
+        //     .attr('class', 'connection')
+        //     .attr('fill', 'none')
+        //     .attr('stroke', vis.colorScale(homology))
+        //     .attr('stroke-width', 1.5)
+        //     .attr(
+        //       'd',
+        //       d3
+        //         .line()
+        //         .x(function (d) {
+        //           const key = `${d.genome_number}_${d.sequence_number}`
+        //           let anchorStart = vis.anchorLookup[key]
+        //           return (
+        //             vis.margin.left * 3 +
+        //             vis.xScale(d.mRNA_start_position - anchorStart)
+        //           )
+        //         })
+        //         .y(function (d, i) {
+        //           return (
+        //             vis.margin.top * 2 +
+        //             vis.barHeight / 2 +
+        //             // vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+        //             vis.sequenceIdLookup[vis.chromosomeNr][d.sequence_id] *
+        //               (vis.barHeight + 10)
+        //             // i * (vis.barHeight + 10)
+        //           )
+        //         })
+        //     )
+        // })
+
+        // const path_focus = this.dataGenes.filter(
+        //   (d) => d.homology_id == 232274335 //this.homologyFocus
+        // )
+
+        // // // console.log('path focus', path_focus)
+        // // const newPathFocus = path_focus.map((v) => ({
+        // //   ...v,
+        // //   sequence_id: `${v.genome_number}_${v.sequence_number}`,
+        // // }))
+
+        // // // path_focus.forEach((d) => {
+        // // //   const key = `${d.genome_number}_${d.sequence_number}`
+        // // //   path_focus['sequence_id'] = key
+        // // // })
+        // // console.log('newPathFocus', newPathFocus)
+        // // console.log(Object.keys(this.sequenceIdLookup[this.chromosomeNr]))
+
+        // // let sortOrder = Object.keys(this.sequenceIdLookup[this.chromosomeNr])
+
+        // // let sortedPath = [...newPathFocus].sort(function (a, b) {
+        // //   return (
+        // //     sortOrder.indexOf(a.sequence_id) - sortOrder.indexOf(b.sequence_id)
+        // //   )
+        // // })
+
+        // // // console.log('sortedPath', sortedPath)
+
+        // // // Add the line
+        // // this.svg().select('path.connection').remove()
+        // // this.svg()
+        // //   .append('path')
+        // //   .datum(sortedPath)
+        // //   .attr('class', 'connection')
+        // //   .attr('fill', 'none')
+        // //   .attr('stroke', vis.colorScale(232274335))
+        // //   .attr('stroke-width', 1.5)
+        // //   .attr(
+        // //     'd',
+        // //     d3
+        // //       .line()
+        // //       .x(function (d) {
+        // //         const key = `${d.genome_number}_${d.sequence_number}`
+        // //         let anchorStart = vis.anchorLookup[key]
+        // //         return (
+        // //           vis.margin.left * 3 +
+        // //           vis.xScale(d.mRNA_start_position - anchorStart)
+        // //         )
+        // //       })
+        // //       .y(function (d, i) {
+        // //         return (
+        // //           vis.margin.top * 2 +
+        // //           vis.barHeight / 2 +
+        // //           // vis.sortedMrnaIndices[vis.chromosomeNr][i] *
+        // //           vis.sequenceIdLookup[vis.chromosomeNr][d.sequence_id] *
+        // //             (vis.barHeight + 10)
+        // //           // i * (vis.barHeight + 10)
+        // //         )
+        // //       })
+        // //   )
+
         this.svg()
           .selectAll('path.gene')
           .data(this.dataGenes, (d) => d.mRNA_id)
@@ -806,8 +958,9 @@ export default {
                   d3
                     .symbol()
                     .size(this.barHeight * 4)
-                    // .type(d3.symbolTriangle)
+                    .type(d3.symbolTriangle)
                     .type((d) => vis.shapeGenerator[d.homology_id])
+                  // .type(d3.symbolTriangle)
                 )
                 .attr('transform', function (d, i) {
                   const key = `${d.genome_number}_${d.sequence_number}`
@@ -900,14 +1053,18 @@ export default {
                 .attr('hg', (d) => d.homology_id)
                 .attr('z-index', 100)
                 .attr('stroke', (d) =>
-                  vis.upstreamHomologies.includes(d.homology_id)
-                    ? vis.colorScale(d.homology_id)
+                  vis.colorGenes
+                    ? vis.upstreamHomologies.includes(d.homology_id)
+                      ? vis.colorScale(d.homology_id)
+                      : ''
                     : ''
                 )
                 .attr('stroke-width', (d) =>
                   vis.upstreamHomologies.includes(d.homology_id) ? '3px' : ''
                 )
-                .attr('fill', (d) => vis.colorScale(d.homology_id))
+                .attr('fill', (d) =>
+                  vis.colorGenes ? vis.colorScale(d.homology_id) : 'black'
+                )
                 .attr('opacity', 0.8),
 
             (update) =>
@@ -922,6 +1079,19 @@ export default {
                 //   },${vis.margin.top * 2 + vis.barHeight / 2 + vis.sortedMrnaIndices[vis.chromosomeNr][i] * (vis.barHeight + 10)}
                 //     )rotate(-270)`
                 // }),
+                .attr('fill', (d) =>
+                  vis.colorGenes ? vis.colorScale(d.homology_id) : 'black'
+                )
+                .attr('stroke-width', (d) =>
+                  vis.upstreamHomologies.includes(d.homology_id) ? '3px' : ''
+                )
+                .attr('stroke', (d) =>
+                  vis.colorGenes
+                    ? vis.upstreamHomologies.includes(d.homology_id)
+                      ? vis.colorScale(d.homology_id)
+                      : ''
+                    : ''
+                )
                 .attr('transform', function (d, i) {
                   const key = `${d.genome_number}_${d.sequence_number}`
                   let rotation
@@ -940,7 +1110,7 @@ export default {
                         vis.sortedMrnaIndices[vis.chromosomeNr][i] *
                           (vis.barHeight + 10)
                       }
-                    )`
+                    )` // rotate(-270)`
                     } else {
                       return `translate(${
                         vis.margin.left * 3 +
@@ -951,7 +1121,7 @@ export default {
                         vis.sortedMrnaIndices[vis.chromosomeNr][i] *
                           (vis.barHeight + 10)
                       }
-                    )`
+                    )` //rotate(-450)`
                     }
 
                     return rotation
@@ -965,7 +1135,7 @@ export default {
                         vis.sortedMrnaIndices[vis.chromosomeNr][i] *
                           (vis.barHeight + 10)
                       }
-                    )`
+                    )` //rotate(-270)`
                     } else {
                       return `translate(${
                         vis.margin.left * 3 + vis.xScale(d.gene_start_position)
@@ -975,7 +1145,7 @@ export default {
                         vis.sortedMrnaIndices[vis.chromosomeNr][i] *
                           (vis.barHeight + 10)
                       }
-                    )`
+                    )` //rotate(-450)`
                     }
 
                     return rotation
@@ -1240,11 +1410,70 @@ export default {
     this.pan()
 
     this.observeWidth()
+
+    var fisheyeO = {
+      circular: () => {
+        var radius = 200,
+          distortion = 2,
+          k0,
+          k1,
+          focus = [0, 0]
+
+        function fisheye(d) {
+          var dx = d.x - focus[0],
+            dy = d.y - focus[1],
+            dd = Math.sqrt(dx * dx + dy * dy)
+          if (!dd || dd >= radius)
+            return { x: d.x, y: d.y, z: dd >= radius ? 1 : 10 }
+          var k = ((k0 * (1 - Math.exp(-dd * k1))) / dd) * 0.75 + 0.25
+          return {
+            x: focus[0] + dx * k,
+            y: focus[1] + dy * k,
+            z: Math.min(k, 10),
+          }
+        }
+
+        function rescale() {
+          k0 = Math.exp(distortion)
+          k0 = (k0 / (k0 - 1)) * radius
+          k1 = distortion / radius
+          return fisheye
+        }
+
+        fisheye.radius = function (_) {
+          if (!arguments.length) return radius
+          radius = +_
+          return rescale()
+        }
+
+        fisheye.distortion = function (_) {
+          if (!arguments.length) return distortion
+          distortion = +_
+          return rescale()
+        }
+
+        fisheye.focus = function (_) {
+          if (!arguments.length) return focus
+          focus = _
+          return fisheye
+        }
+
+        return rescale()
+      },
+    }
+
+    // const fisheye = fisheyeO.circular().radius(100).distortion(5)
+
+    // console.log('fisheye', fisheye)
+    // debugger
   },
   // unmounted() {
   //   this.resizeObserver?.disconnect()
   // },
   watch: {
+    colorGenes() {
+      this.drawGenes()
+    },
     anchor() {
       this.svg().select('g.x-axis').remove()
       this.drawXAxis() // redraw
