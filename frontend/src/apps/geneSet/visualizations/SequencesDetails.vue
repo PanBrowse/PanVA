@@ -863,7 +863,10 @@ export default {
               .datum(sortedPath)
               .attr('class', 'connection')
               .attr('fill', 'none')
-              .attr('stroke', vis.colorScale(homology))
+              .attr(
+                'stroke',
+                vis.colorGenomes ? 'black' : vis.colorScale(homology)
+              )
               .attr('stroke-width', 1.5)
               .attr(
                 'd',

@@ -35,6 +35,7 @@ export default {
             .sort((a, b) => a.value - b.value),
           sorter: (a, b) => numberCompare(a.homology_id, b.homology_id),
           onFilter: (value, record) => record.homology_id === value,
+          defaultFilteredValue: [232273529],
           customRender: ({ record, text }) =>
             h(
               TypographyLink,
