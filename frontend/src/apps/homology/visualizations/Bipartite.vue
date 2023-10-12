@@ -33,7 +33,12 @@ export default {
     ]),
     height(): number {
       if (this.tree.root === null) return 0
-      return leafNodes(this.tree.root).length * CELL_SIZE
+      return (
+        Math.max(
+          leafNodes(this.tree.root).length,
+          this.sortedDataIndicesCollapsed.length
+        ) * CELL_SIZE
+      )
     },
     leafNodes(): string[] {
       if (this.tree.root === null) {

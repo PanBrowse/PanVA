@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      # Add other branches here to have docker images available tagged with the branch name.
+      # E.g. `feature/awesome` will result in a docker tag `feature-awesome`.
 
 # Prevent simultaneous workflow runs on the same branch.
 concurrency:
@@ -40,7 +42,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
