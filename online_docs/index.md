@@ -3,16 +3,16 @@
 layout: home
 
 hero:
-  name: "PanVA documentation"
-  text: "a description..."
-  tagline: My great project tagline
+  name: ""
+  text: "PanVA"
+  tagline: A visual analytics tool for pangenomic variant analysis
   actions:
-    - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: Demos
+      link: /demos
+    - theme: brand
+      text: Getting Started
+      link: /v0.0.0/install
 
 features:
   - title: Feature A
