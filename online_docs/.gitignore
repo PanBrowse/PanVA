@@ -1,0 +1,3 @@
+# VitePress files
+./.vitepress/dist
+./.vitepress/cache
