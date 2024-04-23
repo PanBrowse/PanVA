@@ -1,55 +1,49 @@
 {
-  "hash": "4dfa3d0b",
-  "configHash": "fd413933",
+  "hash": "7ef20d68",
+  "configHash": "75d6c811",
   "lockfileHash": "1f2d55ee",
-  "browserHash": "91c12d2d",
+  "browserHash": "7d7b530a",
   "optimized": {
     "vue": {
       "src": "../../../../node_modules/vue/dist/vue.runtime.esm-bundler.js",
       "file": "vue.js",
-      "fileHash": "8dbe289c",
+      "fileHash": "40c24338",
       "needsInterop": false
     },
     "vitepress > @vue/devtools-api": {
       "src": "../../../../node_modules/@vue/devtools-api/dist/index.js",
       "file": "vitepress___@vue_devtools-api.js",
-      "fileHash": "a0c77a41",
+      "fileHash": "a73f63bf",
       "needsInterop": false
     },
     "vitepress > @vueuse/core": {
       "src": "../../../../node_modules/@vueuse/core/index.mjs",
       "file": "vitepress___@vueuse_core.js",
-      "fileHash": "76a92657",
+      "fileHash": "ebf7ef22",
       "needsInterop": false
     },
     "vitepress > @vueuse/integrations/useFocusTrap": {
       "src": "../../../../node_modules/@vueuse/integrations/useFocusTrap.mjs",
       "file": "vitepress___@vueuse_integrations_useFocusTrap.js",
-      "fileHash": "655d0bc5",
+      "fileHash": "db79eaa8",
       "needsInterop": false
     },
     "vitepress > mark.js/src/vanilla.js": {
       "src": "../../../../node_modules/mark.js/src/vanilla.js",
       "file": "vitepress___mark__js_src_vanilla__js.js",
-      "fileHash": "f75b401c",
+      "fileHash": "6b2a30f1",
       "needsInterop": false
     },
     "vitepress > minisearch": {
       "src": "../../../../node_modules/minisearch/dist/es/index.js",
       "file": "vitepress___minisearch.js",
-      "fileHash": "79d8bf88",
-      "needsInterop": false
-    },
-    "@theme/index": {
-      "src": "../../../../../.nvm/versions/node/v18.14.0/lib/node_modules/vitepress/dist/client/theme-default/index.js",
-      "file": "@theme_index.js",
-      "fileHash": "083411c5",
+      "fileHash": "fd8c3bf9",
       "needsInterop": false
     },
     "vue-demi": {
       "src": "../../../../../.nvm/versions/node/v18.14.0/lib/node_modules/vitepress/lib/vue-demi.mjs",
       "file": "vue-demi.js",
-      "fileHash": "fa108d98",
+      "fileHash": "30e6070f",
       "needsInterop": false
     }
   },

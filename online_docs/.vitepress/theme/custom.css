@@ -1,0 +1,14 @@
+/* .vitepress/theme/custom.css */
+:root {
+    --vp-c-brand-1: #646cff;
+    --vp-c-brand-2: #747bff;
+  }
+
+  /* Target the hero image and adjust its size */
+.VPImage.image-src {
+    width: 100%; /* Set the width to 100% */
+    height: auto; /* Let the height adjust proportionally */
+    max-width: 500px; /* Set a maximum width to control the size */
+    display: block; /* Ensure the image is displayed as a block element */
+    margin: 0 auto; /* Center the image horizontally */
+}
