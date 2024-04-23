@@ -1,3 +1,9 @@
+# VitePress
+/online_docs/.vitepress/cache
+/online_docs/.vitepress/dist
+.vitepress/cache
+.vitepress/dist
+
 # Logs
 logs
 *.log
