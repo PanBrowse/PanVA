@@ -3,9 +3,11 @@
 layout: home
 
 hero:
-  name: ""
   text: "PanVA"
   tagline: An interactive visualization tool for pangenomic variant analysis
+  image:
+    src: /placeholder-panva-website.png
+    alt: PanVA
   actions:
     - theme: alt
       text: Demos
@@ -22,4 +24,5 @@ features:
   - title: Feature C
     details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
 ---
+
 
