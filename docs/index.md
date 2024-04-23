@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: "PanVA documentation"
-  text: "a description"
+  text: "a description..."
   tagline: My great project tagline
   actions:
     - theme: brand

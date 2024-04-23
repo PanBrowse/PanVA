@@ -4,6 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "PanVA documentation",
   description: "a description",
+  base: '/PanVA/',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
