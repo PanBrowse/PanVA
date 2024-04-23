@@ -5,7 +5,7 @@ layout: home
 hero:
   name: ""
   text: "PanVA"
-  tagline: A visual analytics tool for pangenomic variant analysis
+  tagline: An interactive visualization tool for pangenomic variant analysis
   actions:
     - theme: alt
       text: Demos
