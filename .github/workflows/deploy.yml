@@ -48,7 +48,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: online_docs/.vitepress/dist
+          path: online_docs/.vitepress/dist # changed from default 'docs' to 'online_docs'
 
   # Deployment job
   deploy:
