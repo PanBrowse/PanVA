@@ -1,0 +1,148 @@
+{
+  "apiUrl": "http://localhost:5001/",
+  "apps": [
+    "homology",
+    "genesets"
+  ],
+  "homology": {
+    "alignmentMetadata": [
+      {
+        "type": "boolean",
+        "column": "meta_boolean",
+        "label": "Random boolean"
+      },
+      {
+        "type": "categorical",
+        "column": "meta_string",
+        "label": "Random string"
+      },
+      {
+        "type": "quantitative",
+        "column": "meta_number",
+        "label": "Random number"
+      }
+    ],
+    "annotations": [
+      {
+        "column": "cds",
+        "label": "CDS"
+      },
+      {
+        "column": "exon",
+        "label": "Exon"
+      }
+    ],
+    "defaultId": "13803671",
+    "defaultSequenceMetadataColumns": [
+      "virulence",
+      "species",
+      "growth_rate",
+      "strain_name"
+    ],
+    "homologyMetadata": [
+      {
+        "type": "quantitative",
+        "column": "in_genomes",
+        "label": "Found in genomes"
+      },
+      {
+        "type": "categorical",
+        "column": "gene_names",
+        "label": "Gene names"
+      },
+      {
+        "type": "categorical",
+        "column": "classification",
+        "label": "Classification"
+      },
+      {
+        "type": "boolean",
+        "column": "var_nucl_sites",
+        "label": "Variable nucleotide sites"
+      },
+      {
+        "type": "boolean",
+        "column": "var_prot_sites",
+        "label": "Variable protein sites"
+      },
+      {
+        "type": "boolean",
+        "column": "inf_nucl_sites",
+        "label": "Informative nucleotide sites"
+      },
+      {
+        "type": "boolean",
+        "column": "inf_prot_sites",
+        "label": "Informative protein sites"
+      },
+      {
+        "type": "boolean",
+        "column": "pheno_specific_nucl_changes",
+        "label": "Phenotype specific nucleotide changes"
+      },
+      {
+        "type": "boolean",
+        "column": "pheno_specific_prot_changes",
+        "label": "Phenotype specific protein changes"
+      }
+    ],
+    "sequenceMetadata": [
+      {
+        "type": "boolean",
+        "column": "virulence",
+        "label": "Virulence",
+        "values": {
+          "true": "virulent",
+          "false": "avirulent"
+        },
+        "labels": {
+          "true": "Virulent",
+          "false": "Avirulent",
+          "null": "Unknown"
+        }
+      },
+      {
+        "type": "categorical",
+        "column": "species",
+        "label": "Species",
+        "width": 80
+      },
+      {
+        "type": "quantitative",
+        "column": "growth_rate",
+        "label": "Growth rate",
+        "decimals": 1,
+        "width": 100
+      },
+      {
+        "type": "categorical",
+        "column": "strain_name",
+        "label": "Strain",
+        "width": 120
+      }
+    ],
+    "trees": [
+      {
+        "filename": "core_snp.txt",
+        "label": "CoreSNP"
+      },
+      {
+        "filename": "kmer.txt",
+        "label": "K-Mer"
+      }
+    ],
+    "variableMetadata": [
+      {
+        "type": "boolean",
+        "column": "informative",
+        "label": "Informative"
+      },
+      {
+        "type": "boolean",
+        "column": "pheno_specific",
+        "label": "Phenotype specific"
+      }
+    ]
+  },
+  "title": "PanVA: Pectobacterium"
+}
