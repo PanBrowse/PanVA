@@ -59,6 +59,14 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        - name: Download artifact
+          uses: actions/download-artifact@v2
+          with:
+            name: vitepress-dist
+            path: online_docs/.vitepress/dist # Adjusted to download the artifact to the correct directory
+        - name: Deploy to GitHub Pages
+          uses: peaceiris/actions-gh-pages@v3
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            branch: docs-website # Adjusted to specify the correct branch for deployment
+            publish_dir: online_docs/.vitepress/dist # Adjusted to point to the correct build directory
