@@ -40,7 +40,6 @@ export default {
   <ACollapse
     :activeKey="activeKey"
     expandIconPosition="right"
-    collapsible="header"
     :ghost="true"
     class="sidebar-item"
     @change="toggleExpanded"

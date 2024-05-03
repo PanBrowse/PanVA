@@ -32,13 +32,13 @@ export default {
     Tips,
   },
   computed: {
-    ...mapState(useHomologyStore, ['isInitialized']),
+    ...mapState(useHomologyStore, ['isInitialized', 'homologyId']),
   },
 }
 </script>
 
 <template>
-  <Layout v-if="isInitialized">
+  <Layout v-if="isInitialized" :key="`${homologyId}`">
     <template #sidebar>
       <HomologySelect />
       <HomologyInfo />

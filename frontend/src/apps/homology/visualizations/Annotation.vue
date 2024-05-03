@@ -14,6 +14,7 @@ export default {
       'annotationColors',
       'filteredPositions',
       'filteredPositionsCount',
+      'highDpiEnabled',
       'theme',
     ]),
     width(): number {
@@ -25,23 +26,36 @@ export default {
     },
   },
   methods: {
-    context() {
-      return d3
-        .select<HTMLCanvasElement, any>('#annotation')
-        .node()!
-        .getContext('2d')
+    getContext(canvas: HTMLCanvasElement) {
+      if (this.highDpiEnabled) {
+        const scaleFactor = 2
+        canvas.setAttribute('width', '' + this.width * scaleFactor)
+        canvas.setAttribute('height', '' + this.height * scaleFactor)
+        canvas.style.width = this.width + 'px'
+        canvas.style.height = this.height + 'px'
+
+        const ctx = canvas.getContext('2d')!
+        ctx.scale(scaleFactor, scaleFactor)
+
+        return ctx
+      }
+
+      canvas.setAttribute('width', '' + this.width)
+      canvas.setAttribute('height', '' + this.height)
+      canvas.style.removeProperty('width')
+      canvas.style.removeProperty('height')
+
+      const ctx = canvas.getContext('2d')!
+
+      return ctx
     },
     draw() {
       const config = useConfigStore()
 
-      const canvas = d3
-        .select<HTMLCanvasElement, any>('#annotation')
-        .attr('width', this.width)
-        .attr('height', this.height)
+      const canvas = d3.select<HTMLCanvasElement, any>('#annotation').node()
+      if (!canvas) return
 
-      const ctx = canvas.node()?.getContext('2d')
-
-      if (!ctx) return
+      const ctx = this.getContext(canvas)
 
       this.filteredPositions.forEach((position, cellIndex) => {
         config.homology.annotations.forEach(({ column }, annotationIndex) => {
@@ -66,6 +80,9 @@ export default {
   },
   watch: {
     filteredPositions() {
+      this.draw()
+    },
+    highDpiEnabled() {
       this.draw()
     },
     annotation() {
