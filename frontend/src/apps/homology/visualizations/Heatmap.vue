@@ -184,7 +184,8 @@ export default {
         const matchesReference =
           this.referenceNucleotides &&
           !isRef &&
-          this.referenceNucleotides![column] === nucl
+          nucl.length === 1 &&
+          this.referenceNucleotides![column].includes(nucl)
 
         drawNucleotide({
           ctx,

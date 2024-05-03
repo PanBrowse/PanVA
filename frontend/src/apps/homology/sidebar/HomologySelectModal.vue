@@ -10,7 +10,7 @@ import {
   type TableColumnsType,
   TypographyLink,
 } from 'ant-design-vue'
-import { cloneDeep, flatten } from 'lodash'
+import { cloneDeep, flattenDeep } from 'lodash'
 import { mapState, mapWritableState } from 'pinia'
 import { h } from 'vue'
 
@@ -146,7 +146,7 @@ export default {
   },
   methods: {
     optionsForColumn(column: string): string[] {
-      return flatten(
+      return flattenDeep(
         this.homologies.map(({ metadata }) => {
           const value = metadata[column] as
             | MetadataCategorical

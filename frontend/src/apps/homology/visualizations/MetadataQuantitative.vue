@@ -1,6 +1,6 @@
 <script lang="ts">
 import * as d3 from 'd3'
-import { max, mean, uniq } from 'lodash'
+import { max, mean } from 'lodash'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import type { PropType } from 'vue'
 
@@ -96,9 +96,8 @@ export default {
     groupAggregates(): GroupAggregates {
       return Object.fromEntries(
         this.groupsFiltered.map(({ id, dataIndices }) => {
-          const allValues = dataIndices.map(this.valueAtDataIndex)
-          const counts = mapCountBy(allValues)
-          const values = uniq(allValues)
+          const values = dataIndices.map(this.valueAtDataIndex)
+          const counts = mapCountBy(values)
 
           return [id, { counts, values }]
         })
@@ -313,7 +312,7 @@ export default {
         #{{ name }} rect.bar[data-index="{{ hoverRowIndex }}"] {
           fill: {{ colors.hover }} !important;
         }
-        
+
         #{{ name }} text[data-index="{{ hoverRowIndex }}"] {
           fill: {{ colors.hover }} !important;
         }

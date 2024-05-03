@@ -104,7 +104,7 @@ export default {
     svgHeight() {
       const baseHeight = this.margin.top + this.geneHeight + this.margin.bottom
       if (this.annotation) {
-        return baseHeight + this.annotations.length * 10 + 3
+        return baseHeight + this.annotationColors.length * 10 + 3
       }
       return baseHeight
     },

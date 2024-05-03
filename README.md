@@ -1,6 +1,8 @@
 # PanVA
 
-This repository contains both the [Frontend code](frontend) and the [API code](api) for the PanVA application.
+This repository contains the [Frontend code](frontend), [API code](api) and [Online Docs](online_docs) for the PanVA application.
+
+Documentation is available both in this repository and online at https://panbrowse.github.io/PanVA/
 
 
 ## Prerequisites
