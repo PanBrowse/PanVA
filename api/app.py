@@ -26,6 +26,7 @@ load_dotenv(".env")
 
 # Get non-Flask configuration options from environment variables.
 db_path = os.environ.get("API_DB_PATH")
+print("db_path", db_path)
 
 
 # Instantiate the app.
