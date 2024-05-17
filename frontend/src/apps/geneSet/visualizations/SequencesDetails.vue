@@ -72,7 +72,7 @@ export default {
     cardHeaderHeight: 40,
     transitionTime: 750,
     numberOfCols: 2,
-    barHeight: 28,
+    barHeight: 6,
     sortedSequenceIds: [],
     idleTimeout: null,
   }),
@@ -422,7 +422,6 @@ export default {
       let vis = this
 
       console.log('data sequence details', this.data)
-
       this.svg()
         .selectAll('rect.bar-chr')
         .data(this.data, (d) => d.sequence_id)
@@ -1357,17 +1356,21 @@ export default {
       //   this.sortedChromosomeSequenceIndices[this.chromosomeNr].length *
       //     (this.barHeight + 10) +
       //   this.margin.top * 2
-      this.svgHeight = document.getElementById('content').offsetHeight
+      this.svgHeight = document.getElementById('contentChr').offsetHeight
+      console.log('this.svgHeight', this.svgHeight)
     }
 
-    const containerHeight = document.getElementById('content').offsetHeight
-    console.log('containerHeight', containerHeight)
-    const barHeightScaled =
-      (containerHeight - 7 * this.margin.top) /
-      this.sortedChromosomeSequenceIndices[this.chromosomeNr].length
-    console.log('barHeightScaled', barHeightScaled)
+    // const containerHeight = document.getElementById('contentChr').offsetHeight
+    // console.log('containerHeight', containerHeight)
+    // const barHeightScaled =
+    //   (this.svgHeight -
+    //     2 * this.margin.top -
+    //     2 * this.margin.bottom -
+    //     2 * this.margin.yAxis -
+    //     40) /
+    //   this.sortedChromosomeSequenceIndices[this.chromosomeNr].length
 
-    this.barHeight = barHeightScaled - 10
+    // this.barHeight = barHeightScaled - 12
 
     // Anchor
     ////
