@@ -116,6 +116,7 @@ def create_dendrogram(linkage_matrix, labels):
 
     return dendrogram
 
+######################################
 #### GeneSet clustering functions ####
 
 def get_clustering_leaves(sequence_info, linkage_matrix, labels):
