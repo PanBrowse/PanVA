@@ -4,21 +4,35 @@
     "geneSet"
   ],
   "homology": {
-    "alignmentMetadata": [
+    "defaultId": "14508105",
+    "defaultSequenceMetadataColumns": [
+      "virulence",
+      "SpeciesName"
+    ],
+    "homologyMetadata": [
       {
-        "type": "boolean",
-        "column": "meta_boolean",
-        "label": "Random boolean"
-      },
-      {
+        "column": "classification",
+        "label": "Classification",
         "type": "categorical",
-        "column": "meta_string",
-        "label": "Random string"
+        "width": 80
       },
       {
-        "type": "quantitative",
-        "column": "meta_number",
-        "label": "Random number"
+        "column": "name",
+        "label": "Name",
+        "type": "categorical",
+        "width": 120
+      },
+      {
+        "column": "all_functions",
+        "label": "Functions",
+        "type": "categorical",
+        "width": 120
+      }
+    ],
+    "trees": [
+      {
+        "filename": "kmer_gene_distance.txt",
+        "label": "Kmer distance"
       }
     ],
     "annotations": [
@@ -28,61 +42,22 @@
       },
       {
         "column": "exon",
-        "label": "Exon"
+        "label": "exon"
       }
     ],
-    "defaultId": "13803671",
-    "defaultSequenceMetadataColumns": [
-      "virulence",
-      "species",
-      "growth_rate",
-      "strain_name"
+    "variableMetadata": [
+      {
+        "column": "var_trimmed_species_var",
+        "label": "var_trimmed_species",
+        "type": "boolean"
+      }
     ],
-    "homologyMetadata": [
+    "alignmentMetadata": [
       {
-        "type": "quantitative",
-        "column": "in_genomes",
-        "label": "Found in genomes"
-      },
-      {
+        "column": "var_trimmed_species_var",
+        "label": "var_trimmed_species",
         "type": "categorical",
-        "column": "gene_names",
-        "label": "Gene names"
-      },
-      {
-        "type": "categorical",
-        "column": "classification",
-        "label": "Classification"
-      },
-      {
-        "type": "boolean",
-        "column": "var_nucl_sites",
-        "label": "Variable nucleotide sites"
-      },
-      {
-        "type": "boolean",
-        "column": "var_prot_sites",
-        "label": "Variable protein sites"
-      },
-      {
-        "type": "boolean",
-        "column": "inf_nucl_sites",
-        "label": "Informative nucleotide sites"
-      },
-      {
-        "type": "boolean",
-        "column": "inf_prot_sites",
-        "label": "Informative protein sites"
-      },
-      {
-        "type": "boolean",
-        "column": "pheno_specific_nucl_changes",
-        "label": "Phenotype specific nucleotide changes"
-      },
-      {
-        "type": "boolean",
-        "column": "pheno_specific_prot_changes",
-        "label": "Phenotype specific protein changes"
+        "width": 80
       }
     ],
     "sequenceMetadata": [
@@ -101,45 +76,52 @@
         }
       },
       {
-        "type": "categorical",
-        "column": "species",
+        "column": "SpeciesName",
         "label": "Species",
+        "type": "categorical",
+        "width": 150
+      },
+      {
+        "column": "geo_loc_name",
+        "label": "Geo Location Name",
+        "type": "categorical",
         "width": 80
       },
       {
-        "type": "quantitative",
-        "column": "growth_rate",
-        "label": "Growth rate",
-        "decimals": 1,
-        "width": 100
-      },
-      {
+        "column": "geo_loc_country",
+        "label": "Country",
         "type": "categorical",
-        "column": "strain_name",
-        "label": "Strain",
-        "width": 120
-      }
-    ],
-    "trees": [
-      {
-        "filename": "core_snp.txt",
-        "label": "CoreSNP"
+        "width": 80
       },
       {
-        "filename": "kmer.txt",
-        "label": "K-Mer"
-      }
-    ],
-    "variableMetadata": [
-      {
-        "type": "boolean",
-        "column": "informative",
-        "label": "Informative"
+        "column": "continent",
+        "label": "Continent",
+        "type": "categorical",
+        "width": 80
       },
       {
-        "type": "boolean",
-        "column": "pheno_specific",
-        "label": "Phenotype specific"
+        "column": "collection_year",
+        "label": "Collection Year",
+        "type": "categorical",
+        "width": 80
+      },
+      {
+        "column": "host",
+        "label": "Host",
+        "type": "categorical",
+        "width": 80
+      },
+      {
+        "column": "isolation_source",
+        "label": "Isolation Source",
+        "type": "categorical",
+        "width": 80
+      },
+      {
+        "column": "type_material",
+        "label": "Type Material",
+        "type": "categorical",
+        "width": 80
       }
     ]
   }

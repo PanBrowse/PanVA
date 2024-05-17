@@ -1,4 +1,4 @@
-import Levenshtein as lv
+from rapidfuzz.distance import Hamming
 from scipy.cluster.hierarchy import linkage, to_tree, leaves_list
 from scipy.spatial.distance import squareform
 import numpy as np
@@ -60,9 +60,7 @@ def create_lv_matrix(sequences, positions=None):
     # Go one row at a time and fill until you reach the diagonal.
     for i in range(size):
         for j in range(0, i):
-            matrix[i][j] = matrix[j][i] = 1 - lv.ratio(
-                seqs["new_seq"][i], seqs["new_seq"][j]
-            )
+            matrix[i][j] = matrix[j][i] = Hamming.normalized_distance(seqs['new_seq'][i], seqs['new_seq'][j])
 
     return matrix
 
