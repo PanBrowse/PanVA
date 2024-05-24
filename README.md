@@ -7,7 +7,7 @@ Please cite the relevant publication(s) from the list of publications if you use
 This repository contains the [Frontend code](frontend), [API code](api) and [Online Docs](online_docs) for the PanVA application.
 
 
-## Licence
+## License
 
 PanVA has been licensed under [GNU GENERAL PUBLIC LICENSE version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
