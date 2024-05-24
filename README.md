@@ -1,7 +1,7 @@
 # PanVA
 
 PanVA is an interactive visualization tool for pangenomic variant analysis. 
-It is developed by the Visualization Group of Eindhoven University of Technology and the Bioinformatics Group of Wageningen University, the Netherlands. Please cite the relevant publication(s) from the list of publications if you use PanVA in your research.
+It is developed by the Bioinformatics Group of Wageningen University & Research (WUR) and the Visualization Group of Eindhoven University of Technology (TUe), the Netherlands. Please cite the relevant publication(s) from the list of publications if you use PanVA in your research.
 
 This repository contains the [Frontend code](frontend), [API code](api) and [Online Docs](online_docs) for the PanVA application.
 
