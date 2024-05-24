@@ -1,6 +1,17 @@
 # PanVA
 
+PanVA is an interactive visualization tool for pangenomic variant analysis. 
+It is developed by the Visualization Group of Eindhoven University of Technology and the Bioinformatics Group of Wageningen University, the Netherlands. Please cite the relevant publication(s) from the list of publications if you use PanVA in your research.
+
 This repository contains the [Frontend code](frontend), [API code](api) and [Online Docs](online_docs) for the PanVA application.
+
+
+## Licence
+
+PanVA has been licensed under [GNU GENERAL PUBLIC LICENSE version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
+
+
+## Documentation
 
 Documentation is available both in this repository and online at https://panbrowse.github.io/PanVA/
 
@@ -63,3 +74,8 @@ docker run [options] panva
 ## Without docker
 
 Running the application without Docker is possible, but is not documented.
+
+
+## Publications
+- [2023] [PanVA: Pangenomic Variant Analysis](https://ieeexplore.ieee.org/document/10143227)
+
