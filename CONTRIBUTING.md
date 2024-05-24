@@ -17,7 +17,7 @@ There are many ways to get in touch with the _PanVA_ team!
 
 Before you open a new issue, please check if any of our [open issues](https://github.com/PanBrowse/PanVA/issues) cover your idea already.
 
-## Making a change with a merge request
+## Making a change with a pull request
 
 The following steps are a guide to help you contribute in a way that will be easy for everyone to review and accept with ease.
 
@@ -29,6 +29,7 @@ This allows other members of the _PanVA_ team to confirm that you aren't overlap
 
 This is now your own unique copy of _PanVA_.
 Changes here won't affect anyone else's work, so it's a safe space to explore edits to the code!
+Make sure to [sync your fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork) with the upstream repo. 
 
 ### 3. Make the changes you've discussed
 
