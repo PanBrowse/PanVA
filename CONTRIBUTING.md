@@ -39,13 +39,13 @@ This allows other members of the _PanVA_ team to confirm that you aren't overlap
 
 ### 3. Making a change with a pull request
 
-#### Fork the [_PanVA_ repository][panva-repo]
+#### 3.1 Fork the [_PanVA_ repository][panva-repo]
 
 This is now your own unique copy of _PanVA_.
 Changes here won't affect anyone else's work, so it's a safe space to explore edits to the code!
 Make sure to [sync your fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork) with the upstream repo. 
 
-#### Make the changes you have discussed
+#### 3.2 Make the changes you have discussed
 
 Try to keep the changes focused.
 If you submit a large amount of work all in one go it will be much more work for whoever is reviewing your merge request.
@@ -54,7 +54,7 @@ While making your changes, commit often and write good, detailed commit messages
 [This blog](https://chris.beams.io/posts/git-commit/) explains how to write a good Git commit message and why it matters.
 
 
-### 4. Submit a [pull request][github-pr]
+#### 3.3 Submit a [pull request][github-pr]
 
 We encourage you to open a pull request (PR) as early in your contributing process as possible.
 This allows everyone to see what is currently being worked on.
