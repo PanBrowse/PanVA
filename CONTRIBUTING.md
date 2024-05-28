@@ -1,7 +1,7 @@
 # Contributing to _PanVA_
 
 We appreciate all contributions to PanVA.
-Thank you for helping us build this useful resource!
+Thank you for helping us build this useful resource! :sparkles:
 
 ## Get in touch
 
@@ -21,7 +21,7 @@ The following steps are a guide to help you contribute in a way that will be eas
 
 To make a contribution you will need to have:
 - a github account
-- a code editor like vs-code
+- a code editor like [vs-code](https://code.visualstudio.com)
 
 To make edits you will need to:
 - fork the PanVA repository
@@ -72,7 +72,7 @@ Keep an eye on your GitHub notifications and be prepared to join in that convers
 You can update your fork of the _PanVA_ [repository][panva-repo] and the PR will automatically update with those changes.
 
 
-## Recognizing Contributions
+## Recognizing contributions
 
 We welcome and recognise all kinds of contributions, from fixing small errors, to developing documentation, maintaining the project infrastructure, writing code or reviewing existing resources.
 
