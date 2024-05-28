@@ -79,6 +79,7 @@ We welcome and recognise all kinds of contributions, from fixing small errors, t
 ### Current Contributors
 
 The design and initial prototype implementation of PanVA have been developed by Astrid van den Brandt. 
+
 We graciously thank the following people for their contributions to the _PanVA_ project:
 
 - Sandra Smit
