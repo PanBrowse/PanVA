@@ -10,7 +10,7 @@ There are many ways to get in touch with the _PanVA_ team!
 - GitHub [issues][panva-issues] and [pull requests][panva-pr]
   - Join a discussion, collaborate on an ongoing task and exchange your thoughts with others. 
   - Can't find your idea being discussed anywhere?
-    [Open a new issue](https://github.com/PanBrowse/PanVA/issues)! (See our [Where to start: issues](#where-to-start-issues) section below.)
+    [Open a new issue](https://github.com/PanBrowse/PanVA/issues)! 
 - Contact the Project Lead of the _PanVA_ project - Sandra Smit - by email at [pantools@bioinformatics.nl](mailto:).
 
 ## Contributing through GitHub
