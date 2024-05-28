@@ -92,7 +92,7 @@ We graciously thank the following people for their contributions to the _PanVA_ 
 
 ---
 
-_These Contributing Guidelines have been adapted from the [Contributing Guidelines](https://github.com/bids-standard/bids-starter-kit/blob/master/CONTRIBUTING.md) of the [BIDS Starter Kit](https://github.com/bids-standard/bids-starter-kit) and the [PanTools Contributing Guidelines](https://git.wur.nl/bioinformatics/pantools/-/blob/pantools_v4/CONTRIBUTING.md?ref_type=heads) and ! (License: CC-BY)_
+_These Contributing Guidelines have been adapted from the [Contributing Guidelines](https://github.com/bids-standard/bids-starter-kit/blob/master/CONTRIBUTING.md) of the [BIDS Starter Kit](https://github.com/bids-standard/bids-starter-kit) and the [PanTools Contributing Guidelines](https://git.wur.nl/bioinformatics/pantools/-/blob/pantools_v4/CONTRIBUTING.md?ref_type=heads) (License: CC-BY)_
 
 [panva-repo]: https://github.com/PanBrowse/PanVA
 [panva-issues]: https://github.com/PanBrowse/PanVA/contribute
