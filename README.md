@@ -10,6 +10,7 @@ This repository contains the [Frontend code](frontend), [API code](api) and [Onl
 ## License
 
 PanVA has been licensed under [GNU GENERAL PUBLIC LICENSE version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
+
 For more information, contact:
 Sandra Smit, email: sandra.smit@wur.nl
 
