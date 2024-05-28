@@ -20,7 +20,7 @@ The following steps are a guide to help you contribute in a way that will be eas
 ### 1. Requirements
 
 To make a contribution you will need to have:
-- a github account (see above)
+- a github account
 - a code editor like vs-code
 
 To make edits you will need to:
