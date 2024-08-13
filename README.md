@@ -81,5 +81,5 @@ Running the application without Docker is possible, but is not documented.
 
 
 ## Publications
-- [2023] [PanVA: Pangenomic Variant Analysis](https://ieeexplore.ieee.org/document/10143227)
+- [2024] [PanVA: Pangenomic Variant Analysis](https://ieeexplore.ieee.org/document/10143227)
 
