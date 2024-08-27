@@ -11,18 +11,27 @@ hero:
   actions:
     - theme: alt
       text: Demos
-      link: /demos
+      link: /v0.0.0/demos
     - theme: brand
       text: Getting Started
-      link: /v0.0.0/install
+      link: /v0.0.0/introduction
+
+  description: |
+    PanVA is a web application allowing users to visually and interactively explore sequence variants in pangenomes. The source code is available on [GitHub](https://github.com/PanBrowse/PanVA/tree/main).
+
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - icon: 🖍️
+    title: Linked highlighting
+    details: Easily trace sequences and corresponding metadata through linked highlighting.
+  - icon: 🔄
+    title: Sorting & clustering
+    details: Discover patterns between sequences and phenotypes through various sorting options.
+  - icon: 📚
+    title: Grouping & aggregation
+    details: Create groups show aggregate values to draw comparisons and save screen space.
 ---
 
 
+
+PanVA is web application allowing users to visually and interatively explore sequence variants in pangenomes. It provides context for these variants by displaying their corresponding annotations, phylogenetic and phenotypic information. The source code is available on [GitHub](https://github.com/PanBrowse/PanVA/tree/main).

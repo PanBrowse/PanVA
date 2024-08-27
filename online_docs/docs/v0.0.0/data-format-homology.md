@@ -2,9 +2,10 @@
 
 This file provides a specification for the data format as used by the PanVA Homology app. 
 
-We recommend to run PanTools (<https://pantools.readthedocs.io/en/stable/>) to construct a pangenome database and run functionality to obtain homology groups, sequence alignments, annotations and metadata. We support this format and are currently working on a pipeline to preprocess the PanTools data such that it is formatted correctly for PanVA. More information about this pipeline will be released soon. However, it may be possible to obtain the analysis data using other software if the output can be transformed to the format required for PanVA.
+We recommend to run [PanTools](https://pantools.readthedocs.io/en/stable/) to construct a pangenome database and run functionality to obtain homology groups, sequence alignments, annotations and metadata. We support this format and provide a [pipelines to preprocess the PanTools data](https://pantools.readthedocs.io/en/update_tutorial/tutorial/tutorial_part7.html) such that it is formatted correctly for PanVA. 
+It may also be possible to obtain this data using other software if the output can be transformed to the format required for PanVA.
 
-Below we describe the data directory structure and the file names, formats, and data features of the files inside those directories.
+Below we describe the data directory structure and file names, formats, and data features of the files inside those directories.
 
 ## Data directory structure 
 
@@ -31,7 +32,7 @@ Each homology group is a subdirectory of the app data directory and has a unique
 
 ## Dataset files
 
-### `homologies.json`
+### <a id="homologies"> </a> `homologies.json`
 
 A list of objects representing all homology ids of the selected set. Homology id objects have the following properties:
 
@@ -60,17 +61,19 @@ An example object in the array:
 ]
 ```
 
-Important: When using an array of strings as metadata, be sure to consistently use an array across all homologies.
+**Important:** When using an array of strings as metadata, be sure to consistently use an array across all homologies.
 
 
 ### `tree files` (OPTIONAL)
 
-The PanVA frontend can be configured to display one or more additional trees, such as CoreSNP. The files are in Newick format and should be placed in the root of the app directory.
+The PanVA frontend can be configured to display one or more additional trees, such as a Core SNP tree, gene dinstance or kmer distance tree. 
+- The files are in Newick format, with distances and `genome_nr` as leaf names.
+- The tree files have `.txt` extensions should be placed in the root of the app directory.
 
 
 ## Homology group files
 
-#### `alignments.csv`
+### <a id="alignments"> </a>`alignments.csv`
 
 This is a matrix of the aligned gene sequences and position specific attributes. For example:
 
@@ -100,7 +103,7 @@ The sequences extracted from the multiple sequence alignment. This file is used 
 * `nuc_trimmed_seq`: The nucleotide sequences, trimmed in PanTools (_string_).
 
 
-### `variable.csv`
+### <a id="variable"> </a>`variable.csv`
 
 Summary of all variable positions in the alignment and their value counts. This data is used for calculation of the conservation score at each aligned position. For example:
 
@@ -110,7 +113,7 @@ Summary of all variable positions in the alignment and their value counts. This 
 | 9          | False         | 1   | 0   | 70  | 99  | 0     | False            |
 
 * `position`: The position in the alignment (_integer_).
-* `informative`: Is position informative in nucleotide alignment (_boolean_).
+* `informative`: Is position [parsimony informative](https://pantools.readthedocs.io/en/update_tutorial/analysis/msa.html) in nucleotide alignment (_boolean_). 
 * `A`: Number of sequences containing nucleotide A (_integer_).
 * `C`: Number of sequences containing nucleotide C (_integer_).
 * `G`: Number of sequences containing nucleotide G (_integer_).
@@ -120,7 +123,7 @@ Summary of all variable positions in the alignment and their value counts. This 
 This file can be extended with [additional metadata](#additionalmetadata).
 
 
-### `annotations.csv` (OPTIONAL)
+### <a id="annotations"> </a>`annotations.csv` (OPTIONAL)
 
 This optional file is only used for Eukaryotic pangenomes. It specifies the gene models matched to each gene sequences of reference genomes (for which GFF files are available). For example:
 
@@ -131,24 +134,20 @@ This optional file is only used for Eukaryotic pangenomes. It specifies the gene
 
 * `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
 * `position`: The position in the alignment (_integer_).
-
-This file can be extended with [additional metadata](#additionalmetadata).
-
-This file can be extended with additional columns to be used as annotations. For example:
-
 * `cds`: Does position have this feature in nucleotide alignment (_boolean_).
 * `exon`: Does position have this feature in nucleotide alignment (_boolean_).
 
-The frontend needs to be [configured](../../frontend/docs/config.md) to display these annotations.
+This file can be extended with [additional metadata](#additionalmetadata).
+The frontend needs to be [configured](./config.md) to display these annotations.
 
 
-### `metadata.csv` (OPTIONAL)
+### <a id="metadata"> </a>`metadata.csv` (OPTIONAL)
 
 An optional CSV file containing metadata for each genome indicated by `mRNA_id` that should be included in the analysis. For example: 
 
 | `mRNA_id`                | `virulence` | `species`     |
 |--------------------------|-------------|---------------|
-| 97_1_FEDMPDKE_03607_mRNA | avirulent   | P.brasiliens  |
+| 97_1_FEDMPDKE_03607_mRNA | avirulent   | P.brasiliense |
 | 87_1_JABOGBIO_03490_mRNA | ?           | P.brasiliense |
 
 * `mRNA_id`: A unique identifier for each sequence in the homology group (_string_).
@@ -161,11 +160,11 @@ This file can be extended with [additional metadata](#additionalmetadata).
 The linkage matrix for generating the initial clustering dendrogram, stored as NumPy file. This file is generated once by the API and is used to improve application performance.
 
 **Important:** Please delete this file if the contents of `sequences.csv` has changed.
+ 
 
+## <a id="additionalmetadata"></a> Additional metadata  
 
-## Additional metadata
-
-Some files, specifically [`alignments.csv`](#alignmentscsv), [`metadata.csv`](#metadatacsv), and [`variable.csv`](#variablecsv), can be extended with additional metadata columns.
+Some files, specifically [`alignments.csv`](#alignments), [`metadata.csv`](#metadata), and [`variable.csv`](#variable), can be extended with additional metadata columns.
 Values in each column should be of the same type (string, number, optional boolean).
 
-The frontend needs to be [configured](../../frontend/docs/config.md) to use these additional columns.
+The frontend needs to be [configured](./config.md) to use these additional columns.

@@ -1,25 +1,25 @@
 # Configuration <Badge type="info" text="v0.0.0" />
 
-The PanVA application can be configured with a runtime configuration file `config.json` placed in the root directory of the application.
+The PanVA application can be configured with a runtime configuration file `config.json` placed in the root directory of the application. It's recommended to use a config file whenever metadata, annotations, and trees need to be displayed. 
 
 ## Options
 
 All fields are optional.
 
-| Field                                     | Type           | Default                              | Description                                    |
-|-------------------------------------------|----------------|--------------------------------------|------------------------------------------------|
-| `apiUrl`                                  | `string`       | `"/api/"`                            | Base URI of the API.                           |
-| `apps`                                    | `string[]`     | `["homology"]`                       | Apps that should be enabled.                   |
-| `homology`                                | `object`       |                                      | Configuration options for the `homology` app.  |
-| `homology.alignmentMetadata`              | `Metadata[]`   | `[]`                                 | Alignment cell metadata.                       |
-| `homology.annotations`                    | `Annotation[]` | `[]`                                 | List of available annotations.                 |
-| `homology.defaultId`                      | `integer`      | The first id in the homologies list. | Default homology group to load.                |
-| `homology.defaultSequenceMetadataColumns` | `string[]`     | `[]`                                 | Default sequence metadata columns to be shown. |
-| `homology.homologyMetadata`               | `Metadata[]`   | `[]`                                 | Homology group metadata.                       |
-| `homology.sequenceMetadata`               | `Metadata[]`   | `[]`                                 | Sequence metadata, user-selectable.            |
-| `homology.trees`                          | `Tree[]`       | `[]`                                 | Additional trees.                              |
-| `homology.variableMetadata`               | `Metadata[]`   | `[]`                                 | Variable position metadata.                    |
-| `title`                                   | `string`       | `"PanVA"`                            | Title of the application.                      |
+| Field                                           | Type                          | Default                              | Description                                    |
+|-------------------------------------------------|-------------------------------|--------------------------------------|------------------------------------------------|
+| `apiUrl`                                        | `string`                      | `"/api/"`                            | Base URI of the API.                           |
+| `apps`                                          | `string[]`                    | `["homology"]`                       | Apps that should be enabled.                   |
+| `homology`                                      | `object`                      |                                      | Configuration options for the `homology` app.  |
+| `homology.alignmentMetadata`                    | [`Metadata[]`](#metadata)     | `[]`                                 | Alignment cell metadata.                       |
+| `homology.annotations`                          | [`Annotation[]`](#annotation) | `[]`                                 | List of available annotations.                 |
+| `homology.defaultId`                            | `integer`                     | The first id in the homologies list. | Default homology group to load.                |
+| `homology.defaultSequence`<br>`MetadataColumns` | `string[]`                    | `[]`                                 | Default sequence metadata columns to be shown. |
+| `homology.homologyMetadata`                     | [`Metadata[]`](#metadata)     | `[]`                                 | Homology group metadata.                       |
+| `homology.sequenceMetadata`                     | [`Metadata[]`](#metadata)     | `[]`                                 | Sequence metadata, user-selectable.            |
+| `homology.trees`                                | [`Tree[]`](#tree)             | `[]`                                 | Additional trees.                              |
+| `homology.variableMetadata`                     | [`Metadata[]`](#metadata)     | `[]`                                 | Variable position metadata.                    |
+| `title`                                         | `string`                      | `"PanVA"`                            | Title of the application.                      |
 
 
 ## Annotation
@@ -28,22 +28,11 @@ Positions can be annotated with one or more features. You can configure which an
 
 Each column should be configured as a JSON object with the following options:
 
-| Field    | Type     | Required           | Notes                                                                                     |
-|----------|----------|--------------------|-------------------------------------------------------------------------------------------|
-| `column` | `string` | :heavy_check_mark: | CSV column in [`annotations.csv`](../../api/docs/data-format.md#annotationscsv-optional). |
-| `label`  | `string` | :heavy_check_mark: | Description of the annotation.                                                            |
+| Field    | Type     | Notes                                                                                     |
+|----------|----------|-------------------------------------------------------------------------------------------|
+| `column` | `string` | CSV column in [`annotations.csv`](../../api/docs/data-format.md#annotationscsv-optional). |
+| `label`  | `string` | Description of the annotation.                                                            |
 
-
-## Tree
-
-Besides the default and custom dendrogram, PanVA can render additional trees in Newick for. You can configure which columns should be displayed.
-
-Each column should be configured as a JSON object with the following options:
-
-| Field      | Type     | Notes                                                                       |
-|------------|----------|-----------------------------------------------------------------------------|
-| `filename` | `string` | Filename of the tree file (in Newick format) in the root dataset directory. |
-| `label`    | `string` | Description of the tree.                                                    |
 
 
 ## Metadata
@@ -52,25 +41,24 @@ Metadata can be visualized in a number of different ways. You can configure whic
 
 Each column should be configured as a JSON object with the following options:
 
-| Field    | Type                                           | Notes                                               |
-|----------|------------------------------------------------|-----------------------------------------------------|
-| `column` | `string`                                       | CSV column in the respective file (see note below). |
-| `label`  | `string`                                       | Short description of the column.                    |
-| `type`   | `"boolean" \| "categorical" \| "quantitative"` |                                                     |
+| Field    | Type                                                                                                           | Notes                                               |
+|----------|----------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
+| `column` | `string`                                                                                                       | CSV column in the respective file (see note below). |
+| `label`  | `string`                                                                                                       | Name of the column to be displayed.                 |
+| `type`   | [`"boolean"`](#type-boolean) \| [`"categorical"`](#type-categorical) \| [`"quantitative"`](#type-quantitative) |                                                     |
 
 Based on the value of `type` these options are extended with the options as defined below.
 
 **Important:** The same metadata column can not be displayed more than once.
 
-
 ### Files
 
 This type is used for several kinds of metadata, which are stored in multiple files: 
 
-* `alignmentMetadata` is stored in [`alignments.csv`](../../api/docs/data-format.md#alignmentscsv) and contains metadata for each position in each aligned gene sequence.
-* `homologyMetadata` is stored in [`homologies.json`](../../api/docs/data-format.md#homologiesjson) and contains metadata for each homology group.
-* `sequenceMetadata` is stored in [`metadata.csv`](../../api/docs/data-format.md#metadatacsv) and contains metadata for each aligned gene sequence (metadata is the same for all positions).
-* `variableMetadata` is stored in [`variable.csv`](../../api/docs/data-format.md#variablecsv) and contains metadata for each variable position (metadata is the same for all sequences).
+* `alignmentMetadata` is stored in [`alignments.csv`](./data-format-homology.md#alignments) and contains metadata for each position in each aligned gene sequence.
+* `homologyMetadata` is stored in [`homologies.json`](./data-format-homology.md#homologies) and contains metadata for each homology group.
+* `sequenceMetadata` is stored in [`metadata.csv`](./data-format-homology.md#metadata) and contains metadata for each aligned gene sequence (metadata is the same for all positions).
+* `variableMetadata` is stored in [`variable.csv`](./data-format-homology.md#variable) and contains metadata for each variable position (metadata is the same for all sequences).
 
 Metadata of type `boolean` in `variableMetadata` can also be used to filter positions.
 
@@ -97,7 +85,7 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
 | `width` | `number` | `120`   | Width of the column for sequence metadata. |
 
 
-### Type: Quantitative
+### <a id="quantitative"> </a> Type: Quantitative
 
 | Field      | Type     | Default                 | Notes                                                               |
 |------------|----------|-------------------------|---------------------------------------------------------------------|
@@ -107,8 +95,20 @@ When `values` is omitted, the value will be matched (case-insensitive) against `
 | `width`    | `number` | `120`                   | Width of the column for sequence metadata.                          |
 
 
+## Tree
 
-## Example configuration file {#example-config}
+Besides the default and custom dendrogram, PanVA can render additional trees in Newick for. You can configure which columns should be displayed.
+
+Each column should be configured as a JSON object with the following options:
+
+| Field      | Type     | Notes                                                                       |
+|------------|----------|-----------------------------------------------------------------------------|
+| `filename` | `string` | Filename of the tree file (in Newick format) in the root dataset directory. |
+| `label`    | `string` | Description of the tree.                                                    |
+
+
+
+## Example config file {#example-config}
 
 ```json
 {
