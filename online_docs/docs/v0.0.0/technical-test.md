@@ -9,13 +9,13 @@ PanVA requires data that follows [this format](./data-format-homology.md).
 ### PanTools and PanUtils
 We recommend to use our PanUtils pipelines to go generate input data in the correct format.
 Three PanUtils pipelines can be used in the following order:
-1. **QC**: Filter and do quality control of raw data
-2. **Pantools functions**: Build a pangenome and run necessary analysis functions
-3. **Preprocessing PanVA**: Preprocess the PanTools data must for PanVA. 
+*  **QC**: Filter and do quality control of raw data
+*  **Pantools functions**: Build a pangenome and run necessary analysis functions
+*  **Preprocessing PanVA**: Preprocess the PanTools data for PanVA. 
 
 ::: info
 
-The protocol with detailed steps for each pipeline is given [here](https://pantools.readthedocs.io/en/update_tutorial/tutorial/tutorial_part7.html).
+The protocol with detailed steps for each pipeline is given [here](https://pantools.readthedocs.io/en/stable/tutorial/tutorial_part4.html).
 
 :::
 
